@@ -2074,7 +2074,7 @@ $('#backButton').addEventListener('click', () => { renderLists(); clearDetailPag
 $('#leadSearch').addEventListener('input', renderLists);
 $('#addLeadBottomButton').addEventListener('click', openNewLeadModal);
 document.getElementById('desktopHeaderAddLeadButton')?.addEventListener('click', openNewLeadModal);
-$('#editLeadButton')?.addEventListener('click', () => openEditLeadModal());
+$('#editLeadButton')?.addEventListener('click', () => openLeadDetailsEditor());
 document.addEventListener('click', event => {
   const editLeadStatusButton = event.target.closest('[data-edit-lead-status]');
   if (editLeadStatusButton) {
@@ -2890,7 +2890,7 @@ function setLeadEntryMode(mode) {
 }
 
 function resetLeadForm() {
-  ['newName','newCompany','newPhone','newEmail','newSite','newAge','newIssue'].forEach(id => {
+  ['newName','newCompany','newPhone','newEmail','newSite','newAge','newIssue','newConcerns','newNotes'].forEach(id => {
     const input = document.getElementById(id);
     if (input) input.value = '';
   });
@@ -2922,6 +2922,29 @@ function openNewLeadModal() {
   setLeadEntryMode('single');
   openModal('newLeadModal');
   setTimeout(() => $('#newCompany').focus(), 50);
+}
+
+
+function openLeadDetailsEditor(leadId = currentLeadId) {
+  if (!currentUserIsKiara()) return toast('Only Kiara can edit leads');
+  const lead = state.leads.find(item => item.id === leadId);
+  if (!lead) return toast('Lead not found');
+
+  editingLeadId = lead.id;
+  setLeadModalMode('edit');
+
+  $('#newCompany').value = lead.company || '';
+  $('#newName').value = lead.name || '';
+  $('#newPhone').value = lead.phone ? formatPhoneNumber(lead.phone) : '';
+  $('#newEmail').value = lead.email || '';
+  $('#newSite').value = lead.site || '';
+  $('#newAge').value = lead.age || '';
+  $('#newIssue').value = lead.issue || '';
+  $('#newConcerns').value = lead.concerns || '';
+  $('#newNotes').value = lead.notes || '';
+
+  openModal('newLeadModal');
+  setTimeout(() => $('#newCompany')?.focus(), 50);
 }
 
 function openEditLeadModal(leadId = currentLeadId) {
@@ -3157,7 +3180,7 @@ newPhoneInput.addEventListener('keydown', event => {
   if (!/^\d$/.test(event.key)) event.preventDefault();
 });
 
-['newName','newCompany','newSite','newAge','newIssue'].forEach(id => {
+['newName','newCompany','newSite','newAge','newIssue','newConcerns','newNotes'].forEach(id => {
   const input = $(`#${id}`);
   if (!input) return;
   input.addEventListener('paste', event => {
@@ -3187,7 +3210,9 @@ $('#createLeadButton').addEventListener('click', async () => {
     email: $('#newEmail').value.trim(),
     site: $('#newSite').value.trim(),
     age: $('#newAge').value.trim(),
-    issue: $('#newIssue').value.trim()
+    issue: $('#newIssue').value.trim(),
+    concerns: $('#newConcerns')?.value.trim() || '',
+    notes: $('#newNotes')?.value.trim() || ''
   };
 
   if (editingLeadId) {
@@ -3201,6 +3226,10 @@ $('#createLeadButton').addEventListener('click', async () => {
     ensureAutomaticTags(lead);
     lead.age = values.age;
     lead.issue = values.issue;
+    lead.concerns = values.concerns;
+    lead.notes = values.notes;
+    lead.updatedAt = new Date().toISOString();
+    addLeadHistory(lead, 'edited', currentUserName || 'Kiara', lead.updatedAt);
     saveState(lead.id);
     closeModal('newLeadModal');
     editingLeadId = null;

@@ -9149,3 +9149,228 @@ select {
     font-size: 11.5px;
   }
 }
+
+
+/* =========================================================
+   MOBILE LEAD CARDS — REFERENCE FIT
+   Phone-only. Desktop is unchanged.
+   ========================================================= */
+@media (max-width: 760px) {
+  #leadsScreen .lead-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  #leadsScreen .lead-item-wrap {
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+
+  #leadsScreen .lead-item-wrap > .lead-item {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 126px !important;
+    height: auto !important;
+    padding: 15px 16px 14px !important;
+    display: block !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    text-align: left !important;
+  }
+
+  #leadsScreen .lead-avatar,
+  #leadsScreen .lead-item > .bi-chevron-right {
+    display: none !important;
+  }
+
+  #leadsScreen .lead-copy,
+  #leadsScreen .lead-card-copy-ordered {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 0 !important;
+    overflow: visible !important;
+  }
+
+  #leadsScreen .lead-card-company {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 4px !important;
+    color: #f3f8ff !important;
+    font-size: 16px !important;
+    font-weight: 850 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -.2px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #leadsScreen .lead-card-contact {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 8px !important;
+    color: #f3f8ff !important;
+    font-size: 14px !important;
+    font-weight: 650 !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #leadsScreen .lead-card-call-status {
+    display: flex !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 0 10px !important;
+    color: #f3f8ff !important;
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+  }
+
+  #leadsScreen .lead-card-call-status i {
+    margin-right: 6px !important;
+    color: #f3f8ff !important;
+    font-size: 13px !important;
+    flex: 0 0 auto !important;
+  }
+
+  #leadsScreen .lead-card-reference {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: auto 0 0 !important;
+  }
+
+  #leadsScreen .lead-source-chip {
+    min-height: 27px !important;
+    padding: 4px 9px !important;
+    border-radius: 999px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  #leadsScreen .lead-source-chip i {
+    font-size: 11px !important;
+  }
+
+  #leadsScreen .lead-card-site-tags,
+  #leadsScreen .lead-card-site-tags-corner {
+    position: absolute !important;
+    left: auto !important;
+    right: 14px !important;
+    top: auto !important;
+    bottom: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 5px !important;
+    max-width: 58% !important;
+    margin: 0 !important;
+    z-index: 2 !important;
+  }
+
+  #leadsScreen .lead-card-site-tags .lead-type-badge,
+  #leadsScreen .lead-card-site-tags .tag-badge {
+    min-height: 26px !important;
+    padding: 4px 8px !important;
+    border-radius: 999px !important;
+    font-size: 10.5px !important;
+    line-height: 1 !important;
+  }
+
+  #leadsScreen .lead-item:has(.lead-card-site-tags) .lead-card-reference {
+    padding-right: 42% !important;
+  }
+
+  #leadsScreen .lead-priority-tags {
+    top: 12px !important;
+    right: 12px !important;
+  }
+
+  #leadsScreen .lead-item.wrong-number-card,
+  #leadsScreen .lead-item.hot-lead-card {
+    padding-top: 42px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #leadsScreen .lead-item-wrap > .lead-item {
+    min-height: 122px !important;
+    padding: 14px 14px 13px !important;
+  }
+
+  #leadsScreen .lead-card-company {
+    font-size: 15px !important;
+  }
+
+  #leadsScreen .lead-card-contact {
+    font-size: 13px !important;
+  }
+
+  #leadsScreen .lead-card-call-status {
+    font-size: 12px !important;
+  }
+
+  #leadsScreen .lead-source-chip {
+    min-height: 25px !important;
+    padding: 3px 8px !important;
+    font-size: 10.5px !important;
+  }
+
+  #leadsScreen .lead-card-site-tags,
+  #leadsScreen .lead-card-site-tags-corner {
+    right: 12px !important;
+    bottom: 13px !important;
+  }
+}
+
+
+/* Full lead editor */
+#newLeadModal textarea {
+  width: 100%;
+  min-height: 82px;
+  resize: vertical;
+  border: 1px solid #114b86;
+  border-radius: 11px;
+  background: #020b15;
+  color: #f3f8ff;
+  padding: 10px 12px;
+  font: inherit;
+  outline: 0;
+}
+
+#newLeadModal textarea:focus {
+  border-color: #2f92ff;
+  box-shadow: 0 0 0 2px rgba(47,146,255,.12);
+}
+
+@media (max-width: 760px) {
+  #newLeadModal .modal-card {
+    max-height: 88dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #newLeadModal textarea {
+    min-height: 76px;
+    font-size: 16px;
+  }
+}
