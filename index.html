@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Project Management</title>
   <link rel="icon" type="image/png" sizes="64x64" href="app-icon/favicon-64.png" />
   <link rel="apple-touch-icon" href="app-icon/apple-touch-icon.png" />
@@ -89,7 +89,14 @@
   </section>
 
   <main class="app-shell" id="appShell" hidden>
-    <aside class="sidebar" aria-label="Project management navigation">
+    <button class="mobile-menu-button" id="mobileMenuButton" type="button" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false">
+      <i class="bi bi-list" aria-hidden="true"></i>
+    </button>
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Close navigation" hidden></button>
+    <aside class="sidebar" id="appSidebar" aria-label="Project management navigation">
+      <button class="sidebar-close-button" id="sidebarCloseButton" type="button" aria-label="Close navigation">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
       <div class="user-block">
         <span class="user-label">Logged in as</span>
         <div class="user-name">

@@ -458,3 +458,90 @@
     initialize();
   }
 })();
+
+
+// Mobile sidebar drawer + mobile gesture lock
+(() => {
+  const shell = document.getElementById("appShell");
+  const menuButton = document.getElementById("mobileMenuButton");
+  const closeButton = document.getElementById("sidebarCloseButton");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  const sidebar = document.getElementById("appSidebar");
+
+  if (!shell || !menuButton || !sidebar) return;
+
+  const isMobile = () => window.matchMedia("(max-width: 760px)").matches;
+
+  const openSidebar = () => {
+    if (!isMobile()) return;
+    shell.classList.add("sidebar-open");
+    menuButton.setAttribute("aria-expanded", "true");
+    if (backdrop) backdrop.hidden = false;
+  };
+
+  const closeSidebar = () => {
+    shell.classList.remove("sidebar-open");
+    menuButton.setAttribute("aria-expanded", "false");
+    if (backdrop) backdrop.hidden = true;
+  };
+
+  menuButton.addEventListener("click", openSidebar);
+  closeButton?.addEventListener("click", closeSidebar);
+  backdrop?.addEventListener("click", closeSidebar);
+
+  sidebar.addEventListener("click", (event) => {
+    if (isMobile() && event.target.closest(".nav-item")) {
+      closeSidebar();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (!isMobile()) closeSidebar();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeSidebar();
+  });
+
+  // Block browser pinch gestures where supported (iOS Safari).
+  ["gesturestart", "gesturechange", "gestureend"].forEach((eventName) => {
+    document.addEventListener(eventName, (event) => event.preventDefault(), { passive: false });
+  });
+
+  // Block multi-touch pinch zoom.
+  document.addEventListener("touchmove", (event) => {
+    if (event.touches && event.touches.length > 1) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+
+  // Prevent double-tap zoom without interfering with normal taps.
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", (event) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+})();
+
+
+// Keep mobile navigation controls in sync with app visibility.
+(() => {
+  const shell = document.getElementById("appShell");
+  const menuButton = document.getElementById("mobileMenuButton");
+  const closeButton = document.getElementById("sidebarCloseButton");
+  if (!shell || !menuButton) return;
+
+  const syncMobileControls = () => {
+    const appHidden = shell.hidden;
+    menuButton.hidden = appHidden;
+    if (closeButton) closeButton.hidden = appHidden;
+  };
+
+  syncMobileControls();
+
+  const observer = new MutationObserver(syncMobileControls);
+  observer.observe(shell, { attributes: true, attributeFilter: ["hidden"] });
+})();
