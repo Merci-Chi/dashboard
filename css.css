@@ -848,74 +848,83 @@ textarea {
 }
 
 
-/* Mobile refinements: persistent account header + independent scrolling */
+/* Fixed mobile app header */
+.mobile-app-header {
+  display: none;
+}
+
 @media (max-width: 760px) {
-  html,
-  body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+  :root {
+    --mobile-header-height: 66px;
   }
 
-  .app-shell {
-    width: 100%;
-    height: 100dvh;
-    min-height: 100dvh;
-    overflow: hidden;
-  }
-
-  .sidebar {
+  .mobile-app-header {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--mobile-header-height) + env(safe-area-inset-top));
+    padding:
+      env(safe-area-inset-top)
+      max(14px, env(safe-area-inset-right))
+      0
+      max(14px, env(safe-area-inset-left));
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    align-items: center;
+    justify-content: space-between;
+    background: #000;
+    border-bottom: 1px solid rgba(47,146,255,.14);
+    box-shadow: 0 10px 30px rgba(0,0,0,.38);
   }
 
-  .user-block {
-    position: relative;
-    z-index: 3;
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-header-button {
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(47,146,255,.30);
+    border-radius: 13px;
+    background: #071b31;
+    color: #f3f8ff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 18px rgba(47,146,255,.08);
+    cursor: pointer;
     flex: 0 0 auto;
-    margin: 0 0 10px;
-    padding: 4px 48px 13px 7px;
-    background: var(--sidebar);
-    border-bottom: 1px solid var(--line);
   }
 
-  .user-label {
-    display: block !important;
-    margin-bottom: 5px;
-    font-size: 9px;
-    letter-spacing: 1.35px;
+  .mobile-header-button:active {
+    transform: scale(.96);
+    background: #0b223e;
   }
 
-  .user-name {
-    min-height: 34px;
+  .mobile-header-button i {
+    font-size: 21px;
+    line-height: 1;
   }
 
-  .sign-out-button {
-    display: grid !important;
-    position: absolute;
-    right: 4px;
-    bottom: 12px;
-    width: 36px;
-    height: 36px;
-    border-color: rgba(47,146,255,.16);
-    background: rgba(47,146,255,.05);
+  #mobileTopButton {
+    opacity: .55;
+    transition: opacity .16s ease, transform .16s ease, background .16s ease;
   }
 
-  .nav {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    padding: 0 4px max(24px, env(safe-area-inset-bottom)) 0;
+  #mobileTopButton.is-active {
+    opacity: 1;
+  }
+
+  /* Remove the old floating-menu positioning */
+  .mobile-menu-button {
+    display: none !important;
   }
 
   .content {
-    position: relative;
     height: 100dvh;
-    min-height: 0;
+    padding-top: calc(var(--mobile-header-height) + env(safe-area-inset-top));
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -923,114 +932,54 @@ textarea {
   }
 
   .view {
-    min-height: 100dvh;
+    min-height: calc(100dvh - var(--mobile-header-height) - env(safe-area-inset-top));
   }
 
-  .placeholder-view {
-    min-height: 100dvh;
-  }
-
+  .placeholder-view,
   .unauthorized-view {
-    min-height: 100dvh;
-    padding:
-      calc(max(18px, env(safe-area-inset-top)) + 54px)
-      16px
-      max(24px, env(safe-area-inset-bottom));
-  }
-
-  .unauthorized-card {
-    width: 100%;
-    max-width: 520px;
-    padding: 26px 18px;
-    border-radius: 18px;
-  }
-
-  .unauthorized-card h1 {
-    font-size: clamp(24px, 8vw, 32px);
-    line-height: 1.08;
-  }
-
-  .leads-view {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding:
-      calc(max(16px, env(safe-area-inset-top)) + 54px)
-      12px
-      max(26px, env(safe-area-inset-bottom));
-  }
-
-  .leads-topbar {
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .page-title {
-    font-size: 24px;
-    line-height: 1.08;
-  }
-
-  .add-lead-btn {
-    min-height: 40px;
-    padding: 0 12px;
-    border-radius: 11px;
-  }
-
-  .lead-search {
-    height: 44px;
-    margin-bottom: 12px;
-  }
-
-  .lead-summary {
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-
-  .summary-card {
-    min-height: 62px;
-    padding: 10px 12px;
-    border-radius: 12px;
-  }
-
-  .lead-section-head {
-    gap: 10px;
-  }
-
-  .lead-section-head h2 {
-    font-size: 18px;
-  }
-
-  .lead-list-shell {
-    border-radius: 14px;
+    min-height: calc(100dvh - var(--mobile-header-height) - env(safe-area-inset-top));
   }
 
   .leads-embed-view {
-    height: 100dvh;
+    height: calc(100dvh - var(--mobile-header-height) - env(safe-area-inset-top));
     min-height: 0;
     padding: 0;
     overflow: hidden;
   }
 
   .leads-iframe {
+    display: block;
     width: 100%;
-    height: 100dvh;
+    height: 100%;
     min-height: 0;
+    border: 0;
   }
 
-  .auth-gate,
-  .account-setup-gate {
-    width: 100%;
+  /* The header now owns the top spacing. */
+  .leads-view {
+    padding-top: 0;
   }
 
-  .auth-card,
-  .account-setup-card {
-    width: min(100%, 420px);
-    padding: 22px 18px;
-    border-radius: 17px;
+  .unauthorized-view {
+    padding-top: 20px;
   }
 
-  .auth-card h1,
-  .account-setup-card h1 {
-    font-size: 25px;
+  /* Sidebar starts below iOS browser chrome but covers the app header while open */
+  .sidebar {
+    z-index: 1003;
+    top: 0;
+    height: 100dvh;
+  }
+
+  .sidebar-backdrop {
+    z-index: 1002;
+  }
+
+  .sidebar-close-button {
+    z-index: 4;
+  }
+
+  .app-shell.sidebar-open .mobile-app-header {
+    pointer-events: none;
   }
 }

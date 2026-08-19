@@ -527,21 +527,123 @@
 })();
 
 
-// Keep mobile navigation controls in sync with app visibility.
+// Fixed mobile app header controls
 (() => {
   const shell = document.getElementById("appShell");
-  const menuButton = document.getElementById("mobileMenuButton");
-  const closeButton = document.getElementById("sidebarCloseButton");
-  if (!shell || !menuButton) return;
+  const header = document.getElementById("mobileAppHeader");
+  const refreshButton = document.getElementById("mobileRefreshButton");
+  const topButton = document.getElementById("mobileTopButton");
+  const content = document.getElementById("content");
+  const leadsFrame = document.getElementById("leadsFrame");
 
-  const syncMobileControls = () => {
-    const appHidden = shell.hidden;
-    menuButton.hidden = appHidden;
-    if (closeButton) closeButton.hidden = appHidden;
+  if (!shell || !header) return;
+
+  const isMobile = () => window.matchMedia("(max-width: 760px)").matches;
+
+  const getActiveView = () =>
+    document.querySelector(".view.active");
+
+  const scrollParentToTop = (smooth = true) => {
+    if (!content) return;
+    content.scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
   };
 
-  syncMobileControls();
+  const scrollIframeToTop = (smooth = true) => {
+    if (!leadsFrame) return false;
+    try {
+      const win = leadsFrame.contentWindow;
+      const doc = leadsFrame.contentDocument;
+      if (!win || !doc) return false;
 
-  const observer = new MutationObserver(syncMobileControls);
-  observer.observe(shell, { attributes: true, attributeFilter: ["hidden"] });
+      // Covers normal document scrolling and apps with a dedicated scroll container.
+      const candidates = [
+        doc.scrollingElement,
+        doc.documentElement,
+        doc.body,
+        doc.querySelector(".content"),
+        doc.querySelector(".lead-board"),
+        doc.querySelector(".app"),
+        doc.querySelector("main")
+      ].filter(Boolean);
+
+      let handled = false;
+      for (const el of candidates) {
+        if (typeof el.scrollTo === "function" && el.scrollTop > 0) {
+          el.scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+          handled = true;
+        }
+      }
+
+      if (!handled && typeof win.scrollTo === "function") {
+        win.scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+        handled = true;
+      }
+      return handled;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const activeViewIsLeads = () =>
+    getActiveView()?.id === "view-leads";
+
+  refreshButton?.addEventListener("click", () => {
+    if (activeViewIsLeads() && leadsFrame) {
+      try {
+        leadsFrame.contentWindow.location.reload();
+        return;
+      } catch (_) {}
+    }
+    window.location.reload();
+  });
+
+  topButton?.addEventListener("click", () => {
+    if (activeViewIsLeads()) {
+      scrollIframeToTop(true);
+    }
+    scrollParentToTop(true);
+  });
+
+  const syncTopButton = () => {
+    if (!topButton || !isMobile()) return;
+    let isScrolled = (content?.scrollTop || 0) > 80;
+
+    if (activeViewIsLeads() && leadsFrame) {
+      try {
+        const doc = leadsFrame.contentDocument;
+        const scrollTop = Math.max(
+          doc?.scrollingElement?.scrollTop || 0,
+          doc?.documentElement?.scrollTop || 0,
+          doc?.body?.scrollTop || 0
+        );
+        isScrolled = isScrolled || scrollTop > 80;
+      } catch (_) {}
+    }
+
+    topButton.classList.toggle("is-active", isScrolled);
+  };
+
+  content?.addEventListener("scroll", syncTopButton, { passive: true });
+
+  leadsFrame?.addEventListener("load", () => {
+    try {
+      const doc = leadsFrame.contentDocument;
+      doc?.addEventListener("scroll", syncTopButton, { passive: true, capture: true });
+      leadsFrame.contentWindow?.addEventListener("scroll", syncTopButton, { passive: true });
+    } catch (_) {}
+    syncTopButton();
+  });
+
+  const syncHeaderVisibility = () => {
+    const shouldShow = isMobile() && !shell.hidden;
+    header.hidden = !shouldShow;
+  };
+
+  syncHeaderVisibility();
+  window.addEventListener("resize", syncHeaderVisibility);
+
+  const shellObserver = new MutationObserver(syncHeaderVisibility);
+  shellObserver.observe(shell, { attributes: true, attributeFilter: ["hidden"] });
+
+  syncTopButton();
 })();
