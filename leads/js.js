@@ -123,6 +123,11 @@ async function storeSoldPhoneSecurely(lead) {
 }
 
 function showSyncStatus(text) {
+  if (!text) return;
+  console.log('[Leads Sync]', text);
+  if (/fail|error/i.test(text) && typeof toast === 'function') {
+    toast(text);
+  }
 }
 
 async function upsertLeadsByTable(leads) {
@@ -700,6 +705,51 @@ async function deleteHistoryEntry(historyId) {
     toast('Could not save history deletion');
   }
 }
+
+
+async function applyParentSupabaseSession(parentSession) {
+  if (!parentSession?.access_token || !parentSession?.refresh_token) {
+    throw new Error('Parent session is missing Supabase tokens.');
+  }
+
+  const { data, error } = await supabaseClient.auth.setSession({
+    access_token: parentSession.access_token,
+    refresh_token: parentSession.refresh_token
+  });
+
+  if (error) throw error;
+
+  supabaseSession = data?.session || null;
+
+  if (!supabaseSession) {
+    throw new Error('Supabase did not create a Leads session.');
+  }
+
+  updateSignedInUserUi();
+  await hydrateFromSupabase();
+  subscribeToLeadChanges();
+
+  const counts = {
+    new: state.leads.filter(lead => lead.status === 'new').length,
+    followup: state.leads.filter(lead => lead.status === 'followup').length,
+    sold: state.leads.filter(lead => lead.status === 'sold').length
+  };
+
+  console.log('[Leads Sync] Loaded from Supabase:', counts);
+}
+
+window.addEventListener('message', async event => {
+  const localFileMode = window.location.protocol === 'file:';
+  if (!localFileMode && event.origin !== window.location.origin) return;
+  if (event.data?.type !== 'STEADY_HANDS_SUPABASE_SESSION') return;
+
+  try {
+    await applyParentSupabaseSession(event.data.session);
+  } catch (error) {
+    console.error('Could not apply parent Supabase session:', error);
+    showSyncStatus(`Lead sync failed: ${error.message || error}`);
+  }
+});
 
 async function initializeSupabaseSession() {
   try {
@@ -3263,10 +3313,12 @@ supabaseClient.auth.onAuthStateChange(async (_event, nextSession) => {
   subscribeToLeadChanges();
 });
 
-initializeSupabaseSession().then(async () => {
-  // The parent/main app owns access and authentication.
-  // Supabase is the source of truth when a shared session exists.
-  if (!supabaseSession) await loadLeadsJson();
+initializeSupabaseSession().then(() => {
+  // If the iframe did not restore a session by itself, the parent app will
+  // explicitly send the active Supabase session through postMessage.
+  if (!supabaseSession) {
+    console.log('[Leads Sync] Waiting for parent session...');
+  }
 });
 
 (function setupPullToRefresh() {
@@ -3622,4 +3674,11 @@ if (preferredEmailInput) {
       preferredEmailInput.blur();
     }
   });
+}
+
+
+// Tell the parent app that the Leads iframe is ready for the active session.
+if (window.parent && window.parent !== window) {
+  const targetOrigin = window.location.protocol === 'file:' ? '*' : window.location.origin;
+  window.parent.postMessage({ type: 'STEADY_HANDS_LEADS_READY' }, targetOrigin);
 }
