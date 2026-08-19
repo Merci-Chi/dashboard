@@ -47,7 +47,8 @@
    */
   const USER_ACCESS = {
     "kiara@steadyhandsop.com": ALL_VIEWS,
-    "elijah@steadyhandsop.com": LEADS
+    "elijah@steadyhandsop.com": LEADS,
+    "kiaradwilliams04@gmail.com": LEADS,
   };
 
   let supabase = null;
