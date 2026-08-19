@@ -983,3 +983,181 @@ textarea {
     pointer-events: none;
   }
 }
+
+
+/* =========================================================
+   MOBILE POLISH — MAIN APP ONLY
+   Desktop remains unchanged.
+   ========================================================= */
+@media (max-width: 760px) {
+  :root {
+    --mobile-header-height: 60px;
+  }
+
+  .mobile-app-header {
+    height: calc(var(--mobile-header-height) + env(safe-area-inset-top));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    border-bottom-color: rgba(47,146,255,.12);
+    box-shadow: 0 8px 26px rgba(0,0,0,.32);
+  }
+
+  .mobile-header-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: #061526;
+  }
+
+  .mobile-header-button i {
+    font-size: 19px;
+  }
+
+  .mobile-header-actions {
+    gap: 8px;
+  }
+
+  .content {
+    padding-top: calc(var(--mobile-header-height) + env(safe-area-inset-top));
+  }
+
+  .sidebar {
+    width: min(88vw, 310px);
+    padding:
+      max(14px, env(safe-area-inset-top))
+      10px
+      max(14px, env(safe-area-inset-bottom));
+  }
+
+  .user-block {
+    padding: 5px 46px 12px 6px;
+    margin-bottom: 8px;
+  }
+
+  .user-label {
+    font-size: 9px;
+    letter-spacing: 1.3px;
+  }
+
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+
+  .user-name {
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .sign-out-button {
+    right: 2px;
+    bottom: 10px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .sidebar-close-button {
+    top: max(10px, env(safe-area-inset-top));
+    right: 8px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav {
+    gap: 3px;
+    padding-right: 2px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+
+  .nav-section {
+    margin-top: 13px;
+  }
+
+  .nav-heading {
+    margin: 0 9px 6px;
+    font-size: 9px;
+    letter-spacing: 1.35px;
+  }
+
+  .nav-item {
+    min-height: 42px;
+    padding: 0 10px;
+    border-radius: 11px;
+    gap: 9px;
+  }
+
+  .nav-item span {
+    font-size: 13px;
+  }
+
+  .nav-item i {
+    font-size: 15px;
+  }
+
+  .auth-gate,
+  .account-setup-gate {
+    padding:
+      max(14px, env(safe-area-inset-top))
+      14px
+      max(14px, env(safe-area-inset-bottom));
+  }
+
+  .auth-card,
+  .account-setup-card {
+    width: 100%;
+    max-width: 390px;
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .auth-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 13px;
+    margin-bottom: 11px;
+  }
+
+  .auth-card h1,
+  .account-setup-card h1 {
+    font-size: 23px;
+  }
+
+  .auth-card p,
+  .account-setup-card > p {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .auth-card input,
+  .account-setup-card input {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .auth-button {
+    min-height: 48px;
+  }
+
+  .unauthorized-view {
+    padding: 16px 14px max(22px, env(safe-area-inset-bottom));
+  }
+
+  .unauthorized-card {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .unauthorized-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 16px;
+    border-radius: 15px;
+    font-size: 24px;
+  }
+
+  .unauthorized-card > p {
+    margin-bottom: 18px;
+    font-size: 13px;
+  }
+}
