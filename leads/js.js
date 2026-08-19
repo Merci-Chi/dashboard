@@ -3532,6 +3532,9 @@ document.addEventListener('keydown', event => {
           : 'desktop-leads-view'
     );
 
+    // Keep one explicit source of truth for mobile + desktop visibility.
+    leadsScreen.dataset.pipelineView = view;
+
     pipelineButtons.forEach(button => {
       const active = button.dataset.pipelineView === view;
       button.classList.toggle('active', active);
