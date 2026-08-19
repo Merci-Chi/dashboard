@@ -1437,7 +1437,7 @@ function leadCard(lead) {
 
   return `
     <div class="lead-item-wrap${cornerTags ? ' has-priority-tags' : ''}${isHot ? ' has-hot-priority' : ''}${isWrongNumber ? ' has-wrong-priority' : ''}">
-      <button class="lead-item${isHot ? ' hot-lead-card' : ''}${isWrongNumber ? ' wrong-number-card' : ''}" type="button" data-open-lead="${lead.id}">
+      <button class="lead-item desktop-lead-card${isHot ? ' hot-lead-card' : ''}${isWrongNumber ? ' wrong-number-card' : ''}" type="button" data-open-lead="${lead.id}">
         ${cornerTags ? `<span class="lead-priority-tags">${cornerTags}</span>` : ''}
         <span class="lead-avatar">${escapeHTML(initial)}</span>
         <span class="lead-copy lead-card-copy-ordered">
@@ -1450,6 +1450,19 @@ function leadCard(lead) {
         </span>
         ${siteBadges ? `<span class="lead-card-site-tags lead-card-site-tags-corner">${siteBadges}</span>` : ''}
         <i class="bi bi-chevron-right"></i>
+      </button>
+
+      <button class="mobile-reference-lead-card${isHot ? ' hot-lead-card' : ''}${isWrongNumber ? ' wrong-number-card' : ''}" type="button" data-open-lead="${lead.id}">
+        ${cornerTags ? `<span class="mobile-card-priority">${cornerTags}</span>` : ''}
+        <span class="mobile-card-company">${escapeHTML(lead.company || 'No company')}</span>
+        <span class="mobile-card-contact">${escapeHTML(lead.name || 'No contact name')}</span>
+        ${isSold
+          ? `<span class="mobile-card-call-status sold-by-card"><i class="bi bi-trophy-fill" aria-hidden="true"></i>Sold by ${escapeHTML(lead.soldBy || latestSoldActor(lead) || 'Unassigned')}</span>`
+          : `<span class="mobile-card-call-status"><i class="bi bi-telephone-fill" aria-hidden="true"></i>${escapeHTML(callerSummary(lead, false))}</span>`}
+        <span class="mobile-card-bottom-row">
+          <span class="mobile-card-sources">${sourceBadges || ''}</span>
+          ${siteBadges ? `<span class="mobile-card-site-tags">${siteBadges}</span>` : ''}
+        </span>
       </button>
     </div>`;
 }
