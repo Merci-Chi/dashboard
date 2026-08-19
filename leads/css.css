@@ -8401,3 +8401,34 @@ same treatment {
     min-height: 66px !important;
   }
 }
+
+
+/* Mobile touch behavior */
+html,
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+body,
+body *:not(input):not(textarea):not(select) {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 760px) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
