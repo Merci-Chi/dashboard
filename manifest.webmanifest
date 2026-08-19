@@ -2,7 +2,6 @@
   "name": "Dashboard",
   "short_name": "Dashboard",
   "description": "Steady Hands Operations Dashboard",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -17,11 +16,6 @@
     {
       "src": "app-icon/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "app-icon/icon-1024.png",
-      "sizes": "1024x1024",
       "type": "image/png"
     }
   ]
