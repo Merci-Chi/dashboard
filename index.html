@@ -3,26 +3,128 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
-  <title>Dashboard</title>
-
+  <title>Project Management</title>
   <meta name="theme-color" content="#000000" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Dashboard" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="application-name" content="Dashboard" />
-
-  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="64x64" href="app-icon/favicon-64.png" />
   <link rel="apple-touch-icon" href="app-icon/apple-touch-icon.png" />
-
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="css.css" />
 </head>
 <body>
+  <section class="auth-gate" id="authGate" aria-label="Sign in">
+    <div class="auth-card">
+      <img class="auth-logo" src="app-icon/icon-192.png" alt="" aria-hidden="true" />
+      <span class="auth-eyebrow">STEADY HANDS OPERATIONS</span>
+      <h1>Project Management</h1>
+      <p>Sign in to continue.</p>
+      <form id="authForm" autocomplete="off">
+        <label><span>Email</span><input id="authEmail" name="username" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@steadyhandsop.com" /></label>
+        <label><span>Password</span><input id="authPassword" name="password" type="password" autocomplete="current-password" placeholder="Password" /></label>
+        <button class="auth-button" id="authSignIn" type="submit" disabled>Loading…</button>
+      </form>
+      <div class="auth-status" id="authStatus" aria-live="polite"></div>
+    </div>
+  </section>
 
-  <main id="app"></main>
+  <section class="account-setup-gate" id="accountSetupGate" aria-label="Finish account setup" hidden>
+    <div class="account-setup-card">
+      <img class="auth-logo" src="app-icon/icon-192.png" alt="" aria-hidden="true" />
+      <span class="auth-eyebrow">STEADY HANDS OPERATIONS</span>
+      <h1>Finish Your Account</h1>
+      <p>Create the name shown inside the app and replace your temporary password.</p>
+      <form id="accountSetupForm" autocomplete="off">
+        <label><span>Display Name</span><input id="setupDisplayName" name="displayName" type="text" autocomplete="name" maxlength="60" placeholder="Your name" /></label>
+        <label><span>Create Password</span><input id="setupPassword" name="new-password" type="password" autocomplete="new-password" minlength="8" placeholder="8+ chars, capital, number, symbol" /></label>
+        <label><span>Confirm Password</span><input id="setupPasswordConfirm" name="confirm-password" type="password" autocomplete="new-password" minlength="8" placeholder="Enter it again" /></label>
+        <div class="setup-password-note"><i class="bi bi-shield-check" aria-hidden="true"></i><span>Password must be at least 8 characters and include 1 capital letter, 1 number, and 1 symbol. Do not reuse the temporary password.</span></div>
+        <button class="auth-button" id="accountSetupButton" type="submit">Create Account</button>
+      </form>
+      <div class="auth-status" id="accountSetupStatus" aria-live="polite"></div>
+      <button class="setup-sign-out" id="setupSignOutButton" type="button">Sign in with a different account</button>
+    </div>
+  </section>
 
+  <main class="app-shell" id="appShell" hidden>
+    <aside class="sidebar" aria-label="Project management navigation">
+      <div class="user-block">
+        <span class="user-label">Logged in as</span>
+        <div class="user-name">
+          <img class="user-avatar" src="app-icon/icon-192.png" alt="" aria-hidden="true" />
+          <span id="loggedInUser">User</span>
+          <button class="sign-out-button" id="signOutButton" type="button" title="Sign out" aria-label="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section"><a class="nav-item active" href="#dashboard" data-view="dashboard"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a></div>
+        <div class="nav-section">
+          <h2 class="nav-heading">Projects</h2>
+          <a class="nav-item" href="#leads" data-view="leads"><i class="bi bi-person-lines-fill"></i><span>Leads</span></a>
+          <a class="nav-item" href="#clients" data-view="clients"><i class="bi bi-people-fill"></i><span>Clients</span></a>
+          <a class="nav-item" href="#tasks" data-view="tasks"><i class="bi bi-check2-square"></i><span>Tasks</span></a>
+        </div>
+        <div class="nav-section">
+          <h2 class="nav-heading">Marketing</h2>
+          <a class="nav-item" href="#ideas" data-view="ideas"><i class="bi bi-lightbulb-fill"></i><span>Ideas</span></a>
+          <a class="nav-item" href="#scripts" data-view="scripts"><i class="bi bi-chat-square-quote-fill"></i><span>Scripts</span></a>
+          <a class="nav-item" href="#assets" data-view="assets"><i class="bi bi-folder-fill"></i><span>Assets</span></a>
+          <a class="nav-item" href="#seo" data-view="seo"><i class="bi bi-search"></i><span>SEO</span></a>
+        </div>
+        <div class="nav-section">
+          <h2 class="nav-heading">Infrastructure</h2>
+          <a class="nav-item" href="#domain" data-view="domain"><i class="bi bi-globe2"></i><span>Domain</span></a>
+          <a class="nav-item" href="#hosting" data-view="hosting"><i class="bi bi-server"></i><span>Hosting</span></a>
+        </div>
+        <div class="nav-section">
+          <h2 class="nav-heading">SOP's</h2>
+          <a class="nav-item" href="#prospects" data-view="prospects"><i class="bi bi-person-plus-fill"></i><span>Prospects</span></a>
+          <a class="nav-item" href="#onboarding" data-view="onboarding"><i class="bi bi-person-check-fill"></i><span>Onboarding</span></a>
+          <a class="nav-item" href="#data-collection" data-view="data-collection"><i class="bi bi-database-fill"></i><span>Data-Collection</span></a>
+          <a class="nav-item" href="#payment" data-view="payment"><i class="bi bi-credit-card-fill"></i><span>Payment</span></a>
+          <a class="nav-item" href="#site-development" data-view="site-development"><i class="bi bi-code-slash"></i><span>Site Development</span></a>
+          <a class="nav-item" href="#delivery" data-view="delivery"><i class="bi bi-box-seam-fill"></i><span>Delivery</span></a>
+        </div>
+        <div class="nav-section"><h2 class="nav-heading">Analytics</h2><a class="nav-item" href="#reports" data-view="reports"><i class="bi bi-bar-chart-fill"></i><span>Reports</span></a></div>
+        <div class="nav-section unauthorized-nav-section"><a class="nav-item" href="#unauthorized" data-view="unauthorized"><i class="bi bi-shield-lock-fill"></i><span>Unauthorized</span></a></div>
+      </nav>
+    </aside>
+
+    <section class="content" id="content" aria-label="Project management workspace">
+      <section class="view placeholder-view active" id="view-dashboard" data-page="dashboard"></section>
+      <section class="view unauthorized-view" id="view-unauthorized" data-page="unauthorized" aria-label="Unauthorized">
+        <div class="unauthorized-card">
+          <div class="unauthorized-icon" aria-hidden="true"><i class="bi bi-shield-lock-fill"></i></div>
+          <span class="unauthorized-kicker">ACCESS RESTRICTED</span>
+          <h1>You don't have access to these pages.</h1>
+          <p>Your account is signed in successfully, but it has not been granted access to this workspace.</p>
+          <div class="unauthorized-notice"><i class="bi bi-info-circle-fill" aria-hidden="true"></i><span>Please contact the administrator to gain access.</span></div>
+        </div>
+      </section>
+      <section class="view leads-view leads-embed-view" id="view-leads" data-page="leads" aria-label="Leads"><iframe class="leads-iframe" id="leadsFrame" src="leads/index.html" title="Lead Board"></iframe></section>
+      <section class="view placeholder-view" id="view-clients" data-page="clients"></section>
+      <section class="view placeholder-view" id="view-tasks" data-page="tasks"></section>
+      <section class="view placeholder-view" id="view-ideas" data-page="ideas"></section>
+      <section class="view placeholder-view" id="view-scripts" data-page="scripts"></section>
+      <section class="view placeholder-view" id="view-assets" data-page="assets"></section>
+      <section class="view placeholder-view" id="view-seo" data-page="seo"></section>
+      <section class="view placeholder-view" id="view-domain" data-page="domain"></section>
+      <section class="view placeholder-view" id="view-hosting" data-page="hosting"></section>
+      <section class="view placeholder-view" id="view-prospects" data-page="prospects"></section>
+      <section class="view placeholder-view" id="view-onboarding" data-page="onboarding"></section>
+      <section class="view placeholder-view" id="view-data-collection" data-page="data-collection"></section>
+      <section class="view placeholder-view" id="view-payment" data-page="payment"></section>
+      <section class="view placeholder-view" id="view-site-development" data-page="site-development"></section>
+      <section class="view placeholder-view" id="view-delivery" data-page="delivery"></section>
+      <section class="view placeholder-view" id="view-reports" data-page="reports"></section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js.js"></script>
 </body>
 </html>
