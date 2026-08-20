@@ -1544,6 +1544,19 @@ function renderCurrentLead() {
   const editLeadButton = $('#editLeadButton');
   if (editLeadButton) editLeadButton.hidden = !currentUserIsKiara();
 
+  // Keep the mobile lead header synced directly from the open lead.
+  const detailCompanyTitle = $('#detailLeadCompanyTitle');
+  const detailNameTitle = $('#detailLeadNameTitle');
+  if (detailCompanyTitle) {
+    detailCompanyTitle.textContent = lead.company || 'No Company';
+    detailCompanyTitle.title = lead.company || 'No Company';
+  }
+  if (detailNameTitle) {
+    detailNameTitle.textContent = lead.name || 'No contact name';
+    detailNameTitle.hidden = false;
+    detailNameTitle.title = lead.name || 'No contact name';
+  }
+
   const soldLead = lead.status === 'sold';
   const kiaraCanSeeSoldPhone = soldLead && currentUserIsKiara();
   const phoneIsHidden = soldLead && !kiaraCanSeeSoldPhone;
