@@ -3596,37 +3596,3 @@ if (window.parent && window.parent !== window) {
 }
 
 
-/* Mobile-only centered scroll-to-top control. */
-(() => {
-  const button = document.getElementById('leadsMobileTopButton');
-  if (!button) return;
-
-  const isMobile = () => window.matchMedia('(max-width: 959px)').matches;
-  const currentScrollTop = () => Math.max(
-    window.scrollY || 0,
-    document.documentElement?.scrollTop || 0,
-    document.body?.scrollTop || 0
-  );
-
-  const update = () => {
-    const leadsScreen = document.getElementById('leadsScreen');
-    const show = Boolean(
-      isMobile() &&
-      leadsScreen?.classList.contains('active') &&
-      currentScrollTop() > 280
-    );
-
-    button.classList.toggle('is-visible', show);
-    button.setAttribute('aria-hidden', show ? 'false' : 'true');
-    button.tabIndex = show ? 0 : -1;
-  };
-
-  button.addEventListener('click', event => {
-    event.preventDefault();
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-  });
-
-  window.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('resize', update);
-  update();
-})();

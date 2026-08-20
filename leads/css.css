@@ -8899,59 +8899,6 @@ select {
   }
 }
 
-/* One scroll-to-top button. No pull-to-refresh arrow exists anymore. */
-#leadsMobileTopButton {
-  display: none !important;
-}
-
-@media (max-width: 959px) {
-  #leadsMobileTopButton.leads-mobile-top-button {
-    position: fixed !important;
-    z-index: 120 !important;
-    left: 50% !important;
-    right: auto !important;
-    bottom: calc(18px + env(safe-area-inset-bottom)) !important;
-
-    width: 46px !important;
-    height: 46px !important;
-    min-width: 46px !important;
-    min-height: 46px !important;
-    max-width: 46px !important;
-    max-height: 46px !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-    display: grid !important;
-    place-items: center !important;
-
-    border: 1px solid #2e8bff !important;
-    border-radius: 12px !important;
-    background: #01050b !important;
-    color: #69b4ff !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,.4) !important;
-
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    transform: translate(-50%, 8px) !important;
-    transition: opacity .16s ease, visibility .16s ease, transform .16s ease !important;
-  }
-
-  #leadsMobileTopButton.leads-mobile-top-button.is-visible {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    transform: translate(-50%, 0) !important;
-  }
-
-  #leadsMobileTopButton.leads-mobile-top-button i {
-    margin: 0 !important;
-    color: #69b4ff !important;
-    font-size: 19px !important;
-    line-height: 1 !important;
-  }
-}
-
 /* Unified lead-card pills. Unique class avoids legacy badge overrides. */
 #leadsScreen .lead-pill {
   position: static !important;
@@ -9291,3 +9238,5 @@ select {
     text-overflow: clip !important;
   }
 }
+
+
