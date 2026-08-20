@@ -1406,16 +1406,50 @@ function leadCard(lead) {
 
   const tagBadgeClass = tag => {
     const key = String(tag || '').trim().toLowerCase();
-    if (negativeTagKeys.has(key)) return 'lead-card-tag-badge negative-card-tag';
-    if (warningTagKeys.has(key)) return 'lead-card-tag-badge followup-card-tag';
-    if (key === 'hot lead') return 'lead-card-tag-badge hot-card-tag';
-    return 'lead-card-tag-badge';
+
+    // Every lead-card tag gets the exact same pill structure.
+    // Only the semantic color class changes.
+    const classes = ['lead-card-tag-badge', 'lead-card-tag-pill'];
+
+    if (key === 'spanish?' || key === 'spanish' || key === 'spanish possible') {
+      classes.push('tag-spanish');
+    } else if (key === 'new phone' || key === 'new number' || key === 'updated phone') {
+      classes.push('tag-new-phone');
+    } else if (key === 'hot lead') {
+      classes.push('tag-hot-lead');
+    } else if (key === 'no phone') {
+      classes.push('tag-no-phone');
+    } else if (key === 'wrong number') {
+      classes.push('tag-wrong-number');
+    } else if (key === 'interested') {
+      classes.push('tag-interested');
+    } else if (key === 'call back' || key === 'callback') {
+      classes.push('tag-callback');
+    } else if (key === 'needs more info') {
+      classes.push('tag-more-info');
+    } else if (key === 'skeptical') {
+      classes.push('tag-skeptical');
+    } else if (key === 'no answer') {
+      classes.push('tag-no-answer');
+    } else if (key === 'not interested') {
+      classes.push('tag-not-interested');
+    } else if (key === 'sold' || key === 'conversion') {
+      classes.push('tag-conversion');
+    } else if (negativeTagKeys.has(key)) {
+      classes.push('tag-negative');
+    } else if (warningTagKeys.has(key)) {
+      classes.push('tag-warning');
+    } else {
+      classes.push('tag-default');
+    }
+
+    return classes.join(' ');
   };
 
   const siteBadges = [
-    ...selectedSiteTags.map(tag => `<span class="lead-type-badge">${escapeHTML(tag)}</span>`),
+    ...selectedSiteTags.map(tag => `<span class="lead-type-badge lead-card-tag-pill tag-site">${escapeHTML(tag)}</span>`),
     ...extraCardTags.map(tag => `<span class="${tagBadgeClass(tag)}">${escapeHTML(tag)}</span>`),
-    ...(isSold ? ['<span class="lead-type-badge conversion-card-tag">Conversion</span>'] : [])
+    ...(isSold ? ['<span class="lead-type-badge lead-card-tag-pill conversion-card-tag tag-conversion">Conversion</span>'] : [])
   ].join('');
   const initial = (lead.name || '?').trim().charAt(0).toUpperCase();
   const visibleSourceTags = (Array.isArray(lead.sourceTags) ? lead.sourceTags : [])
@@ -1427,7 +1461,7 @@ function leadCard(lead) {
     const meta = getSourceTagMeta(clean);
     return `<span class="lead-source-chip ${meta.className}"><i class="bi ${meta.icon}" aria-hidden="true"></i><span>${escapeHTML(clean)}</span></span>`;
   }).join('');
-  // Hot Lead remains a real lead tag, but it is intentionally hidden on the main list card.
+  // Hot Lead is displayed as a normal colored pill with the other lead-card tags.
   const cornerTags = [
     isWrongNumber ? '<span class="priority-corner-tag wrong-number-tag">WRONG NUMBER</span>' : ''
   ].filter(Boolean).join('');
