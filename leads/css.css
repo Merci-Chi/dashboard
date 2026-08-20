@@ -9827,198 +9827,25 @@ select {
 }
 
 
-/* Mobile: remove duplicate lower Add Lead button */
-@media (max-width: 959px) {
-  #leadsScreen #addLeadBottomButton,
-  #leadsScreen .pipeline-add-lead {
-    display: none !important;
-  }
 }
+
+
 
 
 /* =========================================================
-   LEAD CARD TAGS — UNIFIED PILL SYSTEM
-   Every displayed lead tag uses the same UI shape.
-   Only colors vary by meaning.
-   ========================================================= */
-#leadsScreen .lead-card-tag-pill,
-#leadsScreen .lead-card-tag-badge,
-#leadsScreen .lead-type-badge {
-  position: static !important;
-  box-sizing: border-box !important;
-  width: auto !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  min-height: 26px !important;
-  height: auto !important;
-  margin: 0 !important;
-  padding: 4px 9px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 5px !important;
-  border: 1px solid #2b669a !important;
-  border-radius: 999px !important;
-  background: #0a2036 !important;
-  color: #a8cdf2 !important;
-  font-size: 10.5px !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-  letter-spacing: .01em !important;
-  text-align: center !important;
-  white-space: nowrap !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-  box-shadow: none !important;
-  vertical-align: middle !important;
-}
-
-/* Website condition/type — blue */
-#leadsScreen .tag-site,
-#leadsScreen .lead-type-badge:not(.conversion-card-tag) {
-  border-color: #2878bd !important;
-  background: #09233e !important;
-  color: #91c9ff !important;
-}
-
-/* Spanish — purple */
-#leadsScreen .tag-spanish {
-  border-color: #7658c6 !important;
-  background: #21183b !important;
-  color: #c6b2ff !important;
-}
-
-/* New/updated phone — cyan */
-#leadsScreen .tag-new-phone {
-  border-color: #238da7 !important;
-  background: #0a2931 !important;
-  color: #8de6f5 !important;
-}
-
-/* Hot Lead — orange/red */
-#leadsScreen .tag-hot-lead,
-#leadsScreen .hot-card-tag {
-  border-color: #cc7130 !important;
-  background: #321b0e !important;
-  color: #ffb774 !important;
-}
-
-/* Positive interest — green */
-#leadsScreen .tag-interested {
-  border-color: #2d8c5b !important;
-  background: #0b2a1c !important;
-  color: #8ee8b4 !important;
-}
-
-/* Callback — amber */
-#leadsScreen .tag-callback,
-#leadsScreen .tag-warning,
-#leadsScreen .followup-card-tag {
-  border-color: #9a7830 !important;
-  background: #2b220d !important;
-  color: #efd179 !important;
-}
-
-/* Needs more info — violet */
-#leadsScreen .tag-more-info {
-  border-color: #6762aa !important;
-  background: #1c1b36 !important;
-  color: #bcb9f3 !important;
-}
-
-/* Skeptical — warm amber */
-#leadsScreen .tag-skeptical {
-  border-color: #9b6735 !important;
-  background: #2c1a0e !important;
-  color: #e9b27d !important;
-}
-
-/* No answer — muted red */
-#leadsScreen .tag-no-answer {
-  border-color: #8e4d55 !important;
-  background: #2a151a !important;
-  color: #efadb4 !important;
-}
-
-/* No phone — red */
-#leadsScreen .tag-no-phone {
-  border-color: #9d4650 !important;
-  background: #301319 !important;
-  color: #ffabb3 !important;
-}
-
-/* Wrong number — stronger red */
-#leadsScreen .tag-wrong-number,
-#leadsScreen .negative-card-tag {
-  border-color: #b54650 !important;
-  background: #351217 !important;
-  color: #ff9da6 !important;
-}
-
-/* Not interested — dark red */
-#leadsScreen .tag-not-interested,
-#leadsScreen .tag-negative {
-  border-color: #8c3b45 !important;
-  background: #291116 !important;
-  color: #e9979f !important;
-}
-
-/* Conversion/Sold — gold */
-#leadsScreen .tag-conversion,
-#leadsScreen .conversion-card-tag {
-  border-color: #a88936 !important;
-  background: #30270f !important;
-  color: #f4dc81 !important;
-}
-
-/* Any unrecognized/custom tag still gets a real designed pill. */
-#leadsScreen .tag-default {
-  border-color: #49647f !important;
-  background: #111f2e !important;
-  color: #b8c9da !important;
-}
-
-/* Mobile lead cards: keep all pills identical in size and spacing. */
-@media (max-width: 959px) {
-  #leadsScreen .mobile-reference-lead-card .lead-card-tag-pill,
-  #leadsScreen .mobile-reference-lead-card .lead-card-tag-badge,
-  #leadsScreen .mobile-reference-lead-card .lead-type-badge {
-    min-height: 27px !important;
-    padding: 4px 9px !important;
-    border-radius: 999px !important;
-    font-size: 10.5px !important;
-    font-weight: 800 !important;
-    line-height: 1 !important;
-  }
-
-  #leadsScreen .mobile-card-site-tags {
-    width: auto !important;
-    max-width: 100% !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 6px !important;
-  }
-}
-
-
-/* =========================================================
-   MOBILE SCROLL TO TOP — CENTERED REPLACEMENT
-   No stray desktop/bottom-left arrow.
+   CLEAN MOBILE CONTROL + LEAD PILL SYSTEM
+   Unique selectors prevent legacy CSS from overriding these.
    ========================================================= */
 
-/* Never show this control on desktop. */
-.mobile-scroll-top,
-#mobileScrollTopButton {
+/* New scroll button: mobile only, square, centered, blue outline. */
+#leadCenterTopButton {
   display: none !important;
 }
 
 @media (max-width: 959px) {
-  #mobileScrollTopButton.mobile-scroll-top {
+  #leadCenterTopButton.lead-center-top-button {
     position: fixed !important;
-    z-index: 95 !important;
-
+    z-index: 120 !important;
     left: 50% !important;
     right: auto !important;
     bottom: calc(18px + env(safe-area-inset-bottom)) !important;
@@ -10037,53 +9864,189 @@ select {
     place-items: center !important;
 
     border: 1px solid #2e8bff !important;
-    border-radius: 13px !important;
-    background: #020912 !important;
+    border-radius: 12px !important;
+    background: #01050b !important;
     color: #69b4ff !important;
-
-    box-shadow:
-      0 8px 22px rgba(0,0,0,.34),
-      inset 0 0 0 1px rgba(105,180,255,.04) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.38) !important;
 
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
-
     transform: translate(-50%, 8px) !important;
-    transition:
-      opacity .16s ease,
-      transform .16s ease,
-      visibility .16s ease,
-      background .16s ease,
-      border-color .16s ease !important;
 
     appearance: none !important;
     -webkit-appearance: none !important;
+    transition: opacity .16s ease, visibility .16s ease, transform .16s ease !important;
   }
 
-  #mobileScrollTopButton.mobile-scroll-top.visible {
+  #leadCenterTopButton.lead-center-top-button.is-visible {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
     transform: translate(-50%, 0) !important;
   }
 
-  #mobileScrollTopButton.mobile-scroll-top:active {
-    background: #07182b !important;
-    border-color: #69b4ff !important;
-    transform: translate(-50%, 1px) scale(.97) !important;
-  }
-
-  #mobileScrollTopButton.mobile-scroll-top i {
+  #leadCenterTopButton.lead-center-top-button i {
     margin: 0 !important;
     padding: 0 !important;
     color: #69b4ff !important;
-    font-size: 20px !important;
+    font-size: 19px !important;
     line-height: 1 !important;
   }
 
-  /* When the lead-detail footer is visible, lift the control above it. */
-  body:has(#detailScreen.active) #mobileScrollTopButton.mobile-scroll-top {
-    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  body:has(#detailScreen.active) #leadCenterTopButton.lead-center-top-button {
+    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* One tag shape. No old lead-type-badge / tag-badge classes are used here. */
+#leadsScreen .lead-pill {
+  position: static !important;
+  box-sizing: border-box !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 27px !important;
+  height: auto !important;
+
+  margin: 0 !important;
+  padding: 5px 10px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: 1px solid #47647f !important;
+  border-radius: 999px !important;
+  background: #101f2e !important;
+  color: #b9cada !important;
+
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: .01em !important;
+
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  box-shadow: none !important;
+}
+
+/* Site condition */
+#leadsScreen .lead-pill.pill-site {
+  border-color: #2c79bb !important;
+  background: #09233e !important;
+  color: #91c9ff !important;
+}
+
+/* Spanish */
+#leadsScreen .lead-pill.pill-spanish {
+  border-color: #7658c6 !important;
+  background: #21183b !important;
+  color: #c8b5ff !important;
+}
+
+/* New phone */
+#leadsScreen .lead-pill.pill-new-phone {
+  border-color: #238da7 !important;
+  background: #082b34 !important;
+  color: #90e8f7 !important;
+}
+
+/* Hot lead */
+#leadsScreen .lead-pill.pill-hot {
+  border-color: #d26f2a !important;
+  background: #341a0b !important;
+  color: #ffb36f !important;
+}
+
+/* Interested */
+#leadsScreen .lead-pill.pill-interested {
+  border-color: #2d8c5b !important;
+  background: #0b2a1c !important;
+  color: #8ee8b4 !important;
+}
+
+/* Callback */
+#leadsScreen .lead-pill.pill-callback {
+  border-color: #9a7830 !important;
+  background: #2b220d !important;
+  color: #efd179 !important;
+}
+
+/* More info */
+#leadsScreen .lead-pill.pill-more-info {
+  border-color: #6762aa !important;
+  background: #1c1b36 !important;
+  color: #bcb9f3 !important;
+}
+
+/* Skeptical */
+#leadsScreen .lead-pill.pill-skeptical {
+  border-color: #9b6735 !important;
+  background: #2c1a0e !important;
+  color: #e9b27d !important;
+}
+
+/* No answer */
+#leadsScreen .lead-pill.pill-no-answer {
+  border-color: #8e4d55 !important;
+  background: #2a151a !important;
+  color: #efadb4 !important;
+}
+
+/* No phone */
+#leadsScreen .lead-pill.pill-no-phone {
+  border-color: #9d4650 !important;
+  background: #301319 !important;
+  color: #ffabb3 !important;
+}
+
+/* Wrong number */
+#leadsScreen .lead-pill.pill-wrong {
+  border-color: #b54650 !important;
+  background: #351217 !important;
+  color: #ff9da6 !important;
+}
+
+/* Not interested */
+#leadsScreen .lead-pill.pill-not-interested {
+  border-color: #8c3b45 !important;
+  background: #291116 !important;
+  color: #e9979f !important;
+}
+
+/* Conversion / sold */
+#leadsScreen .lead-pill.pill-conversion {
+  border-color: #a88936 !important;
+  background: #30270f !important;
+  color: #f4dc81 !important;
+}
+
+/* Unknown/custom tag still gets a finished UI. */
+#leadsScreen .lead-pill.pill-default {
+  border-color: #49647f !important;
+  background: #111f2e !important;
+  color: #b8c9da !important;
+}
+
+/* Keep tag rows clean and wrapping naturally. */
+#leadsScreen .mobile-card-site-tags,
+#leadsScreen .lead-card-site-tags,
+#leadsScreen .lead-card-site-tags-corner {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+
+/* Duplicate lower Add Lead control is intentionally removed on mobile. */
+@media (max-width: 959px) {
+  #addLeadBottomButton,
+  .pipeline-add-lead {
+    display: none !important;
   }
 }

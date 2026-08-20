@@ -1406,50 +1406,41 @@ function leadCard(lead) {
 
   const tagBadgeClass = tag => {
     const key = String(tag || '').trim().toLowerCase();
-
-    // Every lead-card tag gets the exact same pill structure.
-    // Only the semantic color class changes.
-    const classes = ['lead-card-tag-badge', 'lead-card-tag-pill'];
+    let tone = 'pill-default';
 
     if (key === 'spanish?' || key === 'spanish' || key === 'spanish possible') {
-      classes.push('tag-spanish');
+      tone = 'pill-spanish';
     } else if (key === 'new phone' || key === 'new number' || key === 'updated phone') {
-      classes.push('tag-new-phone');
+      tone = 'pill-new-phone';
     } else if (key === 'hot lead') {
-      classes.push('tag-hot-lead');
+      tone = 'pill-hot';
     } else if (key === 'no phone') {
-      classes.push('tag-no-phone');
+      tone = 'pill-no-phone';
     } else if (key === 'wrong number') {
-      classes.push('tag-wrong-number');
+      tone = 'pill-wrong';
     } else if (key === 'interested') {
-      classes.push('tag-interested');
+      tone = 'pill-interested';
     } else if (key === 'call back' || key === 'callback') {
-      classes.push('tag-callback');
+      tone = 'pill-callback';
     } else if (key === 'needs more info') {
-      classes.push('tag-more-info');
+      tone = 'pill-more-info';
     } else if (key === 'skeptical') {
-      classes.push('tag-skeptical');
+      tone = 'pill-skeptical';
     } else if (key === 'no answer') {
-      classes.push('tag-no-answer');
+      tone = 'pill-no-answer';
     } else if (key === 'not interested') {
-      classes.push('tag-not-interested');
+      tone = 'pill-not-interested';
     } else if (key === 'sold' || key === 'conversion') {
-      classes.push('tag-conversion');
-    } else if (negativeTagKeys.has(key)) {
-      classes.push('tag-negative');
-    } else if (warningTagKeys.has(key)) {
-      classes.push('tag-warning');
-    } else {
-      classes.push('tag-default');
+      tone = 'pill-conversion';
     }
 
-    return classes.join(' ');
+    return `lead-pill ${tone}`;
   };
 
   const siteBadges = [
-    ...selectedSiteTags.map(tag => `<span class="lead-type-badge lead-card-tag-pill tag-site">${escapeHTML(tag)}</span>`),
+    ...selectedSiteTags.map(tag => `<span class="lead-pill pill-site">${escapeHTML(tag)}</span>`),
     ...extraCardTags.map(tag => `<span class="${tagBadgeClass(tag)}">${escapeHTML(tag)}</span>`),
-    ...(isSold ? ['<span class="lead-type-badge lead-card-tag-pill conversion-card-tag tag-conversion">Conversion</span>'] : [])
+    ...(isSold ? ['<span class="lead-pill pill-conversion">Conversion</span>'] : [])
   ].join('');
   const initial = (lead.name || '?').trim().charAt(0).toUpperCase();
   const visibleSourceTags = (Array.isArray(lead.sourceTags) ? lead.sourceTags : [])
@@ -1462,9 +1453,7 @@ function leadCard(lead) {
     return `<span class="lead-source-chip ${meta.className}"><i class="bi ${meta.icon}" aria-hidden="true"></i><span>${escapeHTML(clean)}</span></span>`;
   }).join('');
   // Hot Lead is displayed as a normal colored pill with the other lead-card tags.
-  const cornerTags = [
-    isWrongNumber ? '<span class="priority-corner-tag wrong-number-tag">WRONG NUMBER</span>' : ''
-  ].filter(Boolean).join('');
+  const cornerTags = '';
   const mobileHotBadge = '';
 
   const manageLeadButton = '';
@@ -3667,70 +3656,6 @@ document.addEventListener('keydown', event => {
   applyPipelineView('leads', { persist: false, scroll: false });
 })();
 
-(() => {
-  const button = document.getElementById('mobileScrollTopButton');
-  if (!button) return;
-
-  const SHOW_AFTER_PX = 260;
-
-  function currentScrollTop() {
-    const scroller = document.scrollingElement || document.documentElement;
-    return Math.max(
-      window.scrollY || 0,
-      scroller?.scrollTop || 0,
-      document.body?.scrollTop || 0
-    );
-  }
-
-  function updateScrollTopButton() {
-    const leadsScreen = document.getElementById('leadsScreen');
-    const appShell = document.getElementById('appShell');
-    const onLeadBoard = Boolean(
-      leadsScreen?.classList.contains('active') &&
-      appShell && !appShell.hidden
-    );
-    const shouldShow =
-      onLeadBoard &&
-      currentScrollTop() >= SHOW_AFTER_PX;
-
-    button.classList.toggle('visible', shouldShow);
-    button.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
-    button.tabIndex = shouldShow ? 0 : -1;
-  }
-
-  button.addEventListener('click', (event) => {
-    event.preventDefault();
-    const scroller = document.scrollingElement || document.documentElement;
-
-    try {
-      scroller.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (_) {
-      scroller.scrollTop = 0;
-    }
-
-    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) { window.scrollTo(0, 0); }
-    setTimeout(() => {
-      if (currentScrollTop() > 8) {
-        scroller.scrollTop = 0;
-        if (document.body) document.body.scrollTop = 0;
-        window.scrollTo(0, 0);
-      }
-      updateScrollTopButton();
-    }, 450);
-  });
-
-  window.addEventListener('scroll', updateScrollTopButton, { passive: true });
-  window.addEventListener('resize', updateScrollTopButton);
-  document.addEventListener('visibilitychange', updateScrollTopButton);
-
-  const observer = new MutationObserver(updateScrollTopButton);
-  ['leadsScreen', 'detailScreen', 'appShell'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) observer.observe(el, { attributes: true, attributeFilter: ['class', 'hidden'] });
-  });
-
-  updateScrollTopButton();
-})();
 
 
 
@@ -3774,3 +3699,40 @@ if (window.parent && window.parent !== window) {
   const targetOrigin = window.location.protocol === 'file:' ? '*' : window.location.origin;
   window.parent.postMessage({ type: 'STEADY_HANDS_LEADS_READY' }, targetOrigin);
 }
+
+
+/* Mobile-only centered scroll-to-top control. */
+(() => {
+  const button = document.getElementById('leadCenterTopButton');
+  if (!button) return;
+
+  const isMobile = () => window.matchMedia('(max-width: 959px)').matches;
+  const getTop = () => Math.max(
+    window.scrollY || 0,
+    document.documentElement?.scrollTop || 0,
+    document.body?.scrollTop || 0
+  );
+
+  const update = () => {
+    const leadsScreen = document.getElementById('leadsScreen');
+    const shouldShow =
+      isMobile() &&
+      leadsScreen?.classList.contains('active') &&
+      getTop() > 260;
+
+    button.classList.toggle('is-visible', Boolean(shouldShow));
+    button.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+    button.tabIndex = shouldShow ? 0 : -1;
+  };
+
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement?.scrollTo?.({ top: 0, behavior: 'smooth' });
+    if (document.body) document.body.scrollTop = 0;
+  });
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
