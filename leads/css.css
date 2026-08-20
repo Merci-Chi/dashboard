@@ -9239,4 +9239,173 @@ select {
   }
 }
 
+/* =========================================================
+   DESKTOP LEADS — FINAL NON-OVERLAPPING LAYOUT
+   Mobile cards remain completely separate.
+   ========================================================= */
+@media (min-width: 960px) {
+  #leadsScreen > .search-field {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
 
+  #leadsScreen > .summary-row.pipeline-switcher {
+    width: 100% !important;
+    max-width: none !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  #leadsScreen > .summary-row.pipeline-switcher > .pipeline-summary {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #leadsScreen #newLeadList,
+  #leadsScreen #followLeadList,
+  #leadsScreen #soldLeadList {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    align-items: start !important;
+  }
+
+  #leadsScreen .lead-item-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 118px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #leadsScreen .lead-item-wrap > .desktop-lead-card {
+    position: relative !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 118px !important;
+    min-height: 118px !important;
+    max-height: 118px !important;
+    margin: 0 !important;
+    padding: 12px 14px 38px !important;
+    display: block !important;
+    overflow: hidden !important;
+  }
+
+  #leadsScreen .desktop-lead-card > .lead-copy.lead-card-copy-ordered {
+    position: static !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-company,
+  #leadsScreen .desktop-lead-card .lead-card-contact,
+  #leadsScreen .desktop-lead-card .lead-card-call-status {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-company {
+    margin: 0 !important;
+    font-size: 17px !important;
+    line-height: 1.12 !important;
+    font-weight: 850 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-contact {
+    margin: 2px 0 0 !important;
+    font-size: 14px !important;
+    line-height: 1.12 !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-call-status {
+    margin: 6px 0 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-reference {
+    position: absolute !important;
+    left: 14px !important;
+    bottom: 8px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 38% !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  #leadsScreen .desktop-lead-card > .lead-card-site-tags-corner {
+    position: absolute !important;
+    right: 14px !important;
+    bottom: 8px !important;
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 58% !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 5px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-reference .lead-source-chip,
+  #leadsScreen .desktop-lead-card > .lead-card-site-tags-corner .lead-pill {
+    flex: 0 0 auto !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    padding: 3px 9px !important;
+    margin: 0 !important;
+    border-radius: 999px !important;
+    font-size: 10.5px !important;
+    line-height: 1 !important;
+  }
+
+  #leadsScreen .mobile-reference-lead-card {
+    display: none !important;
+  }
+}
