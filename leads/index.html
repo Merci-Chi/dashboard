@@ -86,31 +86,39 @@
 <button aria-label="Back to leads" class="icon-button bare" id="backButton" type="button">
 <i class="bi bi-chevron-left"></i>
 </button>
+
 <div class="detail-title-wrap lead-identity-title">
 <div class="lead-identity-copy">
 <h1 id="detailLeadCompanyTitle">Lead Details</h1>
 <div class="detail-lead-name" id="detailLeadNameTitle" hidden></div>
 </div>
+</div>
+
 <button aria-label="Edit lead" class="edit-lead-icon header-edit-icon" id="editLeadButton" title="Edit lead" type="button">
 <i class="bi bi-pencil-square"></i>
 <span class="edit-button-label">Edit</span>
 </button>
-</div>
 </header>
+
 <section class="phone-card">
-<div class="phone-card-label"><i aria-hidden="true" class="bi bi-telephone-fill"></i><span>PHONE NUMBER</span></div>
-<div class="phone-number-row">
-<div class="phone-number" id="leadPhone">(000)000-0000</div>
-<a aria-label="Call lead" class="icon-button bare call-top phone-inline-call" href="tel:" id="topCallButton">
+<a aria-label="Call lead" class="phone-card-call-icon" href="tel:" id="topCallButton">
 <i class="bi bi-telephone-fill"></i>
 </a>
+
+<div class="phone-card-main">
+<div class="phone-card-label"><span>PHONE NUMBER</span></div>
+<div class="phone-number" id="leadPhone">(000)000-0000</div>
 </div>
+
+<div class="phone-card-status">
+<div class="phone-called-by" id="leadCalledBy">Not called yet</div>
+<div class="sold-by-detail" hidden="" id="soldByDetail"></div>
+</div>
+
 <button class="mobile-call-details-button" id="mobilePreCallButton" type="button">
 <i class="bi bi-telephone-fill"></i>
 <span>Call</span>
 </button>
-<div class="phone-called-by" id="leadCalledBy">Not called yet</div>
-<div class="sold-by-detail" hidden="" id="soldByDetail"></div>
 <div aria-hidden="true" class="sound-line"><span></span></div>
 </section>
 </div>
