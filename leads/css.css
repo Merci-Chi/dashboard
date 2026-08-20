@@ -4568,423 +4568,6 @@ textarea:focus,
 }
 
 /* =========================================================
-   LEAD CARDS — NO AVATAR BOX
-   Keep this block LAST.
-   ========================================================= */
-@media (min-width: 960px) {
-  #leadsScreen .lead-avatar {
-    display: none !important;
-  }
-
-  #leadsScreen .lead-item-wrap > .lead-item {
-    grid-template-columns: minmax(0, 1fr) 14px !important;
-    min-height: 96px !important;
-    padding: 14px 48px 13px 16px !important;
-    gap: 10px !important;
-  }
-
-  #leadsScreen .lead-copy {
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  #leadsScreen .lead-name-line {
-    width: 100% !important;
-    padding-right: 0 !important;
-    gap: 5px 7px !important;
-  }
-
-  #leadsScreen .lead-name-line strong {
-    font-size: 15.5px !important;
-  }
-
-  #leadsScreen .lead-company {
-    font-size: 12.5px !important;
-  }
-
-  #leadsScreen .lead-called-by {
-    margin-top: 1px !important;
-  }
-
-  #leadsScreen .lead-source-tags {
-    margin-top: 4px !important;
-  }
-
-  #leadsScreen .lead-item-wrap.has-priority-tags .lead-name-line {
-    padding-right: 112px !important;
-  }
-}
-
-@media (max-width: 959px) {
-  #leadsScreen .lead-avatar {
-    display: none !important;
-  }
-
-  #leadsScreen .lead-item {
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    min-height: 90px !important;
-    padding-left: 14px !important;
-    gap: 10px !important;
-  }
-
-  #leadsScreen .lead-copy {
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-}
-
-/* =========================================================
-   LEAD CARDS — UNIFORM HEIGHT + LOCKED CONTENT POSITIONS
-   Keep this block LAST.
-   ========================================================= */
-@media (min-width: 960px) {
-  #leadsScreen .lead-list {
-    align-items: stretch !important;
-  }
-
-  #leadsScreen .lead-item-wrap {
-    height: 118px !important;
-    min-height: 118px !important;
-    max-height: 118px !important;
-    position: relative !important;
-  }
-
-  #leadsScreen .lead-item-wrap > .lead-item {
-    position: relative !important;
-    height: 118px !important;
-    min-height: 118px !important;
-    max-height: 118px !important;
-    padding: 14px 58px 14px 16px !important;
-    display: block !important;
-    overflow: hidden !important;
-  }
-
-  /* Main content starts in the exact same place on every card */
-  #leadsScreen .lead-copy {
-    position: absolute !important;
-    left: 16px !important;
-    right: 58px !important;
-    top: 14px !important;
-    bottom: 12px !important;
-    display: block !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
-  }
-
-  #leadsScreen .lead-name-line {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: 0 !important;
-    height: 22px !important;
-    display: flex !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    gap: 7px !important;
-    overflow: hidden !important;
-  }
-
-  #leadsScreen .lead-name-line strong {
-    display: block !important;
-    min-width: 0 !important;
-    max-width: 62% !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-
-  #leadsScreen .lead-company {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: 27px !important;
-    height: 18px !important;
-    line-height: 18px !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-
-  #leadsScreen .lead-called-by,
-  #leadsScreen .lead-meta {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: 49px !important;
-    height: 17px !important;
-    line-height: 17px !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-
-  #leadsScreen .lead-source-tags {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    height: 25px !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    gap: 6px !important;
-    overflow: hidden !important;
-  }
-
-  /* Edit control is pinned, never moved by text/tags */
-  #leadsScreen .lead-card-edit,
-  #leadsScreen .edit-lead-card,
-  #leadsScreen .lead-edit-button {
-    position: absolute !important;
-    top: 12px !important;
-    right: 12px !important;
-    bottom: auto !important;
-    left: auto !important;
-    width: 36px !important;
-    height: 36px !important;
-    margin: 0 !important;
-    z-index: 15 !important;
-  }
-
-  /* Chevron is pinned to the same vertical/horizontal point */
-  #leadsScreen .lead-item > .bi-chevron-right {
-    position: absolute !important;
-    right: 18px !important;
-    top: auto !important;
-    bottom: 13px !important;
-    margin: 0 !important;
-    transform: none !important;
-    z-index: 10 !important;
-  }
-
-  /* Priority badges occupy a fixed lane so names never shift */
-  #leadsScreen .lead-priority-tags {
-    position: absolute !important;
-    top: 13px !important;
-    right: 56px !important;
-    left: auto !important;
-    max-width: 165px !important;
-    height: 28px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 5px !important;
-    overflow: hidden !important;
-    z-index: 12 !important;
-  }
-
-  #leadsScreen .lead-item-wrap.has-priority-tags .lead-name-line,
-  #leadsScreen .lead-item.hot-lead-card .lead-name-line,
-  #leadsScreen .lead-item.wrong-number-card .lead-name-line {
-    padding-right: 170px !important;
-  }
-
-  /* Delete control stays fixed too, when present */
-  #leadsScreen .lead-card-delete {
-    position: absolute !important;
-    right: 12px !important;
-    bottom: 12px !important;
-    top: auto !important;
-    width: 32px !important;
-    height: 32px !important;
-    margin: 0 !important;
-    z-index: 14 !important;
-  }
-}
-
-@media (max-width: 959px) {
-  #leadsScreen .lead-item-wrap {
-    min-height: 108px !important;
-  }
-
-  #leadsScreen .lead-item-wrap > .lead-item {
-    min-height: 108px !important;
-    padding-top: 13px !important;
-    padding-bottom: 13px !important;
-  }
-}
-
-/* =========================================================
-   LEAD CARD INFORMATION ORDER
-   Company -> site tag -> lead name -> call status -> reference
-   ========================================================= */
-#leadsScreen .lead-avatar,
-#leadsScreen .mobile-hot-lead-badge {
-  display: none !important;
-}
-
-#leadsScreen .lead-item-wrap {
-  height: 142px !important;
-  min-height: 142px !important;
-  max-height: 142px !important;
-}
-
-#leadsScreen .lead-item-wrap > .lead-item {
-  position: relative !important;
-  height: 142px !important;
-  min-height: 142px !important;
-  max-height: 142px !important;
-  padding: 13px 58px 13px 16px !important;
-  display: block !important;
-  overflow: hidden !important;
-}
-
-#leadsScreen .lead-card-copy-ordered {
-  position: static !important;
-  width: 100% !important;
-  height: 100% !important;
-  display: grid !important;
-  grid-template-rows: 22px 23px 20px 20px 25px !important;
-  align-content: start !important;
-  gap: 3px !important;
-  overflow: hidden !important;
-}
-
-#leadsScreen .lead-card-company,
-#leadsScreen .lead-card-site-tags,
-#leadsScreen .lead-card-contact,
-#leadsScreen .lead-card-call-status,
-#leadsScreen .lead-card-reference {
-  position: static !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  margin: 0 !important;
-}
-
-#leadsScreen .lead-card-company {
-  color: #f3f8ff !important;
-  font-size: 15.5px !important;
-  line-height: 22px !important;
-  font-weight: 800 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-site-tags {
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-site-tags .lead-type-badge {
-  flex: 0 0 auto !important;
-  padding: 2px 7px !important;
-  border: 1px solid #4f5c56 !important;
-  border-radius: 6px !important;
-  background: #0b1c31 !important;
-  color: #b8c0c8 !important;
-  font-size: 9.5px !important;
-  font-weight: 800 !important;
-  letter-spacing: .03em !important;
-}
-
-#leadsScreen .lead-card-site-tags .empty-site-tag {
-  visibility: hidden !important;
-}
-
-#leadsScreen .lead-card-contact {
-  color: #d4d9df !important;
-  font-size: 12.5px !important;
-  line-height: 20px !important;
-  font-weight: 600 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-call-status {
-  color: #6d88a8 !important;
-  font-size: 11px !important;
-  line-height: 20px !important;
-  font-weight: 600 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-call-status.has-call {
-  color: #9ca6af !important;
-}
-
-#leadsScreen .lead-card-call-status i {
-  margin-right: 5px !important;
-  font-size: 10px !important;
-}
-
-#leadsScreen .lead-card-reference {
-  display: flex !important;
-  align-items: end !important;
-  gap: 6px !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-reference .lead-source-chip {
-  flex: 0 0 auto !important;
-  min-height: 22px !important;
-  padding: 0 8px !important;
-  font-size: 10px !important;
-}
-
-#leadsScreen .lead-reference-empty {
-  color: #56779a !important;
-  font-size: 10px !important;
-  line-height: 22px !important;
-}
-
-/* Keep action controls in exactly the same coordinates on every card. */
-#leadsScreen .lead-card-edit {
-  position: absolute !important;
-  top: 12px !important;
-  right: 12px !important;
-  bottom: auto !important;
-  left: auto !important;
-  margin: 0 !important;
-}
-
-#leadsScreen .lead-item > .bi-chevron-right {
-  position: absolute !important;
-  right: 18px !important;
-  bottom: 14px !important;
-  top: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-}
-
-/* Hot/Wrong Number stays a corner status and no longer changes row positions. */
-#leadsScreen .lead-priority-tags {
-  top: 52px !important;
-  right: 12px !important;
-  max-width: 130px !important;
-}
-
-#leadsScreen .lead-item-wrap.has-priority-tags .lead-name-line,
-#leadsScreen .lead-item.hot-lead-card .lead-name-line,
-#leadsScreen .lead-item.wrong-number-card .lead-name-line {
-  padding-right: 0 !important;
-}
-
-@media (max-width: 959px) {
-  #leadsScreen .lead-item-wrap,
-  #leadsScreen .lead-item-wrap > .lead-item {
-    height: 136px !important;
-    min-height: 136px !important;
-    max-height: 136px !important;
-  }
-
-  #leadsScreen .lead-card-copy-ordered {
-    grid-template-rows: 21px 22px 19px 19px 24px !important;
-    gap: 3px !important;
-  }
-}
-
-/* =========================================================
    DETAILS + FOLLOW-UP FINAL FIX — 2026-08-18 23:43
    Keep this block LAST so old experimental rules cannot win.
    ========================================================= */
@@ -5194,177 +4777,6 @@ textarea:focus,
 }
 
 /* =========================================================
-   LEAD CARD FINAL ORDER
-   Company
-   Contact name
-   Call status
-   Reference
-   Site tag pinned bottom-right
-   No chevron
-   ========================================================= */
-
-#leadsScreen .lead-item-wrap {
-  height: 124px !important;
-  min-height: 124px !important;
-  max-height: 124px !important;
-}
-
-#leadsScreen .lead-item-wrap > .lead-item {
-  position: relative !important;
-  height: 124px !important;
-  min-height: 124px !important;
-  max-height: 124px !important;
-  padding: 14px 58px 14px 16px !important;
-  overflow: hidden !important;
-}
-
-#leadsScreen .lead-card-copy-ordered {
-  position: static !important;
-  width: 100% !important;
-  height: 100% !important;
-  display: grid !important;
-  grid-template-rows: 23px 20px 20px 27px !important;
-  align-content: start !important;
-  gap: 4px !important;
-  overflow: hidden !important;
-  padding-right: 0 !important;
-}
-
-#leadsScreen .lead-card-company,
-#leadsScreen .lead-card-contact,
-#leadsScreen .lead-card-call-status,
-#leadsScreen .lead-card-reference {
-  position: static !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  margin: 0 !important;
-}
-
-#leadsScreen .lead-card-company {
-  color: #f3f8ff !important;
-  font-size: 15.5px !important;
-  line-height: 23px !important;
-  font-weight: 800 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-contact {
-  color: #d4d9df !important;
-  font-size: 12.5px !important;
-  line-height: 20px !important;
-  font-weight: 600 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-call-status {
-  color: #6d88a8 !important;
-  font-size: 11px !important;
-  line-height: 20px !important;
-  font-weight: 600 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-reference {
-  display: flex !important;
-  align-items: end !important;
-  gap: 6px !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-  padding-right: 110px !important;
-}
-
-/* Site tag is completely independent of the text flow. */
-#leadsScreen .lead-card-site-tags-corner {
-  position: absolute !important;
-  right: 12px !important;
-  bottom: 12px !important;
-  left: auto !important;
-  top: auto !important;
-  z-index: 12 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  max-width: 105px !important;
-  height: 24px !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-site-tags-corner .lead-type-badge {
-  max-width: 105px !important;
-  padding: 3px 8px !important;
-  border: 1px solid #4f5c56 !important;
-  border-radius: 7px !important;
-  background: #0b1c31 !important;
-  color: #b8c0c8 !important;
-  font-size: 9.5px !important;
-  line-height: 1 !important;
-  font-weight: 800 !important;
-  letter-spacing: .03em !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-/* Remove any remaining chevron from old markup/styles. */
-#leadsScreen .lead-item > .bi-chevron-right {
-  display: none !important;
-}
-
-/* Keep edit button fixed and make sure it never collides with company text. */
-#leadsScreen .lead-card-edit {
-  top: 12px !important;
-  right: 12px !important;
-  bottom: auto !important;
-}
-
-#leadsScreen .lead-card-company {
-  padding-right: 44px !important;
-}
-
-/* Priority tags stay above the bottom site tag, not on top of it. */
-#leadsScreen .lead-priority-tags {
-  top: 48px !important;
-  right: 12px !important;
-  max-width: 120px !important;
-}
-
-@media (max-width: 959px) {
-  #leadsScreen .lead-item-wrap,
-  #leadsScreen .lead-item-wrap > .lead-item {
-    height: 120px !important;
-    min-height: 120px !important;
-    max-height: 120px !important;
-  }
-
-  #leadsScreen .lead-card-copy-ordered {
-    grid-template-rows: 22px 19px 19px 26px !important;
-    gap: 3px !important;
-  }
-
-  #leadsScreen .lead-card-reference {
-    padding-right: 100px !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner {
-    right: 10px !important;
-    bottom: 10px !important;
-    max-width: 96px !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner .lead-type-badge {
-    max-width: 96px !important;
-  }
-}
-
-/* =========================================================
    MULTI-SELECT WEBSITE TAGS
    All tag chips toggle independently on/off.
    ========================================================= */
@@ -5417,195 +4829,6 @@ textarea:focus,
 
   #leadsScreen .lead-card-reference {
     padding-right: 195px !important;
-  }
-}
-
-/* =========================================================
-   MAIN LEAD CARDS — FIT ALL WEBSITE TAGS
-   Hot Lead stays in Quick Info/tag data, but is hidden here.
-   ========================================================= */
-
-/* Never show Hot Lead as a visual badge on the main lead list. */
-#leadsScreen .hot-lead-tag,
-#leadsScreen .desktop-hot-lead-tag,
-#leadsScreen .mobile-hot-lead-badge {
-  display: none !important;
-}
-
-/* Give every card enough room for two rows of bottom website tags. */
-#leadsScreen .lead-item-wrap,
-#leadsScreen .lead-item-wrap > .lead-item {
-  height: 148px !important;
-  min-height: 148px !important;
-  max-height: 148px !important;
-}
-
-#leadsScreen .lead-item-wrap > .lead-item {
-  position: relative !important;
-  padding: 14px 58px 14px 16px !important;
-  overflow: hidden !important;
-}
-
-/* Text occupies the upper portion only, leaving a dedicated bottom lane. */
-#leadsScreen .lead-card-copy-ordered {
-  width: 100% !important;
-  height: 91px !important;
-  display: grid !important;
-  grid-template-rows: 23px 20px 20px 25px !important;
-  align-content: start !important;
-  gap: 3px !important;
-  overflow: hidden !important;
-}
-
-#leadsScreen .lead-card-company {
-  padding-right: 44px !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-contact,
-#leadsScreen .lead-card-call-status {
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-/* Reference stays bottom-left and never runs underneath website tags. */
-#leadsScreen .lead-card-reference {
-  position: absolute !important;
-  left: 16px !important;
-  bottom: 13px !important;
-  width: calc(45% - 22px) !important;
-  min-width: 0 !important;
-  height: 25px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-reference .lead-source-chip {
-  min-width: 0 !important;
-  max-width: 100% !important;
-  flex: 0 1 auto !important;
-}
-
-#leadsScreen .lead-card-reference .lead-source-chip span {
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-/* Website tags own the bottom-right half and may wrap to two rows. */
-#leadsScreen .lead-card-site-tags-corner {
-  position: absolute !important;
-  right: 12px !important;
-  bottom: 10px !important;
-  left: auto !important;
-  top: auto !important;
-  width: 52% !important;
-  max-width: 300px !important;
-  min-height: 24px !important;
-  max-height: 52px !important;
-  margin: 0 !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-content: flex-end !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 4px !important;
-  overflow: visible !important;
-  white-space: normal !important;
-  z-index: 12 !important;
-}
-
-#leadsScreen .lead-card-site-tags-corner .lead-type-badge {
-  flex: 0 0 auto !important;
-  max-width: 132px !important;
-  min-height: 22px !important;
-  padding: 3px 7px !important;
-  border-radius: 7px !important;
-  font-size: 9px !important;
-  line-height: 1 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-/* The edit button remains locked to the same place on every card. */
-#leadsScreen .lead-card-edit {
-  top: 12px !important;
-  right: 12px !important;
-  bottom: auto !important;
-}
-
-/* Chevron was already removed visually; make absolutely sure old cached markup cannot show it. */
-#leadsScreen .lead-item > .bi-chevron-right {
-  display: none !important;
-}
-
-/* Wrong Number may still appear as its own card warning. */
-#leadsScreen .lead-priority-tags {
-  top: 49px !important;
-  right: 12px !important;
-  max-width: 130px !important;
-}
-
-@media (max-width: 959px) {
-  #leadsScreen .lead-item-wrap,
-  #leadsScreen .lead-item-wrap > .lead-item {
-    height: 150px !important;
-    min-height: 150px !important;
-    max-height: 150px !important;
-  }
-
-  #leadsScreen .lead-card-reference {
-    left: 14px !important;
-    width: calc(42% - 18px) !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner {
-    right: 10px !important;
-    width: 57% !important;
-    max-width: none !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner .lead-type-badge {
-    max-width: 112px !important;
-    font-size: 8.5px !important;
-  }
-}
-
-/* =========================================================
-   LEAD CARD SPACING TWEAK
-   Lower edit button + reduce top gap
-   ========================================================= */
-#leadsScreen .lead-item-wrap > .lead-item {
-  padding-top: 10px !important;
-}
-
-#leadsScreen .lead-card-copy-ordered {
-  height: 95px !important;
-}
-
-#leadsScreen .lead-card-edit {
-  top: 18px !important;
-}
-
-#leadsScreen .lead-priority-tags {
-  top: 54px !important;
-}
-
-@media (max-width: 959px) {
-  #leadsScreen .lead-item-wrap > .lead-item {
-    padding-top: 9px !important;
-  }
-
-  #leadsScreen .lead-card-edit {
-    top: 16px !important;
   }
 }
 
@@ -6463,151 +5686,6 @@ textarea:focus,
 }
 
 /* =========================================================
-   MAIN LEAD CARDS — SHOW ALL TAGS
-   Especially negative/problem tags.
-   ========================================================= */
-
-#leadsScreen .lead-card-site-tags-corner {
-  position: absolute !important;
-  right: 12px !important;
-  bottom: 10px !important;
-  left: 16px !important;
-  max-width: none !important;
-  width: auto !important;
-  min-height: 24px !important;
-  height: auto !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 5px !important;
-  overflow: visible !important;
-  z-index: 6 !important;
-  pointer-events: none !important;
-}
-
-/* Base badge styling for every card tag. */
-#leadsScreen .lead-card-site-tags-corner .lead-type-badge,
-#leadsScreen .lead-card-site-tags-corner .lead-card-tag-badge {
-  flex: 0 0 auto !important;
-  max-width: none !important;
-  min-height: 22px !important;
-  padding: 3px 8px !important;
-  border: 1px solid #1c4c78 !important;
-  border-radius: 999px !important;
-  background: #0b1c31 !important;
-  color: #bad3eb !important;
-  font-size: 9px !important;
-  line-height: 1.15 !important;
-  font-weight: 850 !important;
-  white-space: nowrap !important;
-  text-align: center !important;
-  box-shadow: none !important;
-}
-
-/* Website-condition tags stay neutral/dark. */
-#leadsScreen .lead-card-site-tags-corner .lead-type-badge:not(.conversion-card-tag) {
-border-color: #2369ad !important;
-  background: #0a2340 !important;
-  color: #93c9ff !important;
-}
-
-/* Negative/problem tags are deliberately prominent. */
-#leadsScreen .lead-card-site-tags-corner .negative-card-tag {
-border-color: #7a4248 !important;
-  background: #2b1219 !important;
-  color: #f0a7ae !important;
-}
-
-/* Follow-up style informational tags. */
-#leadsScreen .lead-card-site-tags-corner .followup-card-tag {
-border-color: #7b6534 !important;
-  background: #241f10 !important;
-  color: #e6cc7b !important;
-}
-
-/* Hot Lead tag on card = green. */
-#leadsScreen .lead-card-site-tags-corner .hot-card-tag {
-border-color: #2d8653 !important;
-  background: #0b2819 !important;
-  color: #7de0a2 !important;
-}
-
-/* Sold conversion tag = yellow/gold. */
-#leadsScreen .lead-card-site-tags-corner .conversion-card-tag {
-border-color: #8f7a3e !important;
-  background: #2b2512 !important;
-  color: #f0d77a !important;
-}
-
-/* Give the tag lane enough room so multiple tags do not disappear. */
-#leadsScreen .lead-item-wrap {
-  height: auto !important;
-  min-height: 154px !important;
-  max-height: none !important;
-}
-
-#leadsScreen .lead-item-wrap > .lead-item {
-  height: auto !important;
-  min-height: 154px !important;
-  max-height: none !important;
-  padding-bottom: 48px !important;
-  overflow: visible !important;
-}
-
-#leadsScreen .lead-card-copy-ordered {
-  height: auto !important;
-  min-height: 92px !important;
-  overflow: visible !important;
-}
-
-/* Hover the whole card and make problem tags slightly stronger. */
-#leadsScreen .lead-item:hover .negative-card-tag {
-  border-color: #a45a62 !important;
-  background: #342126 !important;
-  color: #ffc1c7 !important;
-}
-
-#leadsScreen .lead-item:hover .hot-card-tag {
-  border-color: #3b7fbd !important;
-  background: #102844 !important;
-  color: #c6e3ff !important;
-}
-
-#leadsScreen .sold-lead-list .lead-item:hover .conversion-card-tag {
-  border-color: #b59a4c !important;
-  background: #43391f !important;
-  color: #ffe99b !important;
-}
-
-@media (max-width: 959px) {
-  #leadsScreen .lead-card-site-tags-corner {
-    left: 13px !important;
-    right: 10px !important;
-    bottom: 9px !important;
-    justify-content: flex-start !important;
-    gap: 4px !important;
-  }
-
-  #leadsScreen .lead-item-wrap,
-  #leadsScreen .lead-item-wrap > .lead-item {
-    min-height: 160px !important;
-    height: auto !important;
-    max-height: none !important;
-  }
-
-  #leadsScreen .lead-item-wrap > .lead-item {
-    padding-bottom: 52px !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner .lead-type-badge,
-  #leadsScreen .lead-card-site-tags-corner .lead-card-tag-badge {
-    font-size: 8.5px !important;
-    padding: 3px 7px !important;
-  }
-}
-
-/* =========================================================
    LEAD HEADER EDIT BUTTON
    Company/name left, edit button on the right.
    ========================================================= */
@@ -6769,120 +5847,6 @@ same treatment {
     min-height: 36px !important;
     max-width: 36px !important;
     max-height: 36px !important;
-  }
-}
-
-/* =========================================================
-   LEAD CARDS — COMPACT, EQUAL HEIGHT, NO RANDOM GAPS
-   ========================================================= */
-
-/* Normalize list spacing so cards sit evenly with no empty row gap. */
-#newLeadList,
-#followLeadList,
-#soldLeadList {
-  align-content: start !important;
-  row-gap: 8px !important;
-  gap: 8px !important;
-  margin: 0 !important;
-}
-
-/* Every card wrapper is the exact same height. */
-#leadsScreen .lead-item-wrap {
-  height: 126px !important;
-  min-height: 126px !important;
-  max-height: 126px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Every visible lead card is the exact same height too. */
-#leadsScreen .lead-item-wrap > .lead-item {
-  height: 126px !important;
-  min-height: 126px !important;
-  max-height: 126px !important;
-  margin: 0 !important;
-  padding: 11px 14px 34px 14px !important;
-  overflow: hidden !important;
-}
-
-/* Keep the info stack compact and consistent. */
-#leadsScreen .lead-card-copy-ordered {
-  height: 78px !important;
-  min-height: 78px !important;
-  max-height: 78px !important;
-  display: grid !important;
-  grid-template-rows: 19px 18px 18px 19px !important;
-  gap: 1px !important;
-  align-content: start !important;
-  overflow: hidden !important;
-}
-
-/* Tags live in a fixed bottom lane so they don't make some cards taller. */
-#leadsScreen .lead-card-site-tags-corner {
-  position: absolute !important;
-  left: 14px !important;
-  right: 14px !important;
-  bottom: 8px !important;
-  height: 22px !important;
-  min-height: 22px !important;
-  max-height: 22px !important;
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 4px !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  scrollbar-width: none !important;
-  white-space: nowrap !important;
-}
-
-#leadsScreen .lead-card-site-tags-corner::-webkit-scrollbar {
-  display: none !important;
-}
-
-#leadsScreen .lead-card-site-tags-corner .lead-type-badge,
-#leadsScreen .lead-card-site-tags-corner .lead-card-tag-badge {
-  min-height: 20px !important;
-  height: 20px !important;
-  padding: 2px 7px !important;
-  font-size: 8.5px !important;
-  line-height: 14px !important;
-}
-
-/* Remove legacy mobile heights/gaps that were making cards inconsistent. */
-@media (max-width: 959px) {
-  #newLeadList,
-  #followLeadList,
-  #soldLeadList {
-    row-gap: 7px !important;
-    gap: 7px !important;
-  }
-
-  #leadsScreen .lead-item-wrap,
-  #leadsScreen .lead-item-wrap > .lead-item {
-    height: 122px !important;
-    min-height: 122px !important;
-    max-height: 122px !important;
-  }
-
-  #leadsScreen .lead-item-wrap > .lead-item {
-    padding: 10px 12px 33px 12px !important;
-  }
-
-  #leadsScreen .lead-card-copy-ordered {
-    height: 75px !important;
-    min-height: 75px !important;
-    max-height: 75px !important;
-    grid-template-rows: 18px 18px 18px 18px !important;
-    gap: 1px !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner {
-    left: 12px !important;
-    right: 12px !important;
-    bottom: 7px !important;
-    justify-content: flex-start !important;
   }
 }
 
@@ -10117,157 +9081,213 @@ select {
   }
 }
 
-
 /* =========================================================
-   DESKTOP LEAD CARD TAGS — FINAL NO-CLIP FIX
-   Removes the old fixed 22px/no-wrap tag lane.
+   DESKTOP LEAD CARDS — SINGLE SOURCE OF TRUTH
+   Mobile uses .mobile-reference-lead-card and is untouched.
    ========================================================= */
 @media (min-width: 960px) {
+  /* Two-column desktop list stays dense. */
+  #leadsScreen #newLeadList,
+  #leadsScreen #followLeadList,
+  #leadsScreen #soldLeadList {
+    gap: 10px 12px !important;
+    align-items: start !important;
+  }
+
+  /* Wrapper no longer forces any old 126/148/154px height. */
   #leadsScreen .lead-item-wrap {
+    position: relative !important;
+    width: 100% !important;
     height: auto !important;
-    min-height: 132px !important;
+    min-height: 100px !important;
     max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
     overflow: visible !important;
   }
 
-  #leadsScreen .lead-item-wrap > .lead-item {
+  /* Desktop card itself: shorter, slimmer, clean. */
+  #leadsScreen .desktop-lead-card {
+    position: relative !important;
+    width: 100% !important;
     height: auto !important;
-    min-height: 132px !important;
+    min-height: 100px !important;
     max-height: none !important;
-    padding: 11px 14px 44px 14px !important;
+    margin: 0 !important;
+    padding: 10px 14px 33px !important;
+
+    display: block !important;
+
+    border-radius: 13px !important;
     overflow: visible !important;
   }
 
-  #leadsScreen .lead-card-site-tags-corner {
-    left: 14px !important;
-    right: 14px !important;
-    bottom: 9px !important;
+  /* Desktop never uses the mobile card. */
+  #leadsScreen .mobile-reference-lead-card {
+    display: none !important;
+  }
+
+  /* Old avatar / chevron layout is gone on desktop. */
+  #leadsScreen .desktop-lead-card > .lead-avatar,
+  #leadsScreen .desktop-lead-card > .bi-chevron-right {
+    display: none !important;
+  }
+
+  /* Main text stack. */
+  #leadsScreen .desktop-lead-card .lead-card-copy-ordered {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Company — larger on computer. */
+  #leadsScreen .desktop-lead-card .lead-card-company {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #f3f8ff !important;
+    font-size: 17px !important;
+    font-weight: 850 !important;
+    line-height: 1.1 !important;
+    letter-spacing: -.015em !important;
+
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Contact name — larger but secondary. */
+  #leadsScreen .desktop-lead-card .lead-card-contact {
+    display: block !important;
+    width: 100% !important;
+    margin: 1px 0 0 !important;
+    padding: 0 !important;
+
+    color: #d7e4f2 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Call status. */
+  #leadsScreen .desktop-lead-card .lead-card-call-status {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
 
     width: auto !important;
+    margin: 5px 0 0 !important;
+    padding: 0 !important;
+
+    color: #7f9cba !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-call-status i {
+    font-size: 12px !important;
+    line-height: 1 !important;
+  }
+
+  /* Reference/source sits compactly bottom-left. */
+  #leadsScreen .desktop-lead-card .lead-card-reference {
+    position: absolute !important;
+    left: 14px !important;
+    bottom: 7px !important;
+
+    width: auto !important;
+    max-width: 38% !important;
+    height: 23px !important;
+    min-height: 23px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-reference .lead-source-chip {
+    max-width: 100% !important;
+    min-height: 23px !important;
+    height: 23px !important;
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+    border-radius: 999px !important;
+  }
+
+  /* Tags sit bottom-right and are never clipped by an old fixed lane. */
+  #leadsScreen .desktop-lead-card .lead-card-site-tags-corner {
+    position: absolute !important;
+    right: 14px !important;
+    bottom: 7px !important;
+    left: auto !important;
+    top: auto !important;
+
+    width: auto !important;
+    max-width: 60% !important;
     height: auto !important;
-    min-height: 27px !important;
+    min-height: 23px !important;
     max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
 
     display: flex !important;
     flex-wrap: wrap !important;
     align-items: center !important;
-    align-content: flex-end !important;
     justify-content: flex-end !important;
     gap: 5px !important;
 
     overflow: visible !important;
     white-space: normal !important;
+    pointer-events: none !important;
   }
 
-  #leadsScreen .lead-card-site-tags-corner::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner .lead-pill {
+  #leadsScreen .desktop-lead-card .lead-card-site-tags-corner .lead-pill {
     flex: 0 0 auto !important;
     width: auto !important;
     min-width: max-content !important;
-    max-width: 100% !important;
-    min-height: 25px !important;
-    height: 25px !important;
-    padding: 4px 9px !important;
+    max-width: none !important;
+
+    height: 23px !important;
+    min-height: 23px !important;
+
+    margin: 0 !important;
+    padding: 3px 8px !important;
+
+    border-radius: 999px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
     line-height: 1 !important;
+
     white-space: nowrap !important;
     overflow: visible !important;
-  }
-}
-
-
-/* =========================================================
-   DESKTOP LEAD CARDS — COMPACT + LARGER TEXT
-   Mobile card styling remains unchanged.
-   ========================================================= */
-@media (min-width: 960px) {
-  /* Make the desktop grid feel denser and more desktop-specific. */
-  #leadsScreen .lead-list {
-    gap: 10px !important;
-  }
-
-  #leadsScreen .lead-item-wrap {
-    min-height: 104px !important;
-    height: auto !important;
-    max-height: none !important;
-  }
-
-  #leadsScreen .lead-item-wrap > .lead-item {
-    min-height: 104px !important;
-    height: auto !important;
-    max-height: none !important;
-
-    padding: 10px 14px 35px 14px !important;
-    border-radius: 14px !important;
-
-    display: block !important;
-    overflow: visible !important;
-  }
-
-  /* Company title */
-  #leadsScreen .lead-item-wrap .lead-company-name,
-  #leadsScreen .lead-item-wrap .mobile-card-company,
-  #leadsScreen .lead-item-wrap .lead-card-company,
-  #leadsScreen .lead-item-wrap strong:first-child {
-    font-size: 16px !important;
-    line-height: 1.12 !important;
-    font-weight: 850 !important;
-    letter-spacing: -.01em !important;
-  }
-
-  /* Contact name */
-  #leadsScreen .lead-item-wrap .lead-contact-name,
-  #leadsScreen .lead-item-wrap .mobile-card-name,
-  #leadsScreen .lead-item-wrap .lead-card-contact,
-  #leadsScreen .lead-item-wrap .lead-company {
-    margin-top: 3px !important;
-    font-size: 13.5px !important;
-    line-height: 1.15 !important;
-    font-weight: 700 !important;
-  }
-
-  /* Call status */
-  #leadsScreen .lead-item-wrap .lead-card-status,
-  #leadsScreen .lead-item-wrap .mobile-card-status,
-  #leadsScreen .lead-item-wrap .lead-meta {
-    margin-top: 6px !important;
-    font-size: 12.5px !important;
-    line-height: 1.15 !important;
-    font-weight: 700 !important;
-  }
-
-  #leadsScreen .lead-item-wrap .lead-card-status i,
-  #leadsScreen .lead-item-wrap .mobile-card-status i,
-  #leadsScreen .lead-item-wrap .lead-meta i {
-    font-size: 12px !important;
-  }
-
-  /* Keep the tag row compact, but fully visible. */
-  #leadsScreen .lead-card-site-tags-corner {
-    left: 14px !important;
-    right: 14px !important;
-    bottom: 7px !important;
-
-    min-height: 24px !important;
-    gap: 5px !important;
-  }
-
-  #leadsScreen .lead-card-site-tags-corner .lead-pill {
-    min-height: 23px !important;
-    height: 23px !important;
-    padding: 3px 8px !important;
-    font-size: 10.5px !important;
-    font-weight: 800 !important;
-  }
-
-  /* Source badge on the left should stay compact too. */
-  #leadsScreen .lead-item-wrap .source-card-tag,
-  #leadsScreen .lead-item-wrap .lead-source-badge {
-    min-height: 23px !important;
-    height: 23px !important;
-    padding: 3px 8px !important;
-    font-size: 10.5px !important;
+    text-overflow: clip !important;
   }
 }
