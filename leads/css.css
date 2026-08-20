@@ -9866,3 +9866,13 @@ select {
     font-size: 22px !important;
   }
 }
+
+
+/* Hidden status elements must stay hidden on mobile.
+   Prevents the empty sold-status pill/dot beside "Not called yet". */
+@media (max-width: 959px) {
+  #detailScreen #soldByDetail[hidden],
+  #detailScreen .sold-by-detail[hidden] {
+    display: none !important;
+  }
+}
