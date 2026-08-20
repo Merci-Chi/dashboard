@@ -167,6 +167,24 @@
     showView(allowedViews.includes(requested) ? requested : allowedViews[0]);
   }
 
+
+  function sendSessionToLeadsFrame() {
+    const frame = $("#leadsFrame");
+    if (!frame?.contentWindow || !session) return;
+
+    try {
+      frame.contentWindow.postMessage(
+        {
+          type: "STEADY_HANDS_SUPABASE_SESSION",
+          session
+        },
+        window.location.origin
+      );
+    } catch (error) {
+      console.error("Could not send Supabase session to Leads:", error);
+    }
+  }
+
   function reloadLeadsAfterLogin() {
     const frame = $("#leadsFrame");
     const userId = String(session?.user?.id || "");
@@ -181,6 +199,8 @@
     frame.dataset.baseSrc = baseSrc;
 
     const separator = baseSrc.includes("?") ? "&" : "?";
+
+    frame.addEventListener("load", sendSessionToLeadsFrame, { once: true });
     frame.src = `${baseSrc}${separator}session=${Date.now()}`;
   }
 
@@ -203,6 +223,9 @@
       reloadLeadsAfterLogin();
     }
   }
+
+  const leadsSessionFrame = $("#leadsFrame");
+  leadsSessionFrame?.addEventListener("load", sendSessionToLeadsFrame);
 
   function setupNavigation() {
     $$("[data-view]").forEach((item) => {
