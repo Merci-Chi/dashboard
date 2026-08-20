@@ -9506,13 +9506,18 @@ select {
 }
 
 
+
 /* =========================================================
-   MOBILE DETAIL + FOLLOW-UP CLEAN LAYOUT
-   One final phone-only source of truth.
+   MOBILE DETAIL TOP — REFERENCE LAYOUT
+   Single final phone-only source of truth for the lead-open top area.
+   Replaces prior experimental mobile detail overrides.
    Desktop remains unchanged.
    ========================================================= */
+.edit-button-label {
+  display: none;
+}
+
 @media (max-width: 760px) {
-  /* ---------- DETAIL SCREEN TOP ---------- */
   #detailScreen {
     width: 100% !important;
     max-width: 100% !important;
@@ -9522,462 +9527,272 @@ select {
     overflow-x: hidden !important;
   }
 
+  #detailScreen .detail-topbar {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* ----- top identity card ----- */
   #detailScreen .detail-header {
-    min-height: 58px !important;
-    padding: 8px 2px !important;
-    display: grid !important;
-    grid-template-columns: 38px minmax(0, 1fr) 38px !important;
-    align-items: center !important;
-    gap: 9px !important;
-  }
-
-  #detailScreen .detail-header .back-button,
-  #detailScreen .detail-header .icon-button {
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    min-height: 38px !important;
-    border-radius: 10px !important;
-  }
-
-  #detailScreen .detail-title-wrap {
-    width: 100% !important;
-    max-width: none !important;
-    min-width: 0 !important;
-    text-align: left !important;
-  }
-
-  #detailScreen .detail-title-wrap h1,
-  #detailScreen .detail-header h1 {
-    margin: 0 !important;
-    font-size: 17px !important;
-    line-height: 1.15 !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    overflow-wrap: anywhere !important;
-  }
-
-  #detailScreen .detail-title-wrap p,
-  #detailScreen .detail-title-wrap span:not(.eyebrow) {
-    font-size: 13px !important;
-    line-height: 1.2 !important;
-  }
-
-  #detailScreen .phone-card {
     min-height: 0 !important;
-    margin: 4px 0 9px !important;
-    padding: 14px 12px 13px !important;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    display: grid !important;
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 12px !important;
     border: 1px solid #164f86 !important;
-    border-radius: 15px !important;
+    border-radius: 16px !important;
     background: linear-gradient(180deg, #071b31 0%, #061626 100%) !important;
     box-shadow: none !important;
-    text-align: center !important;
+    position: relative !important;
+  }
+
+  #detailScreen .detail-header .icon-button,
+  #detailScreen .detail-header .header-edit-icon {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+    border: 1px solid #174f85 !important;
+    border-radius: 14px !important;
+    background: #06182c !important;
+    color: #f3f8ff !important;
+    box-shadow: inset 0 1px 0 rgba(94, 164, 234, .05) !important;
+  }
+
+  #detailScreen .detail-header #backButton i {
+    font-size: 24px !important;
+    line-height: 1 !important;
+  }
+
+  #detailScreen .detail-title-wrap.lead-identity-title {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  #detailScreen .lead-identity-copy {
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+  }
+
+  #detailScreen .lead-identity-title h1,
+  #detailScreen #detailLeadCompanyTitle {
+    width: 100% !important;
+    margin: 0 !important;
+    color: #f3f8ff !important;
+    font-size: 18px !important;
+    font-weight: 850 !important;
+    line-height: 1.12 !important;
+    letter-spacing: -.02em !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    position: static !important;
+    transform: none !important;
+  }
+
+  #detailScreen .detail-lead-name {
+    width: 100% !important;
+    color: #f3f8ff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.15 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #detailScreen .header-edit-icon {
+    width: auto !important;
+    min-width: 100px !important;
+    padding: 0 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  #detailScreen .header-edit-icon i {
+    font-size: 19px !important;
+  }
+
+  #detailScreen .edit-button-label {
+    display: inline !important;
+    color: #f3f8ff !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+  }
+
+  /* ----- phone card ----- */
+  #detailScreen .phone-card {
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 16px 14px !important;
+    display: grid !important;
+    grid-template-columns: 58px minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+    column-gap: 14px !important;
+    row-gap: 4px !important;
+    border: 1px solid #164f86 !important;
+    border-radius: 16px !important;
+    background: linear-gradient(180deg, #071b31 0%, #061626 100%) !important;
+    box-shadow: none !important;
+    text-align: left !important;
+    overflow: hidden !important;
+  }
+
+  #detailScreen .phone-card .phone-inline-call {
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid #174f85 !important;
+    border-radius: 16px !important;
+    background: #0a1f35 !important;
+    color: #f3f8ff !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
+  }
+
+  #detailScreen .phone-card .phone-inline-call i {
+    font-size: 24px !important;
   }
 
   #detailScreen .phone-card-label {
-    margin-bottom: 5px !important;
-    color: #7fa8d2 !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    margin: 0 !important;
+    display: block !important;
+    color: #84add5 !important;
     font-size: 9px !important;
     font-weight: 900 !important;
-    letter-spacing: 1.7px !important;
+    line-height: 1 !important;
+    letter-spacing: .22em !important;
+  }
+
+  #detailScreen .phone-card-label i {
+    display: none !important;
+  }
+
+  #detailScreen .phone-number-row {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: block !important;
+    margin: 0 !important;
   }
 
   #detailScreen .phone-number {
     margin: 0 !important;
     color: #f3f8ff !important;
-    font-size: clamp(25px, 8vw, 32px) !important;
+    font-size: clamp(26px, 8.2vw, 31px) !important;
+    font-weight: 850 !important;
     line-height: 1.05 !important;
-    letter-spacing: -.4px !important;
-    overflow-wrap: anywhere !important;
+    letter-spacing: -.03em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
-  #detailScreen .phone-card .call-button,
-  #detailScreen .phone-card button {
-    min-width: 112px !important;
-    min-height: 42px !important;
-    margin-top: 11px !important;
-    border: 1px solid #2f92ff !important;
-    border-radius: 999px !important;
-    background: linear-gradient(180deg, #1667ad, #0d4d87) !important;
-    color: #f3f8ff !important;
-    box-shadow: 0 0 16px rgba(47,146,255,.12) !important;
-    opacity: 1 !important;
-  }
-
-  #detailScreen .phone-card .call-button:disabled,
-  #detailScreen .phone-card button:disabled {
-    border-color: #244967 !important;
-    background: #0b2035 !important;
-    color: #6887a6 !important;
-    opacity: 1 !important;
+  #detailScreen .mobile-call-details-button,
+  #detailScreen .sound-line {
+    display: none !important;
   }
 
   #detailScreen .phone-called-by,
   #detailScreen .sold-by-detail {
-    margin-top: 6px !important;
-    color: #6f91b1 !important;
-    font-size: 10px !important;
+    grid-column: 3 !important;
+    grid-row: 1 / span 2 !important;
+    align-self: stretch !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    padding-left: 16px !important;
+    margin: 0 !important;
+    border-left: 1px solid rgba(47,146,255,.22) !important;
+    color: #f3f8ff !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
   }
 
-  #detailScreen > .tabs,
-  #detailScreen > .detail-toolbar > .tabs {
-    position: sticky !important;
+  #detailScreen .phone-called-by.has-call {
+    color: #9bd9b3 !important;
+  }
+
+  #detailScreen .phone-called-by::before,
+  #detailScreen .sold-by-detail::before {
+    content: "";
+    display: none;
+  }
+
+  /* ----- tabs ----- */
+  #detailScreen .detail-toolbar {
+    display: block !important;
+  }
+
+  #detailScreen .tabs {
+    position: relative !important;
     top: 0 !important;
-    z-index: 20 !important;
+    z-index: 1 !important;
     width: 100% !important;
-    margin: 0 0 12px !important;
+    margin: 0 0 10px !important;
     padding: 4px !important;
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 4px !important;
     border: 1px solid #164f86 !important;
-    border-radius: 13px !important;
-    background: rgba(4,17,31,.97) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(180deg, #071b31 0%, #061626 100%) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
   }
 
   #detailScreen .tab {
     min-width: 0 !important;
-    min-height: 40px !important;
+    min-height: 42px !important;
     padding: 0 5px !important;
     border: 1px solid transparent !important;
-    border-radius: 9px !important;
+    border-radius: 12px !important;
     background: transparent !important;
-    color: #7594b4 !important;
-    font-size: 11.5px !important;
-    font-weight: 800 !important;
+    color: #7e9fc0 !important;
+    font-size: 12px !important;
+    font-weight: 850 !important;
+    line-height: 1 !important;
     white-space: nowrap !important;
+    box-shadow: none !important;
   }
 
   #detailScreen .tab.active,
   #detailScreen .tab[aria-selected="true"] {
-    border-color: #2f92ff !important;
-    background: #0a2848 !important;
-    color: #f3f8ff !important;
-    box-shadow: inset 0 0 0 1px rgba(47,146,255,.08) !important;
-  }
-
-  /* ---------- DETAIL CONTENT ---------- */
-  #detailsPanel,
-  #followupPanel,
-  #quickPanel {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  #detailsPanel .details-intro,
-  #followupPanel .followup-intro,
-  #quickPanel .business-quick-intro {
-    margin: 10px 3px 11px !important;
-  }
-
-  #detailsPanel .details-intro h2,
-  #followupPanel .followup-intro h2,
-  #quickPanel .business-quick-intro h2 {
-    margin: 0 0 4px !important;
-    color: #f3f8ff !important;
-    font-size: 21px !important;
-    line-height: 1.1 !important;
-  }
-
-  #detailsPanel .details-intro p,
-  #followupPanel .followup-intro p,
-  #quickPanel .business-quick-intro p {
-    margin: 0 !important;
-    color: #7695b5 !important;
-    font-size: 11.5px !important;
-    line-height: 1.4 !important;
-  }
-
-  /* ---------- FOLLOW-UP CARDS ---------- */
-  #followupPanel {
-    padding-top: 0 !important;
-  }
-
-  #followupPanel .followup-layout.followup-four-grid,
-  #followupPanel .followup-layout,
-  #followupPanel .followup-column {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    margin: 0 !important;
-  }
-
-  #followupPanel .followup-card,
-  #followupPanel .contact-info-card,
-  #followupPanel .contact-preference-card {
-    width: 100% !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-    padding: 13px !important;
-    border: 1px solid #164f86 !important;
-    border-radius: 14px !important;
-    background: linear-gradient(180deg, #071b31, #061626) !important;
-    box-shadow: none !important;
-  }
-
-  #followupPanel .followup-card-head {
-    width: 100% !important;
-    display: grid !important;
-    grid-template-columns: 36px minmax(0, 1fr) !important;
-    align-items: center !important;
-    gap: 9px !important;
-  }
-
-  #followupPanel .followup-card-icon {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    min-height: 36px !important;
-    display: grid !important;
-    place-items: center !important;
-    border: 1px solid #2475bb !important;
-    border-radius: 10px !important;
-    background: #071a2d !important;
-    color: #72b9ff !important;
-    font-size: 15px !important;
-  }
-
-  #followupPanel .followup-card-head h3 {
-    margin: 0 !important;
-    color: #f3f8ff !important;
-    font-size: 14px !important;
-    line-height: 1.15 !important;
-  }
-
-  #followupPanel .followup-card-head p {
-    margin: 3px 0 0 !important;
-    color: #6788a9 !important;
-    font-size: 10.5px !important;
-    line-height: 1.25 !important;
-  }
-
-  #followupPanel .followup-card-body {
-    width: 100% !important;
-    margin-top: 11px !important;
-  }
-
-  /* ---------- LAST CALL OUTCOME ---------- */
-  #followupPanel .call-outcome-tags {
-    width: 100% !important;
-    margin-top: 11px !important;
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-  }
-
-  #followupPanel .followup-outcome-tag {
-    width: 100% !important;
-    min-width: 0 !important;
-    min-height: 46px !important;
-    margin: 0 !important;
-    padding: 7px 8px !important;
-    border: 1px solid #1c5e96 !important;
-    border-radius: 11px !important;
-    background: #081d32 !important;
-    color: #a8c0d9 !important;
-    box-shadow: none !important;
-    font-size: 11.5px !important;
-    font-weight: 800 !important;
-    line-height: 1.15 !important;
-    white-space: normal !important;
-    opacity: 1 !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-  }
-
-  #followupPanel .followup-outcome-tag:hover,
-  #followupPanel .followup-outcome-tag:focus {
-    background: #0a2744 !important;
-    color: #dcecff !important;
-    border-color: #2f92ff !important;
-  }
-
-  #followupPanel .followup-outcome-tag.selected,
-  #followupPanel .followup-outcome-tag[aria-pressed="true"] {
-    border-color: #2f92ff !important;
-    background: #0b3157 !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 0 1px rgba(47,146,255,.15) inset !important;
-  }
-
-  #followupPanel .followup-outcome-tag.danger.selected,
-  #followupPanel .followup-outcome-tag.danger[aria-pressed="true"] {
-    border-color: #ef5d63 !important;
-    background: rgba(159,34,42,.24) !important;
-    color: #ffb8bc !important;
-  }
-
-  #followupPanel .followup-outcome-tag.conversion.selected,
-  #followupPanel .followup-outcome-tag.conversion[aria-pressed="true"] {
-    border-color: #35c887 !important;
-    background: rgba(25,116,75,.25) !important;
-    color: #a8f2cf !important;
-  }
-
-  /* ---------- CONTACT INFO ---------- */
-  #followupPanel .contact-info-card .contact-info-fields {
-    width: 100% !important;
-    margin: 12px 0 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-  }
-
-  #followupPanel .contact-info-card .contact-info-field {
-    width: 100% !important;
-    display: block !important;
-    margin: 0 !important;
-  }
-
-  #followupPanel .contact-info-card .contact-info-field > span {
-    display: block !important;
-    margin: 0 0 5px 2px !important;
-    color: #7898b8 !important;
-    font-size: 10px !important;
-    font-weight: 800 !important;
-    line-height: 1 !important;
-  }
-
-  #followupPanel .contact-info-card .contact-info-input-wrap {
-    position: relative !important;
-    width: 100% !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    margin: 0 !important;
-    padding: 0 11px 0 42px !important;
-    display: flex !important;
-    align-items: center !important;
-    border: 1px solid #164f86 !important;
-    border-radius: 11px !important;
-    background: #041426 !important;
-    box-shadow: none !important;
-    overflow: hidden !important;
-  }
-
-  #followupPanel .contact-info-card .contact-info-input-wrap > i {
-    position: absolute !important;
-    left: 13px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    margin: 0 !important;
-    color: #72b9ff !important;
-    font-size: 16px !important;
-    pointer-events: none !important;
-  }
-
-  #followupPanel .contact-info-card .contact-info-input {
-    width: 100% !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    outline: 0 !important;
-    background: transparent !important;
-    color: #f3f8ff !important;
-    font-size: 16px !important;
-    line-height: 1 !important;
-    box-shadow: none !important;
-  }
-
-  #followupPanel .contact-info-card .contact-info-input::placeholder {
-    color: #4f6d8a !important;
-  }
-
-  /* ---------- CONTACT METHOD ---------- */
-  #followupPanel .contact-preference-card .contact-method-icons {
-    width: 100% !important;
-    margin: 11px 0 0 !important;
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-  }
-
-  #followupPanel .contact-preference-card .contact-method-icon {
-    width: 100% !important;
-    min-width: 0 !important;
-    height: 46px !important;
-    min-height: 46px !important;
-    margin: 0 !important;
-    padding: 0 8px !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    border: 1px solid #1c5e96 !important;
-    border-radius: 10px !important;
-    background: #081d32 !important;
-    color: #8aa9c9 !important;
-    box-shadow: none !important;
-    opacity: 1 !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-  }
-
-  #followupPanel .contact-preference-card .contact-method-icon i,
-  #followupPanel .contact-preference-card .contact-method-icon span {
-    position: static !important;
-    margin: 0 !important;
-  }
-
-  #followupPanel .contact-preference-card .contact-method-icon i {
-    color: #72b9ff !important;
-    font-size: 14px !important;
-  }
-
-  #followupPanel .contact-preference-card .contact-method-icon span {
-    display: inline !important;
-    color: inherit !important;
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    white-space: nowrap !important;
-  }
-
-  #followupPanel .contact-preference-card .contact-method-icon.selected,
-  #followupPanel .contact-preference-card .contact-method-icon[aria-pressed="true"] {
-    border-color: #2f92ff !important;
-    background: #0b3157 !important;
+    border-color: #4ba6ff !important;
+    background: #11375f !important;
     color: #ffffff !important;
   }
 
-  /* ---------- OTHER FOLLOW-UP CONTROLS ---------- */
-  #followupPanel .custom-dropdown,
-  #followupPanel .followup-select,
-  #followupPanel .time-display-button,
-  #followupPanel .choice-button,
-  #followupPanel .multi-choice {
-    border: 1px solid #1c5e96 !important;
-    background: #081d32 !important;
-    color: #a8c0d9 !important;
-    box-shadow: none !important;
-    opacity: 1 !important;
-  }
-
-  #followupPanel .choice-button.selected,
-  #followupPanel .choice-button[aria-pressed="true"],
-  #followupPanel .multi-choice.selected,
-  #followupPanel .multi-choice[aria-pressed="true"] {
-    border-color: #2f92ff !important;
-    background: #0b3157 !important;
-    color: #ffffff !important;
-  }
-
-  #followupPanel .date-dropdowns,
-  #followupPanel .followup-time-grid {
-    gap: 7px !important;
-  }
-
-  #followupPanel .day-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-    gap: 5px !important;
-  }
-
-  /* ---------- FIXED BOTTOM ACTIONS ---------- */
+  /* ----- keep footer clean ----- */
   #detailScreen .bottom-actions {
     width: 100% !important;
     left: 0 !important;
@@ -10009,19 +9824,96 @@ select {
     background: linear-gradient(180deg, #5ca5e6, #2873b6) !important;
     color: #ffffff !important;
   }
+
+  /* ----- preserve readable follow-up controls colors ----- */
+  #followupPanel .followup-outcome-tag,
+  #followupPanel .contact-preference-card .contact-method-icon,
+  #followupPanel .custom-dropdown,
+  #followupPanel .followup-select,
+  #followupPanel .time-display-button,
+  #followupPanel .choice-button,
+  #followupPanel .multi-choice {
+    border: 1px solid #1c5e96 !important;
+    background: #081d32 !important;
+    color: #a8c0d9 !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+  }
+
+  #followupPanel .followup-outcome-tag.selected,
+  #followupPanel .followup-outcome-tag[aria-pressed="true"],
+  #followupPanel .contact-preference-card .contact-method-icon.selected,
+  #followupPanel .contact-preference-card .contact-method-icon[aria-pressed="true"],
+  #followupPanel .choice-button.selected,
+  #followupPanel .choice-button[aria-pressed="true"],
+  #followupPanel .multi-choice.selected,
+  #followupPanel .multi-choice[aria-pressed="true"] {
+    border-color: #2f92ff !important;
+    background: #0b3157 !important;
+    color: #ffffff !important;
+  }
 }
 
 @media (max-width: 390px) {
-  #followupPanel .call-outcome-tags {
-    gap: 6px !important;
+  #detailScreen .detail-header {
+    padding: 11px 12px !important;
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    gap: 10px !important;
   }
 
-  #followupPanel .followup-outcome-tag {
-    min-height: 44px !important;
-    font-size: 11px !important;
+  #detailScreen .detail-header .icon-button {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+
+  #detailScreen .header-edit-icon {
+    min-width: 92px !important;
+    padding: 0 12px !important;
+  }
+
+  #detailScreen .phone-card {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    row-gap: 6px !important;
+  }
+
+  #detailScreen .phone-card .phone-inline-call {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+  }
+
+  #detailScreen .phone-card-label,
+  #detailScreen .phone-number-row {
+    grid-column: 2 !important;
+  }
+
+  #detailScreen .phone-called-by,
+  #detailScreen .sold-by-detail {
+    grid-column: 1 / span 2 !important;
+    grid-row: 3 !important;
+    justify-content: flex-start !important;
+    min-height: 0 !important;
+    padding: 8px 0 0 0 !important;
+    border-left: 0 !important;
+    border-top: 1px solid rgba(47,146,255,.18) !important;
+    text-align: left !important;
   }
 
   #detailScreen .phone-number {
-    font-size: 25px !important;
+    font-size: 24px !important;
+  }
+
+  #detailScreen .header-edit-icon {
+    min-width: 46px !important;
+    width: 46px !important;
+    padding: 0 !important;
+  }
+
+  #detailScreen .header-edit-icon .edit-button-label {
+    display: none !important;
   }
 }
