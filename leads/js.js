@@ -1408,31 +1408,18 @@ function leadCard(lead) {
     const key = String(tag || '').trim().toLowerCase();
     let tone = 'pill-default';
 
-    if (key === 'spanish?' || key === 'spanish' || key === 'spanish possible') {
-      tone = 'pill-spanish';
-    } else if (key === 'new phone' || key === 'new number' || key === 'updated phone') {
-      tone = 'pill-new-phone';
-    } else if (key === 'hot lead') {
-      tone = 'pill-hot';
-    } else if (key === 'no phone') {
-      tone = 'pill-no-phone';
-    } else if (key === 'wrong number') {
-      tone = 'pill-wrong';
-    } else if (key === 'interested') {
-      tone = 'pill-interested';
-    } else if (key === 'call back' || key === 'callback') {
-      tone = 'pill-callback';
-    } else if (key === 'needs more info') {
-      tone = 'pill-more-info';
-    } else if (key === 'skeptical') {
-      tone = 'pill-skeptical';
-    } else if (key === 'no answer') {
-      tone = 'pill-no-answer';
-    } else if (key === 'not interested') {
-      tone = 'pill-not-interested';
-    } else if (key === 'sold' || key === 'conversion') {
-      tone = 'pill-conversion';
-    }
+    if (key === 'spanish?' || key === 'spanish' || key === 'spanish possible') tone = 'pill-spanish';
+    else if (key === 'new phone' || key === 'new number' || key === 'updated phone') tone = 'pill-new-phone';
+    else if (key === 'hot lead') tone = 'pill-hot';
+    else if (key === 'no phone') tone = 'pill-no-phone';
+    else if (key === 'wrong number') tone = 'pill-wrong';
+    else if (key === 'interested') tone = 'pill-interested';
+    else if (key === 'call back' || key === 'callback') tone = 'pill-callback';
+    else if (key === 'needs more info') tone = 'pill-more-info';
+    else if (key === 'skeptical') tone = 'pill-skeptical';
+    else if (key === 'no answer') tone = 'pill-no-answer';
+    else if (key === 'not interested') tone = 'pill-not-interested';
+    else if (key === 'sold' || key === 'conversion') tone = 'pill-conversion';
 
     return `lead-pill ${tone}`;
   };
@@ -1452,7 +1439,7 @@ function leadCard(lead) {
     const meta = getSourceTagMeta(clean);
     return `<span class="lead-source-chip ${meta.className}"><i class="bi ${meta.icon}" aria-hidden="true"></i><span>${escapeHTML(clean)}</span></span>`;
   }).join('');
-  // Hot Lead is displayed as a normal colored pill with the other lead-card tags.
+  // Hot Lead renders as a normal colored pill on the lead card.
   const cornerTags = '';
   const mobileHotBadge = '';
 
@@ -1566,19 +1553,6 @@ function renderCurrentLead() {
 
   const editLeadButton = $('#editLeadButton');
   if (editLeadButton) editLeadButton.hidden = !currentUserIsKiara();
-
-  // Keep the mobile lead header synced directly from the open lead.
-  const detailCompanyTitle = $('#detailLeadCompanyTitle');
-  const detailNameTitle = $('#detailLeadNameTitle');
-  if (detailCompanyTitle) {
-    detailCompanyTitle.textContent = lead.company || 'No Company';
-    detailCompanyTitle.title = lead.company || 'No Company';
-  }
-  if (detailNameTitle) {
-    detailNameTitle.textContent = lead.name || 'No contact name';
-    detailNameTitle.hidden = false;
-    detailNameTitle.title = lead.name || 'No contact name';
-  }
 
   const soldLead = lead.status === 'sold';
   const kiaraCanSeeSoldPhone = soldLead && currentUserIsKiara();
@@ -2121,7 +2095,8 @@ $('#deleteLeadFromEditButton')?.addEventListener('click', () => {
 
 $('#backButton').addEventListener('click', () => { renderLists(); clearDetailPageState(); showScreen('leads'); });
 $('#leadSearch').addEventListener('input', renderLists);
-$('#addLeadBottomButton').addEventListener('click', openNewLeadModal);
+// Lower mobile Add Lead button was intentionally removed.
+// Header Add Lead remains the single Add Lead control.
 document.getElementById('desktopHeaderAddLeadButton')?.addEventListener('click', openNewLeadModal);
 $('#editLeadButton')?.addEventListener('click', () => openLeadDetailsEditor());
 document.addEventListener('click', event => {
@@ -3399,86 +3374,6 @@ initializeSupabaseSession().then(() => {
   }
 });
 
-(function setupPullToRefresh() {
-  const threshold = 82;
-  const maxPull = 126;
-  let startY = 0;
-  let pulling = false;
-  let distance = 0;
-  let refreshing = false;
-
-  const indicator = document.createElement('div');
-  indicator.className = 'pull-refresh-indicator';
-  indicator.setAttribute('aria-hidden', 'true');
-  indicator.innerHTML = '<i class="bi bi-arrow-down"></i>';
-  document.body.appendChild(indicator);
-
-  const icon = indicator.querySelector('i');
-
-  function resetIndicator() {
-    pulling = false;
-    distance = 0;
-    indicator.classList.remove('visible', 'ready');
-    indicator.style.transform = 'translate(-50%, -58px) scale(.86)';
-    icon.className = 'bi bi-arrow-down';
-  }
-
-  document.addEventListener('touchstart', event => {
-    if (refreshing || event.touches.length !== 1) return;
-    if (window.scrollY > 0 || document.documentElement.scrollTop > 0) return;
-    if (document.querySelector('.modal-backdrop.open')) return;
-
-    const target = event.target;
-    if (target && target.closest('input, textarea, select, [contenteditable="true"]')) return;
-
-    startY = event.touches[0].clientY;
-    pulling = true;
-    distance = 0;
-  }, { passive: true });
-
-  document.addEventListener('touchmove', event => {
-    if (!pulling || refreshing || event.touches.length !== 1) return;
-    const rawDistance = event.touches[0].clientY - startY;
-
-    if (rawDistance <= 0) {
-      resetIndicator();
-      return;
-    }
-
-    distance = Math.min(maxPull, rawDistance * .62);
-    if (distance < 8) return;
-
-    event.preventDefault();
-    indicator.classList.add('visible');
-    const y = Math.max(-42, Math.min(20, -42 + distance * .55));
-    const scale = Math.min(1, .86 + distance / 520);
-    indicator.style.transform = `translate(-50%, ${y}px) scale(${scale})`;
-
-    const ready = distance >= threshold;
-    indicator.classList.toggle('ready', ready);
-    icon.className = ready ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
-  }, { passive: false });
-
-  document.addEventListener('touchend', () => {
-    if (!pulling || refreshing) return;
-    const shouldRefresh = distance >= threshold;
-    pulling = false;
-
-    if (!shouldRefresh) {
-      resetIndicator();
-      return;
-    }
-
-    refreshing = true;
-    indicator.classList.remove('ready');
-    indicator.classList.add('visible', 'refreshing');
-    icon.className = 'bi bi-arrow-clockwise';
-
-    setTimeout(() => window.location.reload(), 180);
-  }, { passive: true });
-
-  document.addEventListener('touchcancel', resetIndicator, { passive: true });
-})();
 
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
@@ -3641,7 +3536,7 @@ document.addEventListener('keydown', event => {
 
   addNav?.addEventListener('click', () => {
     setDesktopActive(addNav);
-    document.getElementById('addLeadBottomButton')?.click();
+    openNewLeadModal();
   });
 
   accountNav?.addEventListener('click', () => {
@@ -3703,11 +3598,11 @@ if (window.parent && window.parent !== window) {
 
 /* Mobile-only centered scroll-to-top control. */
 (() => {
-  const button = document.getElementById('leadCenterTopButton');
+  const button = document.getElementById('leadsMobileTopButton');
   if (!button) return;
 
   const isMobile = () => window.matchMedia('(max-width: 959px)').matches;
-  const getTop = () => Math.max(
+  const currentScrollTop = () => Math.max(
     window.scrollY || 0,
     document.documentElement?.scrollTop || 0,
     document.body?.scrollTop || 0
@@ -3715,21 +3610,20 @@ if (window.parent && window.parent !== window) {
 
   const update = () => {
     const leadsScreen = document.getElementById('leadsScreen');
-    const shouldShow =
+    const show = Boolean(
       isMobile() &&
       leadsScreen?.classList.contains('active') &&
-      getTop() > 260;
+      currentScrollTop() > 280
+    );
 
-    button.classList.toggle('is-visible', Boolean(shouldShow));
-    button.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
-    button.tabIndex = shouldShow ? 0 : -1;
+    button.classList.toggle('is-visible', show);
+    button.setAttribute('aria-hidden', show ? 'false' : 'true');
+    button.tabIndex = show ? 0 : -1;
   };
 
-  button.addEventListener('click', (event) => {
+  button.addEventListener('click', event => {
     event.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.documentElement?.scrollTo?.({ top: 0, behavior: 'smooth' });
-    if (document.body) document.body.scrollTop = 0;
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   });
 
   window.addEventListener('scroll', update, { passive: true });

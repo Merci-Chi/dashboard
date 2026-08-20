@@ -990,37 +990,6 @@ color: #53d98b;
 color: #53d98b;
 }
 
-/* PULL TO REFRESH */
-html, body { overscroll-behavior-y: contain; }
-.pull-refresh-indicator {
-  position: fixed;
-  z-index: 250;
-  top: max(8px, env(safe-area-inset-top));
-  left: 50%;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #245f98;
-  border-radius: 50%;
-  background: rgba(7, 24, 43, .96);
-  color: #8fc7ff;
-  box-shadow: 0 8px 28px rgba(0,0,0,.34), 0 0 18px rgba(46, 139, 255, .14);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -58px) scale(.86);
-  transition: opacity .12s ease, transform .12s ease;
-}
-.pull-refresh-indicator.visible { opacity: 1; }
-.pull-refresh-indicator.ready { color: #9fd0ff; border-color: #347fc5; }
-.pull-refresh-indicator.refreshing {
-  opacity: 1;
-  transform: translate(-50%, 8px) scale(1);
-}
-.pull-refresh-indicator.refreshing i { animation: pull-refresh-spin .7s linear infinite; }
-@keyframes pull-refresh-spin { to { transform: rotate(360deg); } }
-
-
 /* QUICK INFO TAG MANAGEMENT */
 .quick-tags-section {
   margin: 13px 0 2px;
@@ -8564,7 +8533,61 @@ select {
     font-size: 13px;
   }
 
-  /* DETAILS */
+  /* DETAIL TOP */
+  .detail-title-wrap {
+    max-width: calc(100% - 96px);
+  }
+
+  .detail-title-wrap h1,
+  .detail-header h1 {
+    max-width: 100%;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .phone-card {
+    min-height: 0;
+    padding: 13px 12px 12px;
+    border-radius: 15px;
+  }
+
+  .phone-card-label {
+    font-size: 9px;
+  }
+
+  .phone-number {
+    margin-top: 6px;
+    font-size: clamp(24px, 8vw, 31px);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  .phone-called-by,
+  .sold-by-detail {
+    margin-top: 4px;
+    font-size: 10px;
+  }
+
+  .sound-line {
+    width: 52%;
+    height: 10px;
+    margin-top: 6px;
+  }
+
+  .tabs {
+    top: 0;
+    margin: 8px 0 10px;
+    padding: 3px;
+    gap: 3px;
+    border-radius: 12px;
+  }
+
+  .tab {
+    min-height: 38px;
+    border-radius: 8px;
+    font-size: 11.5px;
+  }
 
   /* DETAILS */
   .details-intro,
@@ -9404,74 +9427,79 @@ select {
 
 
 
-
-
 /* =========================================================
-   MOBILE OPEN LEAD — REFINED FINAL
-   Clean phone layout, no overlap, no clipping.
-   Desktop rules are untouched.
+   MOBILE LEAD OPEN TOP — EXACT REFERENCE VERSION
+   This fully replaces prior mobile lead-open top styling.
+   It is intentionally last and targets mobile/tablet widths.
    ========================================================= */
 @media (max-width: 959px) {
+  /* Base container */
   #detailScreen {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 12px 12px calc(88px + env(safe-area-inset-bottom)) !important;
+    padding: 12px 10px calc(86px + env(safe-area-inset-bottom)) !important;
     overflow-x: hidden !important;
   }
 
   #detailScreen .detail-topbar {
     width: 100% !important;
-    margin: 0 0 12px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 12px !important;
+    margin: 0 0 12px !important;
   }
 
-  /* Identity */
-  #detailScreen .detail-header {
+  /* =========================
+     Identity card
+     ========================= */
+  #detailScreen .detail-header,
+  #detailScreen .detail-topbar > .detail-header {
     position: relative !important;
     width: 100% !important;
-    min-height: 84px !important;
+    min-height: 98px !important;
     margin: 0 !important;
-    padding: 11px 12px !important;
+    padding: 14px 16px !important;
     display: grid !important;
-    grid-template-columns: 56px minmax(0, 1fr) 94px !important;
+    grid-template-columns: 72px minmax(0, 1fr) 122px !important;
     align-items: center !important;
-    gap: 11px !important;
+    gap: 14px !important;
     border: 1px solid #155188 !important;
-    border-radius: 17px !important;
+    border-radius: 18px !important;
     background:
-      radial-gradient(circle at 100% 0%, rgba(46,139,255,.07), transparent 42%),
-      #07192d !important;
+      radial-gradient(circle at 100% 0%, rgba(47,146,255,.06), transparent 44%),
+      linear-gradient(180deg, #07192d 0%, #07182a 100%) !important;
     box-shadow: none !important;
     overflow: hidden !important;
   }
 
-  #detailScreen #backButton {
+  #detailScreen #backButton,
+  #detailScreen .detail-header #backButton {
     position: static !important;
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
-    max-width: 56px !important;
-    max-height: 56px !important;
+    width: 72px !important;
+    height: 72px !important;
+    min-width: 72px !important;
+    min-height: 72px !important;
+    max-width: 72px !important;
+    max-height: 72px !important;
     margin: 0 !important;
     padding: 0 !important;
     display: grid !important;
     place-items: center !important;
     border: 1px solid #1b5488 !important;
-    border-radius: 15px !important;
-    background: #081c31 !important;
-    color: #f3f8ff !important;
+    border-radius: 18px !important;
+    background: #081b30 !important;
+    color: #f2f7ff !important;
     box-shadow: none !important;
+    transform: none !important;
   }
 
   #detailScreen #backButton i {
-    font-size: 24px !important;
+    font-size: 30px !important;
     line-height: 1 !important;
   }
 
   #detailScreen .detail-title-wrap,
+  #detailScreen .detail-title-wrap.lead-identity-title,
   #detailScreen .lead-identity-title {
     position: static !important;
     left: auto !important;
@@ -9479,9 +9507,10 @@ select {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
+    display: block !important;
     margin: 0 !important;
     padding: 0 !important;
-    display: block !important;
+    white-space: normal !important;
   }
 
   #detailScreen .lead-identity-copy {
@@ -9490,117 +9519,136 @@ select {
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
-    gap: 3px !important;
+    gap: 4px !important;
   }
 
-  #detailScreen #detailLeadCompanyTitle {
+  #detailScreen #detailLeadCompanyTitle,
+  #detailScreen .detail-header h1,
+  #detailScreen .detail-title-wrap h1 {
     position: static !important;
     left: auto !important;
     transform: none !important;
     width: 100% !important;
     min-width: 0 !important;
+    max-width: 100% !important;
     margin: 0 !important;
-    color: #f4f8ff !important;
-    font-size: 17px !important;
+    padding: 0 !important;
+    color: #f3f8ff !important;
+    font-size: 18px !important;
     font-weight: 850 !important;
-    line-height: 1.12 !important;
-    letter-spacing: -.02em !important;
+    line-height: 1.1 !important;
+    letter-spacing: -.03em !important;
+    text-align: left !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  #detailScreen #detailLeadNameTitle {
+  #detailScreen #detailLeadNameTitle,
+  #detailScreen .detail-lead-name {
     width: 100% !important;
     min-width: 0 !important;
+    max-width: 100% !important;
     margin: 0 !important;
-    color: #f4f8ff !important;
-    font-size: 13px !important;
+    padding: 0 !important;
+    color: #f3f8ff !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
     line-height: 1.15 !important;
+    text-align: left !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  #detailScreen #editLeadButton {
+  #detailScreen #editLeadButton,
+  #detailScreen .header-edit-icon {
     position: static !important;
-    width: 94px !important;
-    min-width: 94px !important;
-    max-width: 94px !important;
-    height: 56px !important;
-    min-height: 56px !important;
-    max-height: 56px !important;
+    width: 122px !important;
+    min-width: 122px !important;
+    max-width: 122px !important;
+    height: 72px !important;
+    min-height: 72px !important;
+    max-height: 72px !important;
     margin: 0 !important;
-    padding: 0 10px !important;
+    padding: 0 14px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 7px !important;
+    gap: 10px !important;
     border: 1px solid #1b5488 !important;
-    border-radius: 15px !important;
-    background: #081c31 !important;
+    border-radius: 18px !important;
+    background: #081b30 !important;
     color: #f3f8ff !important;
     box-shadow: none !important;
+    box-sizing: border-box !important;
     transform: none !important;
   }
 
-  #detailScreen #editLeadButton i {
-    font-size: 19px !important;
+  #detailScreen #editLeadButton i,
+  #detailScreen .header-edit-icon i {
+    margin: 0 !important;
+    font-size: 24px !important;
     line-height: 1 !important;
+    color: #f3f8ff !important;
   }
 
-  #detailScreen #editLeadButton .edit-button-label {
+  #detailScreen #editLeadButton .edit-button-label,
+  #detailScreen .edit-button-label {
     display: inline !important;
+    margin: 0 !important;
     color: #f3f8ff !important;
-    font-size: 13px !important;
+    font-size: 16px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
+    white-space: nowrap !important;
   }
 
-  /* Phone */
-  #detailScreen .phone-card {
+  /* =========================
+     Phone card
+     ========================= */
+  #detailScreen .phone-card,
+  #detailScreen .detail-topbar > .phone-card {
     position: relative !important;
     width: 100% !important;
-    min-height: 92px !important;
+    min-height: 106px !important;
     margin: 0 !important;
-    padding: 13px 14px !important;
+    padding: 18px 18px !important;
     display: grid !important;
-    grid-template-columns: 56px minmax(0, 1fr) 118px !important;
+    grid-template-columns: 68px minmax(0, 1fr) 168px !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 16px !important;
     border: 1px solid #155188 !important;
-    border-radius: 17px !important;
+    border-radius: 18px !important;
     background:
-      radial-gradient(circle at 100% 0%, rgba(46,139,255,.06), transparent 42%),
-      #07192d !important;
+      radial-gradient(circle at 100% 0%, rgba(47,146,255,.06), transparent 44%),
+      linear-gradient(180deg, #07192d 0%, #07182a 100%) !important;
     box-shadow: none !important;
-    text-align: left !important;
     overflow: hidden !important;
+    text-align: left !important;
   }
 
   #detailScreen .phone-card-call-icon {
-    position: static !important;
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
-    max-width: 56px !important;
-    max-height: 56px !important;
+    width: 68px !important;
+    height: 68px !important;
+    min-width: 68px !important;
+    min-height: 68px !important;
+    max-width: 68px !important;
+    max-height: 68px !important;
     margin: 0 !important;
     padding: 0 !important;
     display: grid !important;
     place-items: center !important;
     border: 1px solid #1b5488 !important;
-    border-radius: 15px !important;
-    background: #0a2036 !important;
+    border-radius: 18px !important;
+    background: #0b2239 !important;
     color: #f3f8ff !important;
     text-decoration: none !important;
     box-shadow: none !important;
   }
 
   #detailScreen .phone-card-call-icon i {
-    font-size: 22px !important;
+    font-size: 28px !important;
     line-height: 1 !important;
   }
 
@@ -9610,69 +9658,71 @@ select {
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
-    gap: 5px !important;
+    gap: 6px !important;
   }
 
   #detailScreen .phone-card-label {
     margin: 0 !important;
-    color: #84a9ce !important;
-    font-size: 8.5px !important;
+    padding: 0 !important;
+    color: #88aed5 !important;
+    font-size: 10px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
-    letter-spacing: .19em !important;
-    white-space: nowrap !important;
+    letter-spacing: .22em !important;
+  }
+
+  #detailScreen .phone-card-label i {
+    display: none !important;
   }
 
   #detailScreen .phone-number {
     width: 100% !important;
     min-width: 0 !important;
+    max-width: 100% !important;
     margin: 0 !important;
-    color: #f4f8ff !important;
-    font-size: 24px !important;
+    padding: 0 !important;
+    color: #f3f8ff !important;
+    font-size: 29px !important;
     font-weight: 850 !important;
-    line-height: 1.04 !important;
-    letter-spacing: -.03em !important;
+    line-height: 1.05 !important;
+    letter-spacing: -.04em !important;
+    text-align: left !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
   #detailScreen .phone-card-status {
-    width: 118px !important;
-    min-width: 118px !important;
-    max-width: 118px !important;
-    min-height: 58px !important;
-    margin: 0 !important;
-    padding-left: 11px !important;
+    min-width: 0 !important;
+    min-height: 72px !important;
+    padding-left: 18px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     border-left: 1px solid rgba(47,146,255,.22) !important;
   }
 
+  #detailScreen .phone-called-by,
+  #detailScreen .sold-by-detail,
   #detailScreen #leadCalledBy,
   #detailScreen #soldByDetail {
-    width: 100% !important;
-    min-width: 0 !important;
     margin: 0 !important;
-    padding: 8px 9px !important;
+    padding: 13px 18px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    min-width: 136px !important;
+    min-height: 48px !important;
     border: 0 !important;
-    border-radius: 10px !important;
-    background: #0a2036 !important;
-    color: #b8cee2 !important;
-    font-size: 10.5px !important;
+    border-radius: 16px !important;
+    background: #0a2239 !important;
+    color: #e6f0fb !important;
+    font-size: 16px !important;
     font-weight: 800 !important;
-    line-height: 1.1 !important;
+    line-height: 1 !important;
     text-align: center !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere !important;
-  }
-
-  #detailScreen #leadCalledBy.has-call {
-    color: #a9e6c1 !important;
+    white-space: nowrap !important;
+    box-shadow: none !important;
   }
 
   #detailScreen .mobile-call-details-button,
@@ -9680,16 +9730,19 @@ select {
     display: none !important;
   }
 
-  /* Tabs */
+  /* =========================
+     Tabs
+     ========================= */
   #detailScreen .detail-toolbar {
     width: 100% !important;
-    margin: 0 0 12px !important;
     display: block !important;
+    margin: 0 0 12px !important;
   }
 
-  #detailScreen .tabs {
+  #detailScreen .tabs,
+  #detailScreen > .detail-toolbar > .tabs {
     position: relative !important;
-    top: auto !important;
+    top: 0 !important;
     z-index: 1 !important;
     width: 100% !important;
     margin: 0 !important;
@@ -9698,26 +9751,28 @@ select {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 4px !important;
     border: 1px solid #155188 !important;
-    border-radius: 17px !important;
-    background: #07192d !important;
+    border-radius: 18px !important;
+    background: linear-gradient(180deg, #07192d 0%, #07182a 100%) !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    overflow: hidden !important;
   }
 
-  #detailScreen .tab {
-    width: 100% !important;
+  #detailScreen .tab,
+  #detailScreen > .detail-toolbar > .tabs .tab {
     min-width: 0 !important;
-    min-height: 46px !important;
-    padding: 0 5px !important;
+    min-height: 62px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: 1px solid transparent !important;
-    border-radius: 12px !important;
+    border-radius: 15px !important;
     background: transparent !important;
-    color: #86a4c3 !important;
-    font-size: 12.5px !important;
+    color: #89a7c7 !important;
+    font-size: 18px !important;
     font-weight: 850 !important;
     line-height: 1 !important;
     white-space: nowrap !important;
@@ -9726,124 +9781,167 @@ select {
 
   #detailScreen .tab.active,
   #detailScreen .tab[aria-selected="true"] {
-    border-color: #57adff !important;
-    background: linear-gradient(180deg, #1b568d, #174471) !important;
-    color: #fff !important;
+    border-color: #61b4ff !important;
+    background: #1e4f83 !important;
+    color: #ffffff !important;
   }
 
-  /* Footer */
+  /* Keep the fixed footer usable */
   #detailScreen .bottom-actions {
-    position: fixed !important;
-    z-index: 40 !important;
+    width: 100% !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    transform: none !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 8px 12px calc(8px + env(safe-area-inset-bottom)) !important;
-    display: grid !important;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
     grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr) !important;
     gap: 8px !important;
-    background: rgba(0,0,0,.95) !important;
+    background: rgba(0,0,0,.94) !important;
     border-top: 1px solid rgba(47,146,255,.12) !important;
+  }
+
+  #detailScreen .secondary-action,
+  #detailScreen .done-action {
+    min-width: 0 !important;
+    min-height: 50px !important;
+    border-radius: 12px !important;
+    font-size: 12.5px !important;
   }
 }
 
-/* Narrower phones */
-@media (max-width: 390px) {
-  #detailScreen {
-    padding-left: 9px !important;
-    padding-right: 9px !important;
+/* Smaller phones still keep the same exact composition, just tighter. */
+@media (max-width: 520px) {
+  #detailScreen .detail-header,
+  #detailScreen .detail-topbar > .detail-header {
+    min-height: 88px !important;
+    padding: 10px 12px !important;
+    grid-template-columns: 58px minmax(0, 1fr) 96px !important;
+    gap: 10px !important;
+    border-radius: 16px !important;
   }
 
-  #detailScreen .detail-header {
-    grid-template-columns: 50px minmax(0, 1fr) 50px !important;
-    gap: 8px !important;
-    padding: 10px !important;
+  #detailScreen #backButton {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+    border-radius: 16px !important;
   }
 
-  #detailScreen #backButton,
-  #detailScreen #editLeadButton {
-    width: 50px !important;
-    min-width: 50px !important;
-    max-width: 50px !important;
-    height: 50px !important;
-    min-height: 50px !important;
-    max-height: 50px !important;
-    padding: 0 !important;
+  #detailScreen #backButton i {
+    font-size: 26px !important;
   }
 
-  #detailScreen #editLeadButton .edit-button-label {
-    display: none !important;
+  #detailScreen #detailLeadCompanyTitle,
+  #detailScreen .detail-header h1,
+  #detailScreen .detail-title-wrap h1 {
+    font-size: 16px !important;
   }
 
-  #detailScreen .phone-card {
-    grid-template-columns: 50px minmax(0, 1fr) !important;
-    grid-template-rows: auto auto !important;
-    gap: 9px 10px !important;
-    padding: 12px !important;
+  #detailScreen #detailLeadNameTitle,
+  #detailScreen .detail-lead-name {
+    font-size: 12px !important;
+  }
+
+  #detailScreen #editLeadButton,
+  #detailScreen .header-edit-icon {
+    width: 96px !important;
+    min-width: 96px !important;
+    max-width: 96px !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    padding: 0 10px !important;
+    gap: 7px !important;
+    border-radius: 16px !important;
+  }
+
+  #detailScreen #editLeadButton i,
+  #detailScreen .header-edit-icon i {
+    font-size: 20px !important;
+  }
+
+  #detailScreen #editLeadButton .edit-button-label,
+  #detailScreen .edit-button-label {
+    font-size: 14px !important;
+  }
+
+  #detailScreen .phone-card,
+  #detailScreen .detail-topbar > .phone-card {
+    min-height: 98px !important;
+    padding: 14px 14px !important;
+    grid-template-columns: 58px minmax(0, 1fr) 132px !important;
+    gap: 12px !important;
+    border-radius: 16px !important;
   }
 
   #detailScreen .phone-card-call-icon {
-    width: 50px !important;
-    height: 50px !important;
-    min-width: 50px !important;
-    min-height: 50px !important;
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+    border-radius: 16px !important;
   }
 
-  #detailScreen .phone-card-status {
-    grid-column: 1 / -1 !important;
-    grid-row: 2 !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    min-height: 0 !important;
-    padding: 9px 0 0 !important;
-    justify-content: flex-start !important;
-    border-left: 0 !important;
-    border-top: 1px solid rgba(47,146,255,.18) !important;
+  #detailScreen .phone-card-call-icon i {
+    font-size: 24px !important;
   }
 
-  #detailScreen #leadCalledBy,
-  #detailScreen #soldByDetail {
-    width: auto !important;
+  #detailScreen .phone-card-label {
+    font-size: 9px !important;
   }
 
   #detailScreen .phone-number {
-    font-size: 22px !important;
+    font-size: 24px !important;
+  }
+
+  #detailScreen .phone-card-status {
+    min-height: 58px !important;
+    padding-left: 12px !important;
+  }
+
+  #detailScreen .phone-called-by,
+  #detailScreen .sold-by-detail,
+  #detailScreen #leadCalledBy,
+  #detailScreen #soldByDetail {
+    min-width: 112px !important;
+    min-height: 42px !important;
+    padding: 10px 12px !important;
+    border-radius: 14px !important;
+    font-size: 14px !important;
+  }
+
+  #detailScreen .tabs,
+  #detailScreen > .detail-toolbar > .tabs {
+    border-radius: 16px !important;
+  }
+
+  #detailScreen .tab,
+  #detailScreen > .detail-toolbar > .tabs .tab {
+    min-height: 54px !important;
+    border-radius: 13px !important;
+    font-size: 14px !important;
   }
 }
 
 
-/* Hidden status elements must stay hidden on mobile.
-   Prevents the empty sold-status pill/dot beside "Not called yet". */
+/* =========================================================
+   STABLE MOBILE CONTROLS + TAG PILLS
+   ========================================================= */
+
+/* Duplicate lower Add Lead is physically removed, with a defensive mobile rule. */
 @media (max-width: 959px) {
-  #detailScreen #soldByDetail[hidden],
-  #detailScreen .sold-by-detail[hidden] {
+  #addLeadBottomButton,
+  .pipeline-add-lead {
     display: none !important;
   }
 }
 
-
-}
-
-
-
-
-/* =========================================================
-   CLEAN MOBILE CONTROL + LEAD PILL SYSTEM
-   Unique selectors prevent legacy CSS from overriding these.
-   ========================================================= */
-
-/* New scroll button: mobile only, square, centered, blue outline. */
-#leadCenterTopButton {
+/* One scroll-to-top button. No pull-to-refresh arrow exists anymore. */
+#leadsMobileTopButton {
   display: none !important;
 }
 
 @media (max-width: 959px) {
-  #leadCenterTopButton.lead-center-top-button {
+  #leadsMobileTopButton.leads-mobile-top-button {
     position: fixed !important;
     z-index: 120 !important;
     left: 50% !important;
@@ -9859,7 +9957,6 @@ select {
 
     margin: 0 !important;
     padding: 0 !important;
-
     display: grid !important;
     place-items: center !important;
 
@@ -9867,49 +9964,39 @@ select {
     border-radius: 12px !important;
     background: #01050b !important;
     color: #69b4ff !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,.38) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4) !important;
 
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
     transform: translate(-50%, 8px) !important;
-
-    appearance: none !important;
-    -webkit-appearance: none !important;
     transition: opacity .16s ease, visibility .16s ease, transform .16s ease !important;
   }
 
-  #leadCenterTopButton.lead-center-top-button.is-visible {
+  #leadsMobileTopButton.leads-mobile-top-button.is-visible {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
     transform: translate(-50%, 0) !important;
   }
 
-  #leadCenterTopButton.lead-center-top-button i {
+  #leadsMobileTopButton.leads-mobile-top-button i {
     margin: 0 !important;
-    padding: 0 !important;
     color: #69b4ff !important;
     font-size: 19px !important;
     line-height: 1 !important;
   }
-
-  body:has(#detailScreen.active) #leadCenterTopButton.lead-center-top-button {
-    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
-  }
 }
 
-/* One tag shape. No old lead-type-badge / tag-badge classes are used here. */
+/* Unified lead-card pills. Unique class avoids legacy badge overrides. */
 #leadsScreen .lead-pill {
   position: static !important;
   box-sizing: border-box !important;
-
   width: auto !important;
   min-width: 0 !important;
   max-width: 100% !important;
   min-height: 27px !important;
   height: auto !important;
-
   margin: 0 !important;
   padding: 5px 10px !important;
 
@@ -9917,136 +10004,81 @@ select {
   align-items: center !important;
   justify-content: center !important;
 
-  border: 1px solid #47647f !important;
+  border: 1px solid #49647f !important;
   border-radius: 999px !important;
-  background: #101f2e !important;
-  color: #b9cada !important;
+  background: #111f2e !important;
+  color: #b8c9da !important;
 
   font-size: 10.5px !important;
   font-weight: 800 !important;
   line-height: 1 !important;
   letter-spacing: .01em !important;
-
   white-space: nowrap !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-
   box-shadow: none !important;
 }
 
-/* Site condition */
 #leadsScreen .lead-pill.pill-site {
-  border-color: #2c79bb !important;
+  border-color: #2878bd !important;
   background: #09233e !important;
   color: #91c9ff !important;
 }
-
-/* Spanish */
 #leadsScreen .lead-pill.pill-spanish {
   border-color: #7658c6 !important;
   background: #21183b !important;
-  color: #c8b5ff !important;
+  color: #c6b2ff !important;
 }
-
-/* New phone */
 #leadsScreen .lead-pill.pill-new-phone {
   border-color: #238da7 !important;
   background: #082b34 !important;
   color: #90e8f7 !important;
 }
-
-/* Hot lead */
 #leadsScreen .lead-pill.pill-hot {
   border-color: #d26f2a !important;
   background: #341a0b !important;
   color: #ffb36f !important;
 }
-
-/* Interested */
 #leadsScreen .lead-pill.pill-interested {
   border-color: #2d8c5b !important;
   background: #0b2a1c !important;
   color: #8ee8b4 !important;
 }
-
-/* Callback */
 #leadsScreen .lead-pill.pill-callback {
   border-color: #9a7830 !important;
   background: #2b220d !important;
   color: #efd179 !important;
 }
-
-/* More info */
 #leadsScreen .lead-pill.pill-more-info {
   border-color: #6762aa !important;
   background: #1c1b36 !important;
   color: #bcb9f3 !important;
 }
-
-/* Skeptical */
 #leadsScreen .lead-pill.pill-skeptical {
   border-color: #9b6735 !important;
   background: #2c1a0e !important;
   color: #e9b27d !important;
 }
-
-/* No answer */
 #leadsScreen .lead-pill.pill-no-answer {
   border-color: #8e4d55 !important;
   background: #2a151a !important;
   color: #efadb4 !important;
 }
-
-/* No phone */
 #leadsScreen .lead-pill.pill-no-phone {
   border-color: #9d4650 !important;
   background: #301319 !important;
   color: #ffabb3 !important;
 }
-
-/* Wrong number */
 #leadsScreen .lead-pill.pill-wrong {
   border-color: #b54650 !important;
   background: #351217 !important;
   color: #ff9da6 !important;
 }
-
-/* Not interested */
 #leadsScreen .lead-pill.pill-not-interested {
   border-color: #8c3b45 !important;
   background: #291116 !important;
   color: #e9979f !important;
 }
-
-/* Conversion / sold */
 #leadsScreen .lead-pill.pill-conversion {
   border-color: #a88936 !important;
   background: #30270f !important;
   color: #f4dc81 !important;
-}
-
-/* Unknown/custom tag still gets a finished UI. */
-#leadsScreen .lead-pill.pill-default {
-  border-color: #49647f !important;
-  background: #111f2e !important;
-  color: #b8c9da !important;
-}
-
-/* Keep tag rows clean and wrapping naturally. */
-#leadsScreen .mobile-card-site-tags,
-#leadsScreen .lead-card-site-tags,
-#leadsScreen .lead-card-site-tags-corner {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-
-/* Duplicate lower Add Lead control is intentionally removed on mobile. */
-@media (max-width: 959px) {
-  #addLeadBottomButton,
-  .pipeline-add-lead {
-    display: none !important;
-  }
 }
