@@ -9409,3 +9409,193 @@ select {
     display: none !important;
   }
 }
+
+/* =========================================================
+   CARD TEXT — USE THE FULL CARD WIDTH
+   No premature ellipsis on desktop or mobile.
+   ========================================================= */
+@media (min-width: 960px) {
+  #leadsScreen .desktop-lead-card .lead-card-copy-ordered {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding-right: 0 !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-company,
+  #leadsScreen .desktop-lead-card .lead-card-contact {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-company {
+    font-size: 17px !important;
+    line-height: 1.12 !important;
+    max-height: 2.24em !important;
+    overflow: hidden !important;
+  }
+
+  #leadsScreen .desktop-lead-card .lead-card-contact {
+    font-size: 14px !important;
+    line-height: 1.14 !important;
+    max-height: 2.28em !important;
+    overflow: hidden !important;
+  }
+
+  /* Let cards grow if a real second line is needed. */
+  #leadsScreen .lead-item-wrap,
+  #leadsScreen .lead-item-wrap > .desktop-lead-card {
+    height: auto !important;
+    min-height: 118px !important;
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 959px) {
+  #leadsScreen .mobile-reference-lead-card .mobile-card-company,
+  #leadsScreen .mobile-reference-lead-card .mobile-card-contact {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  #leadsScreen .mobile-reference-lead-card .mobile-card-company {
+    max-height: none !important;
+  }
+
+  #leadsScreen .mobile-reference-lead-card .mobile-card-contact {
+    max-height: none !important;
+  }
+}
+
+/* =========================================================
+   DESKTOP DETAIL HEADER — CLEAN EDIT BUTTON
+   Old 38px icon-only rule is neutralized here.
+   ========================================================= */
+@media (min-width: 960px) {
+  #detailScreen .detail-topbar > .detail-header,
+  #detailScreen .detail-header {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 48px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 14px !important;
+    width: 100% !important;
+    min-height: 82px !important;
+    padding: 12px 14px !important;
+  }
+
+  #detailScreen #backButton {
+    position: static !important;
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    max-width: 46px !important;
+    max-height: 46px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  #detailScreen .detail-title-wrap,
+  #detailScreen .detail-title-wrap.lead-identity-title,
+  #detailScreen .lead-identity-title {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #detailScreen #detailLeadCompanyTitle,
+  #detailScreen .detail-header h1 {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  #detailScreen #detailLeadNameTitle,
+  #detailScreen .detail-lead-name {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  #detailScreen #editLeadButton,
+  #detailScreen .header-edit-icon {
+    position: static !important;
+    flex: none !important;
+    width: auto !important;
+    min-width: 92px !important;
+    max-width: none !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+
+    margin: 0 !important;
+    padding: 0 14px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+
+    border: 1px solid #2e8bff !important;
+    border-radius: 12px !important;
+    background: #071b31 !important;
+    color: #f3f8ff !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  #detailScreen #editLeadButton i,
+  #detailScreen .header-edit-icon i {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    color: #69b4ff !important;
+  }
+
+  #detailScreen #editLeadButton .edit-button-label,
+  #detailScreen .edit-button-label {
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    color: #f3f8ff !important;
+    white-space: nowrap !important;
+  }
+}
