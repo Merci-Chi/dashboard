@@ -1,5 +1,5 @@
-const SUPABASE_URL = 'https://eucaziymnjjpkbwbxwfj.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ulLjvVJ81xRdSS_Wz9Qh4Q_nMSAlSfO';
+const SUPABASE_URL = 'https://glonbvrcudwuzjundrii.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 let supabaseSession = null;
 let currentUserName = 'User';
@@ -3594,5 +3594,4 @@ if (window.parent && window.parent !== window) {
   const targetOrigin = window.location.protocol === 'file:' ? '*' : window.location.origin;
   window.parent.postMessage({ type: 'STEADY_HANDS_LEADS_READY' }, targetOrigin);
 }
-
 
