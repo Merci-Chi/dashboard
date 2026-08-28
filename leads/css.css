@@ -1583,3 +1583,35 @@ input,textarea,select { -webkit-user-select: text; user-select: text; }
   #detailScreen #editLeadButton i,#detailScreen .header-edit-icon i { margin: 0 !important; padding: 0 !important; font-size: 16px !important; line-height: 1 !important; color: #69b4ff !important; }
   #detailScreen #editLeadButton .edit-button-label,#detailScreen .edit-button-label { display: inline !important; margin: 0 !important; padding: 0 !important; font-size: 13px !important; font-weight: 800 !important; line-height: 1 !important; color: #f3f8ff !important; white-space: nowrap !important; }
 }
+@media (max-width:600px) {
+  #detailScreen { padding: 8px 8px calc(74px + env(safe-area-inset-bottom)) !important; }
+  #detailScreen .detail-topbar { gap: 8px !important; margin-bottom: 8px !important; }
+  #detailScreen .detail-header,#detailScreen .detail-topbar>.detail-header { min-height: 72px !important; padding: 8px !important; grid-template-columns: 48px minmax(0,1fr) 76px !important; gap: 8px !important; border-radius: 14px !important; }
+  #detailScreen #backButton,#detailScreen .detail-header #backButton { width: 48px !important; height: 48px !important; min-width: 48px !important; min-height: 48px !important; max-width: 48px !important; max-height: 48px !important; border-radius: 13px !important; }
+  #detailScreen #backButton i { font-size: 22px !important; }
+  #detailScreen #detailLeadCompanyTitle,#detailScreen .detail-header h1,#detailScreen .detail-title-wrap h1 { font-size: 15px !important; line-height: 1.12 !important; }
+  #detailScreen #detailLeadNameTitle,#detailScreen .detail-lead-name { font-size: 11px !important; line-height: 1.15 !important; }
+  #detailScreen #editLeadButton,#detailScreen .header-edit-icon { width: 76px !important; min-width: 76px !important; max-width: 76px !important; height: 48px !important; min-height: 48px !important; max-height: 48px !important; padding: 0 8px !important; gap: 5px !important; border-radius: 13px !important; }
+  #detailScreen #editLeadButton i,#detailScreen .header-edit-icon i { font-size: 17px !important; }
+  #detailScreen #editLeadButton .edit-button-label,#detailScreen .edit-button-label { font-size: 12px !important; }
+  #detailScreen .phone-card,#detailScreen .detail-topbar>.phone-card { min-height: 0 !important; padding: 10px !important; grid-template-columns: 48px minmax(0,1fr) !important; grid-template-rows: auto auto !important; gap: 8px 10px !important; border-radius: 14px !important; overflow: hidden !important; }
+  #detailScreen .phone-card-call-icon { width: 48px !important; height: 48px !important; min-width: 48px !important; min-height: 48px !important; max-width: 48px !important; max-height: 48px !important; border-radius: 13px !important; }
+  #detailScreen .phone-card-call-icon i { font-size: 20px !important; }
+  #detailScreen .phone-card-main { grid-column: 2 !important; grid-row: 1 !important; gap: 3px !important; overflow: hidden !important; }
+  #detailScreen .phone-card-label { font-size: 8px !important; letter-spacing: .15em !important; }
+  #detailScreen .phone-number { font-size: clamp(19px,6.4vw,24px) !important; line-height: 1 !important; }
+  #detailScreen .phone-card-status { grid-column: 1 / -1 !important; grid-row: 2 !important; width: 100% !important; min-height: 0 !important; padding: 8px 0 0 !important; border-left: 0 !important; border-top: 1px solid rgba(47,146,255,.18) !important; justify-content: flex-start !important; overflow: hidden !important; }
+  #detailScreen .phone-called-by,#detailScreen .sold-by-detail,#detailScreen #leadCalledBy,#detailScreen #soldByDetail { width: 100% !important; min-width: 0 !important; min-height: 34px !important; padding: 7px 10px !important; justify-content: flex-start !important; border-radius: 10px !important; font-size: 11px !important; line-height: 1.2 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+  #detailScreen .detail-toolbar { margin-bottom: 8px !important; }
+  #detailScreen .tabs,#detailScreen>.detail-toolbar>.tabs { padding: 3px !important; gap: 3px !important; border-radius: 14px !important; }
+  #detailScreen .tab,#detailScreen>.detail-toolbar>.tabs .tab { min-height: 46px !important; padding: 0 4px !important; border-radius: 11px !important; font-size: 12px !important; }
+  #detailScreen>.panel.active { gap: 10px !important; }
+  #detailScreen>.panel.active>.details-intro,#detailScreen>.panel.active>.followup-intro,#detailScreen>.panel.active>.business-quick-intro,#detailsPanel .details-intro { margin: 8px 0 !important; padding: 0 2px 7px !important; gap: 8px !important; }
+  #detailsPanel .details-intro h2,#detailScreen .details-intro h2 { font-size: 18px !important; }
+  #detailsPanel .details-intro p,#detailScreen .details-intro p { font-size: 11px !important; }
+  #detailScreen .card,#detailsPanel .card,#detailScreen .detail-card { padding: 12px !important; border-radius: 14px !important; }
+  #detailScreen .bottom-actions { left: 0 !important; right: 0 !important; width: 100% !important; transform: none !important; padding: 7px 8px calc(7px + env(safe-area-inset-bottom)) !important; gap: 7px !important; }
+  #detailScreen .bottom-actions:has(> .secondary-action[hidden]),#detailScreen .bottom-actions:has(> .secondary-action[style*="display: none"]) { grid-template-columns: 1fr !important; }
+  #detailScreen .bottom-actions>.secondary-action[hidden],#detailScreen .bottom-actions>.secondary-action[style*="display: none"] { display: none !important; }
+  #detailScreen .secondary-action,#detailScreen .done-action { min-height: 46px !important; font-size: 12px !important; }
+}
