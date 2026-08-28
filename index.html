@@ -24,6 +24,7 @@
         <label><span>Password</span><input id="authPassword" name="password" type="password" autocomplete="current-password" placeholder="Password" /></label>
         <button class="auth-button" id="authSignIn" type="submit" disabled>Loading…</button>
       </form>
+      <button class="setup-sign-out" id="forgotPasswordButton" type="button">Forgot password?</button>
       <div class="auth-status" id="authStatus" aria-live="polite"></div>
     </div>
   </section>
@@ -33,8 +34,8 @@
     <div class="account-setup-card">
       <img class="auth-logo" src="app-icon/icon-192.png" alt="" aria-hidden="true" />
       <span class="auth-eyebrow">STEADY HANDS OPERATIONS</span>
-      <h1>Finish Your Account</h1>
-      <p>Create the name shown inside the app and replace your temporary password.</p>
+      <h1 id="accountSetupTitle">Finish Your Account</h1>
+      <p id="accountSetupDescription">Create the name shown inside the app and replace your temporary password.</p>
 
       <form id="accountSetupForm" autocomplete="off">
         <label>

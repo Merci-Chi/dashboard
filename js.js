@@ -3,6 +3,7 @@
 
   const SUPABASE_URL = "https://glonbvrcudwuzjundrii.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr";
+  const PASSWORD_RECOVERY_REDIRECT = "https://merci-chi.github.io/dashboard/";
 
   const ALL_VIEWS = [
     "dashboard",
@@ -53,6 +54,7 @@
   let session = null;
   let allowedViews = [];
   let leadsLoadedForUser = "";
+  let passwordRecoveryMode = false;
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -124,6 +126,15 @@
     input.value = String(name).trim();
   }
 
+  function configureSetupScreen() {
+    $("#accountSetupTitle").textContent = passwordRecoveryMode ? "Reset Your Password" : "Finish Your Account";
+    $("#accountSetupDescription").textContent = passwordRecoveryMode
+      ? "Choose a new password for your ViewYourSite account."
+      : "Create the name shown inside the app and replace your temporary password.";
+    $("#accountSetupButton").textContent = passwordRecoveryMode ? "Save New Password" : "Create Account";
+    $("#setupSignOutButton").textContent = passwordRecoveryMode ? "Cancel password reset" : "Sign in with a different account";
+  }
+
   function showView(requestedView) {
     let view = requestedView;
 
@@ -188,8 +199,9 @@
       return;
     }
 
-    if (needsFirstSetup()) {
+    if (passwordRecoveryMode || needsFirstSetup()) {
       prefillSetup();
+      configureSetupScreen();
       setScreen("setup");
       return;
     }
@@ -283,6 +295,41 @@
     }
   }
 
+  async function handleForgotPassword() {
+    const email = $("#authEmail").value.trim().toLowerCase();
+    const status = $("#authStatus");
+    const button = $("#forgotPasswordButton");
+
+    if (!supabase?.auth) {
+      status.textContent = "Login service is unavailable. Refresh the page and try again.";
+      return;
+    }
+
+    if (!email) {
+      status.textContent = "Enter your email address first.";
+      $("#authEmail").focus();
+      return;
+    }
+
+    button.disabled = true;
+    status.textContent = "Sending password reset email…";
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: PASSWORD_RECOVERY_REDIRECT
+      });
+
+      status.textContent = error
+        ? (error.message || "Could not send the reset email.")
+        : "Check your email for the ViewYourSite password reset link.";
+    } catch (error) {
+      console.error("Password reset error:", error);
+      status.textContent = error?.message || "Could not send the reset email.";
+    } finally {
+      button.disabled = false;
+    }
+  }
+
   async function handleFirstSetup(event) {
     event.preventDefault();
 
@@ -347,6 +394,7 @@
       $("#setupPassword").value = "";
       $("#setupPasswordConfirm").value = "";
       leadsLoadedForUser = "";
+      passwordRecoveryMode = false;
 
       setScreen("app");
       applyPermissions();
@@ -359,7 +407,7 @@
       status.textContent = error?.message || "Could not finish account setup.";
     } finally {
       button.disabled = false;
-      button.textContent = "Create Account";
+      configureSetupScreen();
     }
   }
 
@@ -382,8 +430,12 @@
 
   async function initialize() {
     setupNavigation();
+    passwordRecoveryMode =
+      new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery" ||
+      new URLSearchParams(window.location.search).get("type") === "recovery";
 
     $("#authForm").addEventListener("submit", handleLogin);
+    $("#forgotPasswordButton").addEventListener("click", handleForgotPassword);
     $("#accountSetupForm").addEventListener("submit", handleFirstSetup);
     $("#signOutButton").addEventListener("click", signOut);
     $("#setupSignOutButton").addEventListener("click", signOut);
@@ -427,7 +479,10 @@
       window.supabaseSession = session;
       routeSession();
 
-      supabase.auth.onAuthStateChange((_event, nextSession) => {
+      supabase.auth.onAuthStateChange((event, nextSession) => {
+        if (event === "PASSWORD_RECOVERY") {
+          passwordRecoveryMode = true;
+        }
         session = nextSession || null;
         window.supabaseSession = session;
 
