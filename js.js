@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const SUPABASE_URL = "https://eucaziymnjjpkbwbxwfj.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ulLjvVJ81xRdSS_Wz9Qh4Q_nMSAlSfO";
+  const SUPABASE_URL = "https://glonbvrcudwuzjundrii.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr";
 
   const ALL_VIEWS = [
     "dashboard",
@@ -47,8 +47,6 @@
    */
   const USER_ACCESS = {
     "kiara@steadyhandsop.com": ALL_VIEWS,
-    "elijah@steadyhandsop.com": LEADS,
-    "kiaradwilliams04@gmail.com": LEADS,
   };
 
   let supabase = null;
@@ -167,24 +165,6 @@
     showView(allowedViews.includes(requested) ? requested : allowedViews[0]);
   }
 
-
-  function sendSessionToLeadsFrame() {
-    const frame = $("#leadsFrame");
-    if (!frame?.contentWindow || !session) return;
-
-    try {
-      frame.contentWindow.postMessage(
-        {
-          type: "STEADY_HANDS_SUPABASE_SESSION",
-          session
-        },
-        window.location.origin
-      );
-    } catch (error) {
-      console.error("Could not send Supabase session to Leads:", error);
-    }
-  }
-
   function reloadLeadsAfterLogin() {
     const frame = $("#leadsFrame");
     const userId = String(session?.user?.id || "");
@@ -199,8 +179,6 @@
     frame.dataset.baseSrc = baseSrc;
 
     const separator = baseSrc.includes("?") ? "&" : "?";
-
-    frame.addEventListener("load", sendSessionToLeadsFrame, { once: true });
     frame.src = `${baseSrc}${separator}session=${Date.now()}`;
   }
 
@@ -223,9 +201,6 @@
       reloadLeadsAfterLogin();
     }
   }
-
-  const leadsSessionFrame = $("#leadsFrame");
-  leadsSessionFrame?.addEventListener("load", sendSessionToLeadsFrame);
 
   function setupNavigation() {
     $$("[data-view]").forEach((item) => {
