@@ -50,6 +50,7 @@
     "kiara@steadyhandsop.com": ALL_VIEWS,
     "demo@steadyhandsop.com": LEADS,
     "nayelli@steadyhandsop.com": LEADS,
+    "iamnottaiii@gmail.com": LEADS,
   };
 
   let supabase = null;
