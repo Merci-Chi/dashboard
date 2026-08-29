@@ -48,6 +48,8 @@
    */
   const USER_ACCESS = {
     "kiara@steadyhandsop.com": ALL_VIEWS,
+    "demo@steadyhandsop.com": LEADS,
+    "nayelli@steadyhandsop.com": LEADS,
   };
 
   let supabase = null;
