@@ -51,6 +51,7 @@
     "demo@steadyhandsop.com": LEADS,
     "nayelli@steadyhandsop.com": LEADS,
     "iamnottaiii@gmail.com": LEADS,
+    "notai@steadyhandsop.com": LEADS,
   };
 
   let supabase = null;
