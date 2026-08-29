@@ -3595,3 +3595,4 @@ if (window.parent && window.parent !== window) {
   window.parent.postMessage({ type: 'STEADY_HANDS_LEADS_READY' }, targetOrigin);
 }
 
+
