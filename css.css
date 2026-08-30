@@ -344,6 +344,20 @@
   background: var(--page-bg);
 }
 
+.pipeline-embed-view {
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.pipeline-iframe {
+  display: block;
+  width: 100%;
+  height: 100vh;
+  border: 0;
+  background: var(--page-bg);
+}
+
 
 /* Single app login */
 [hidden] { display: none !important; }
@@ -834,6 +848,12 @@ textarea {
 
   .leads-iframe {
     height: 100dvh;
+  }
+
+  .pipeline-embed-view,
+  .pipeline-iframe {
+    height: 100dvh;
+    min-height: 100dvh;
   }
 
   .auth-card,

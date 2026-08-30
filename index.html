@@ -134,6 +134,22 @@
             <i class="bi bi-person-lines-fill"></i>
             <span>Leads</span>
           </a>
+          <a class="nav-item" href="#staging" data-view="staging">
+            <i class="bi bi-kanban-fill"></i>
+            <span>Staging</span>
+          </a>
+          <a class="nav-item" href="#review" data-view="review">
+            <i class="bi bi-code-square"></i>
+            <span>Review</span>
+          </a>
+          <a class="nav-item" href="#live" data-view="live">
+            <i class="bi bi-broadcast-pin"></i>
+            <span>Live</span>
+          </a>
+          <a class="nav-item" href="#contact" data-view="contact">
+            <i class="bi bi-envelope-fill"></i>
+            <span>Contact</span>
+          </a>
           <a class="nav-item" href="#clients" data-view="clients">
             <i class="bi bi-people-fill"></i>
             <span>Clients</span>
@@ -245,7 +261,22 @@
         <iframe class="leads-iframe" id="leadsFrame" src="leads/index.html" title="Lead Board"></iframe>
       </section>
 
-      <section class="view placeholder-view" id="view-clients" data-page="clients"></section>
+      <section class="view pipeline-embed-view" id="view-staging" data-page="staging" aria-label="Staging">
+        <iframe class="pipeline-iframe" src="staging.html" title="Site Staging"></iframe>
+      </section>
+      <section class="view pipeline-embed-view" id="view-review" data-page="review" aria-label="Code Review">
+        <iframe class="pipeline-iframe" src="review.html" title="Code Review"></iframe>
+      </section>
+      <section class="view pipeline-embed-view" id="view-live" data-page="live" aria-label="Live Sites">
+        <iframe class="pipeline-iframe" src="live.html" title="Live Sites"></iframe>
+      </section>
+      <section class="view pipeline-embed-view" id="view-contact" data-page="contact" aria-label="Contact">
+        <iframe class="pipeline-iframe" src="contact.html" title="Contact Live Leads"></iframe>
+      </section>
+
+      <section class="view pipeline-embed-view" id="view-clients" data-page="clients" aria-label="Clients">
+        <iframe class="pipeline-iframe" src="clients.html" title="Client Management"></iframe>
+      </section>
       <section class="view placeholder-view" id="view-tasks" data-page="tasks"></section>
       <section class="view placeholder-view" id="view-ideas" data-page="ideas"></section>
       <section class="view placeholder-view" id="view-scripts" data-page="scripts"></section>
