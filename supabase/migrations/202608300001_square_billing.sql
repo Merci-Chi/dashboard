@@ -1,6 +1,6 @@
 create table if not exists public.billing_subscriptions (
   id text primary key,
-  site_project_id uuid references public.site_projects(id) on delete set null,
+  site_project_id text,
   square_customer_id text not null,
   customer_name text,
   customer_company text,
