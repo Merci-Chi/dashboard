@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const squareBase = Deno.env.get('SQUARE_ENVIRONMENT') === 'sandbox'
   ? 'https://connect.squareupsandbox.com'
   : 'https://connect.squareup.com'
-const squareVersion = Deno.env.get('SQUARE_VERSION') || '2026-08-20'
+const squareVersion = Deno.env.get('SQUARE_VERSION') || '2026-08-19'
 
 async function validSignature(body: string, signature: string | null) {
   const key = Deno.env.get('SQUARE_WEBHOOK_SIGNATURE_KEY') || ''
