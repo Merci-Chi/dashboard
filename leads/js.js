@@ -1443,10 +1443,13 @@ function leadCard(lead) {
   const cornerTags = '';
   const mobileHotBadge = '';
 
-  const manageLeadButton = '';
+  const staged = false;
 
   return `
     <div class="lead-item-wrap${cornerTags ? ' has-priority-tags' : ''}${isHot ? ' has-hot-priority' : ''}${isWrongNumber ? ' has-wrong-priority' : ''}">
+      <button class="stage-lead-action" type="button" data-edit-lead-status="${lead.id}">
+        <i class="bi bi-arrow-left-right"></i><span>Move / Stage</span>
+      </button>
       <button class="lead-item desktop-lead-card${isHot ? ' hot-lead-card' : ''}${isWrongNumber ? ' wrong-number-card' : ''}" type="button" data-open-lead="${lead.id}">
         ${cornerTags ? `<span class="lead-priority-tags">${cornerTags}</span>` : ''}
         <span class="lead-avatar">${escapeHTML(initial)}</span>
@@ -2099,7 +2102,7 @@ $('#leadSearch').addEventListener('input', renderLists);
 // Header Add Lead remains the single Add Lead control.
 document.getElementById('desktopHeaderAddLeadButton')?.addEventListener('click', openNewLeadModal);
 $('#editLeadButton')?.addEventListener('click', () => openLeadDetailsEditor());
-document.addEventListener('click', event => {
+document.addEventListener('click', async event => {
   const editLeadStatusButton = event.target.closest('[data-edit-lead-status]');
   if (editLeadStatusButton) {
     event.preventDefault();
@@ -2114,6 +2117,54 @@ document.addEventListener('click', event => {
   event.preventDefault();
   event.stopPropagation();
   openLead(leadButton.dataset.openLead);
+});
+
+async function sendLeadToStaging(leadId) {
+  const lead = state.leads.find(item => String(item.id) === String(leadId));
+  if (!lead) return toast('Lead not found');
+  const db = window.parent?.supabaseClient || supabaseClient;
+  if (!db) return toast('Supabase pipeline is not ready.');
+
+  const { count, error: countError } = await db
+    .from('site_projects')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'staging');
+  if (countError) return toast(countError.message || 'Could not check Staging.');
+  if ((count || 0) >= 10) return toast('Staging is full. Only 10 sites can be staged at once.');
+
+  const { data: existing, error: existingError } = await db
+    .from('site_projects')
+    .select('id,status')
+    .eq('lead_id', String(lead.id))
+    .neq('status', 'archived')
+    .limit(1);
+  if (existingError) return toast(existingError.message || 'Could not check the site pipeline.');
+  if (existing?.length) return toast(`This lead is already in ${existing[0].status}.`);
+
+  const { error } = await db.from('site_projects').insert({
+    lead_id: String(lead.id),
+    company: lead.company || lead.name || 'Unnamed lead',
+    contact_name: lead.name || '',
+    email: lead.email || '',
+    phone: lead.phone || '',
+    status: 'staging'
+  });
+  if (error) return toast(error.message || 'Could not send lead to Staging.');
+
+  closeModal('leadStatusEditModal');
+  toast(`${lead.company || lead.name || 'Lead'} sent to Staging`);
+}
+
+$('[data-send-lead-next]')?.addEventListener('click', async () => {
+  const leadId = editingLeadStatusId;
+  if (!leadId) return;
+  const button = $('[data-send-lead-next]');
+  button.disabled = true;
+  try {
+    await sendLeadToStaging(leadId);
+  } finally {
+    button.disabled = false;
+  }
 });
 
 document.querySelectorAll('[data-close="newLeadModal"]').forEach(button => button.addEventListener('click', () => {
@@ -3594,5 +3645,3 @@ if (window.parent && window.parent !== window) {
   const targetOrigin = window.location.protocol === 'file:' ? '*' : window.location.origin;
   window.parent.postMessage({ type: 'STEADY_HANDS_LEADS_READY' }, targetOrigin);
 }
-
-
