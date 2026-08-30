@@ -201,6 +201,19 @@
     frame.src = `${baseSrc}${separator}session=${Date.now()}`;
   }
 
+  function sendSessionToLeads() {
+    const frame = $("#leadsFrame");
+    if (!frame?.contentWindow || !session?.access_token || !session?.refresh_token) return;
+    const targetOrigin = window.location.protocol === "file:" ? "*" : window.location.origin;
+    frame.contentWindow.postMessage({
+      type: "STEADY_HANDS_SUPABASE_SESSION",
+      session: {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token
+      }
+    }, targetOrigin);
+  }
+
   function routeSession() {
     if (!session?.user) {
       setScreen("login");
@@ -240,6 +253,18 @@
       if (allowedViews.includes(requested)) {
         showView(requested);
       }
+    });
+
+    window.addEventListener("message", (event) => {
+      const localFileMode = window.location.protocol === "file:";
+      if (!localFileMode && event.origin !== window.location.origin) return;
+      if (event.data?.type === "STEADY_HANDS_LEADS_READY") {
+        sendSessionToLeads();
+      }
+    });
+
+    $("#leadsFrame")?.addEventListener("load", () => {
+      window.setTimeout(sendSessionToLeads, 50);
     });
   }
 
