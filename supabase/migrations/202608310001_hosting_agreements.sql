@@ -23,7 +23,7 @@ alter table public.hosting_agreements enable row level security;
 
 create policy "clients create own agreements" on public.hosting_agreements
   for insert to authenticated
-  with check (auth.uid() = user_id and lower(auth.jwt() ->> 'email') = lower(signer_email));
+  with check (auth.uid() = user_id);
 
 create policy "clients read own agreements" on public.hosting_agreements
   for select to authenticated
