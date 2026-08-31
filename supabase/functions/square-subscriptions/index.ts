@@ -70,11 +70,21 @@ Deno.serve(async req => {
   }
 
   if (body.action !== "create-checkout" || !plans[body.planKey]) return json({ message: "Unknown action or plan." }, 400);
+  const { data: agreement } = await supabase.from("hosting_agreements")
+    .select("id,plan_key,accepted,signer_email")
+    .eq("id", body.agreementId || "00000000-0000-0000-0000-000000000000")
+    .eq("user_id", user.id)
+    .eq("plan_key", body.planKey)
+    .eq("accepted", true)
+    .maybeSingle();
+  if (!agreement || agreement.signer_email.toLowerCase() !== user.email.toLowerCase()) {
+    return json({ message: "Sign the hosting agreement before starting Square checkout." }, 403);
+  }
   if (body.planKey === "maple-monthly" && !validMapleCode(body.discountCode)) return json({ message: "A valid discount code is required for this plan." }, 403);
   if (body.planKey === "beta-testing" && !validBetaCode(body.discountCode)) return json({ message: "A valid beta code is required for this plan." }, 403);
   const plan = plans[body.planKey];
   if (!plan.url) return json({ message: `${plan.label} is not configured in Square yet.` }, 503);
-  const { data: session, error: sessionError } = await supabase.from("square_checkout_sessions").insert({ user_id: user.id, user_email: user.email, plan_key: body.planKey }).select("id").single();
+  const { data: session, error: sessionError } = await supabase.from("square_checkout_sessions").insert({ user_id: user.id, user_email: user.email, plan_key: body.planKey, agreement_id: agreement.id }).select("id").single();
   if (sessionError) return json({ message: "Could not create checkout session." }, 500);
   return json({ checkoutId: session.id, checkoutUrl: plan.url });
 });
