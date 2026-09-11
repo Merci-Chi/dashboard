@@ -93,30 +93,39 @@
     .outreach-actionbar.has-prospects{min-height:auto;justify-content:flex-end;padding:0 0 20px}
     .add-prospect-btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;min-height:58px;padding:0 25px;border:1px solid #2e8bff;border-radius:13px;background:#0a2341;color:#fff;font-weight:850;font-size:16px;box-shadow:0 12px 30px rgba(46,139,255,.16)}
     .add-prospect-btn:hover{background:#10345f;border-color:#69b4ff;transform:translateY(-1px)}
-    .add-prospect-btn i{color:#69b4ff;font-size:20px}.crm-picker[hidden]{display:none}
-    @media(max-width:760px){.outreach-actionbar{min-height:calc(100vh - 48px);padding:14px}.outreach-actionbar.has-prospects{padding:0 0 14px}.add-prospect-btn{width:100%}}
+    .add-prospect-btn i{color:#69b4ff;font-size:20px}
+    .lead-picker-backdrop[hidden]{display:none}.lead-picker-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(0,4,10,.78);backdrop-filter:blur(7px)}
+    .lead-picker{width:min(520px,100%);padding:22px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,var(--panel),var(--panel2));box-shadow:0 24px 70px #000b}
+    .lead-picker-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}.lead-picker-head h2{margin:0;font-size:23px}.lead-picker-head p{margin:5px 0 0;color:var(--muted);font-size:14px}
+    .picker-close{border:0;background:transparent;color:var(--muted);font-size:20px}.lead-search{position:relative;display:block}.lead-search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+    .lead-search input{width:100%;height:46px;padding:0 14px 0 43px;border:1px solid var(--line);border-radius:10px;background:#010b15;color:var(--text);outline:0}.lead-search input:focus,#crmSelect:focus{border-color:var(--blue)}
+    .lead-select-label{display:block;margin:16px 0 7px;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+    #crmSelect{width:100%;min-height:160px;padding:7px;border:1px solid var(--line);border-radius:10px;background:#010b15;color:var(--text);outline:0}#crmSelect option{padding:9px;border-radius:6px}
+    .lead-picker .picker-status{display:block;margin-top:8px;text-align:left}.lead-picker-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+    @media(max-width:760px){.outreach-actionbar{min-height:calc(100vh - 48px);padding:14px}.outreach-actionbar.has-prospects{padding:0 0 14px}.add-prospect-btn{width:100%}.lead-picker{padding:18px}}
   </style></head>
 <body>
   <div class="shell">
     <main class="main">
       <header class="outreach-actionbar">
-        <button class="add-prospect-btn" id="addProspectBtn" type="button"><i class="bi bi-plus-lg"></i><span>Add a Prospect for Outreach</span></button>
+        <button class="add-prospect-btn" id="addProspectBtn" type="button"><i class="bi bi-plus-lg"></i><span>Add lead</span></button>
       </header>
-      <section class="crm-picker" id="crmPicker" aria-label="Choose prospects for outreach" hidden>
-        <label>Choose prospects
-          <select id="crmSelect" multiple size="6" aria-describedby="crmSelectionHelp"></select>
-          <small id="crmSelectionHelp">Choose up to 10. Use Command or Control to select more than one.</small>
-        </label>
-        <div class="picker-actions">
-          <button class="btn primary" id="loadSelectionBtn" type="button"><i class="bi bi-check2-circle"></i> Add selected</button>
-          <button class="btn" id="cancelSelectionBtn" type="button">Cancel</button>
-          <button class="btn" id="refreshCrmBtn" type="button"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
-          <button class="btn" id="previousLeadBtn" type="button"><i class="bi bi-chevron-left"></i> Previous</button>
-          <button class="btn" id="nextLeadBtn" type="button">Next <i class="bi bi-chevron-right"></i></button>
-          <span class="picker-status" id="pickerStatus" aria-live="polite">Connecting to CRM…</span>
-        </div>
-      </section>
-      <div class="empty-crm" id="emptyCrm" hidden></div>
+      <div class="lead-picker-backdrop" id="crmPicker" hidden>
+        <section class="lead-picker" role="dialog" aria-modal="true" aria-labelledby="leadPickerTitle">
+          <div class="lead-picker-head">
+            <div><h2 id="leadPickerTitle">Add lead</h2><p>Search for a lead or select one from the dropdown.</p></div>
+            <button class="picker-close" id="cancelSelectionBtn" type="button" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+          </div>
+          <label class="lead-search"><i class="bi bi-search"></i><input id="leadSearch" type="search" placeholder="Search leads…" autocomplete="off"></label>
+          <label class="lead-select-label" for="crmSelect">Select a lead</label>
+          <select id="crmSelect" size="5" aria-describedby="pickerStatus"></select>
+          <span class="picker-status" id="pickerStatus" aria-live="polite">Loading leads…</span>
+          <div class="lead-picker-actions">
+            <button class="btn" id="pickerCancelBtn" type="button">Cancel</button>
+            <button class="btn primary" id="loadSelectionBtn" type="button">Add lead</button>
+          </div>
+        </section>
+      </div>
       <section class="prospect" id="prospectCard" aria-labelledby="companyName" hidden>
         <div class="prospect-top"><div class="company-icon"><i class="bi bi-shop"></i></div><div class="company"><h2 id="companyName"></h2><p id="leadType"></p></div><div class="record-meta"><div class="select-row"><span class="pill-select" id="relationship"></span><button class="more" aria-label="More actions"><i class="bi bi-three-dots-vertical"></i></button></div><p id="leadIssue"></p><p><i class="bi bi-globe2"></i><span id="leadWebsite"></span></p></div></div>
         <div class="tags" id="leadTags"><button id="statusBtn" class="tag blue" type="button"></button></div>
@@ -148,7 +157,7 @@
       let realtime = null;
       const STORAGE_KEY = 'steady-hands-outreach-prospect-ids';
       function saveQueue(){localStorage.setItem(STORAGE_KEY,JSON.stringify(queue.map(lead=>lead.id)));}
-      function updateOutreachButton(){const hasProspects=queue.length>0;$('.outreach-actionbar').classList.toggle('has-prospects',hasProspects);$('#addProspectBtn span').textContent=hasProspects?'Add Another Prospect':'Add a Prospect for Outreach';}
+      function updateOutreachButton(){const hasProspects=queue.length>0;$('.outreach-actionbar').classList.toggle('has-prospects',hasProspects);$('#addProspectBtn span').textContent='Add lead';}
 
       function note(text) {
         toast.textContent = text;
@@ -197,7 +206,6 @@
       function renderLead() {
         const lead = queue[queueIndex];
         const hasLead = Boolean(lead);
-        $('#emptyCrm').hidden = true;
         $('#prospectCard').hidden = !hasLead;
         updateOutreachButton();
         document.querySelectorAll('.grid,.lower').forEach(section => section.hidden = !hasLead);
@@ -229,13 +237,12 @@
             : '—';
         });
         $('#pickerStatus').textContent = `${queueIndex + 1} of ${queue.length} selected`;
-        $('#previousLeadBtn').disabled = queue.length < 2;
-        $('#nextLeadBtn').disabled = queue.length < 2;
+ 
       }
 
       function populateSelector() {
         const selectedIds = new Set(queue.map(lead => lead.id));
-        $('#crmSelect').innerHTML = allLeads.map(lead => `<option value="${escapeHtml(lead.id)}" ${selectedIds.has(lead.id) ? 'selected' : ''}>${escapeHtml(text(lead.company, text(lead.name, 'Unnamed lead')))} — ${escapeHtml(text(lead.name, text(lead.phone)))}</option>`).join('');
+        $('#crmSelect').innerHTML = allLeads.map(lead => `<option value="${escapeHtml(lead.id)}">${escapeHtml(text(lead.company, text(lead.name, 'Unnamed lead')))} — ${escapeHtml(text(lead.name, text(lead.phone)))}</option>`).join('');
         $('#crmSelect').disabled = !allLeads.length;
       }
 
@@ -255,13 +262,17 @@
       }
 
       function loadSelection() {
-        const ids = [...$('#crmSelect').selectedOptions].map(option => option.value);
-        if (ids.length > 10) {
-          note('Select no more than 10 CRM leads.');
-          return;
+        const id = $('#crmSelect').value;
+        if (!id) { note('Select a lead first.'); return; }
+        const lead = allLeads.find(item => item.id === id);
+        if (!lead) return;
+        const existingIndex = queue.findIndex(item => item.id === id);
+        if (existingIndex >= 0) queueIndex = existingIndex;
+        else {
+          if (queue.length >= 10) { note('You can have up to 10 outreach leads.'); return; }
+          queue.push(lead);
+          queueIndex = queue.length - 1;
         }
-        queue = ids.map(id => allLeads.find(lead => lead.id === id)).filter(Boolean);
-        queueIndex = 0;
         updateOutreachButton();
         saveQueue();
         $('#crmPicker').hidden = true;
@@ -278,17 +289,17 @@
         } catch (error) {
           console.error('CRM load failed:', error);
           $('#pickerStatus').textContent = error.message || 'Could not load CRM.';
-          $('#emptyCrm').textContent = 'Could not load CRM data. Confirm you are signed in and have CRM access.';
+          note('Could not load CRM data. Confirm you are signed in and have CRM access.');
         }
       }
 
-      $('#addProspectBtn').addEventListener('click',()=>{populateSelector();$('#crmPicker').hidden=false;$('#crmPicker').scrollIntoView({behavior:'smooth',block:'start'});});
-      $('#cancelSelectionBtn').addEventListener('click',()=>{$('#crmPicker').hidden=true;});
+      function closePicker(){ $('#crmPicker').hidden=true; $('#leadSearch').value=''; }
+      $('#addProspectBtn').addEventListener('click',()=>{populateSelector();$('#crmPicker').hidden=false;setTimeout(()=>$('#leadSearch').focus(),0);});
+      $('#cancelSelectionBtn').addEventListener('click',closePicker);
+      $('#pickerCancelBtn').addEventListener('click',closePicker);
+      $('#crmPicker').addEventListener('click',event=>{if(event.target===$('#crmPicker'))closePicker();});
+      $('#leadSearch').addEventListener('input',event=>{const query=event.target.value.trim().toLowerCase();[...$('#crmSelect').options].forEach(option=>option.hidden=Boolean(query&&!option.textContent.toLowerCase().includes(query)));});
       $('#loadSelectionBtn').addEventListener('click', loadSelection);
-      $('#refreshCrmBtn').addEventListener('click', () => loadCrm().catch(error => note(error.message || 'Refresh failed.')));
-      $('#previousLeadBtn').addEventListener('click', () => { if (queue.length) { queueIndex = (queueIndex - 1 + queue.length) % queue.length; renderLead(); } });
-      $('#nextLeadBtn').addEventListener('click', () => { if (queue.length) { queueIndex = (queueIndex + 1) % queue.length; renderLead(); } });
-      $('#crmSelect').addEventListener('change', event => { if (event.target.selectedOptions.length > 10) { event.target.options[event.target.selectedIndex].selected = false; note('Maximum 10 leads.'); } });
       document.addEventListener('click', async event => {
         const copy = event.target.closest('[data-copy]');
         if (copy) { await navigator.clipboard.writeText($('#' + copy.dataset.copy).value); note('Copied to clipboard.'); }
