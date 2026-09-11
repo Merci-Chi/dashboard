@@ -43,39 +43,39 @@
 </label>
 <section aria-label="Lead categories" class="summary-row pipeline-switcher">
 <button aria-pressed="true" class="pipeline-summary active" data-pipeline-view="leads" type="button">
-<span>New Leads</span><strong id="newCount">0</strong>
+<span>CRM Prospects</span><strong id="newCount">0</strong>
 </button>
-<button aria-pressed="false" class="pipeline-summary" data-pipeline-view="followups" type="button">
+<button aria-hidden="true" aria-pressed="false" class="pipeline-summary" data-pipeline-view="followups" style="display:none" type="button">
 <span>Follow-ups</span><strong id="followCount">0</strong>
 </button>
-<button aria-pressed="false" class="pipeline-summary" data-pipeline-view="sold" type="button">
+<button aria-hidden="true" aria-pressed="false" class="pipeline-summary" data-pipeline-view="sold" style="display:none" type="button">
 <span>Sold Leads</span><strong id="soldCount">0</strong>
 </button>
 </section>
 <div class="section-heading">
 <div>
-<span class="section-kicker">INBOX</span>
-<h2>New Leads</h2>
+<span class="section-kicker">CRM</span>
+<h2>Prospects</h2>
 </div>
 <span class="count-chip" id="newCountChip">0</span>
 </div>
 <section class="lead-list" id="newLeadList"></section>
-<div class="section-heading follow-heading">
+<div aria-hidden="true" class="section-heading follow-heading" style="display:none">
 <div>
 <span class="section-kicker">CALL AGAIN</span>
 <h2>Follow-ups</h2>
 </div>
 <span class="count-chip" id="followCountChip">0</span>
 </div>
-<section class="lead-list" id="followLeadList"></section>
-<div class="section-heading sold-heading">
+<section aria-hidden="true" class="lead-list" id="followLeadList" style="display:none"></section>
+<div aria-hidden="true" class="section-heading sold-heading" style="display:none">
 <div>
 <span class="section-kicker">CLOSED</span>
 <h2>Sold</h2>
 </div>
 <span class="count-chip sold-count-chip" id="soldCountChip">0</span>
 </div>
-<section class="lead-list sold-lead-list" id="soldLeadList"></section>
+<section aria-hidden="true" class="lead-list sold-lead-list" id="soldLeadList" style="display:none"></section>
 </section>
 <section aria-label="Lead details" class="screen" id="detailScreen">
 <div class="detail-topbar">
