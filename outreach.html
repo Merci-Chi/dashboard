@@ -41,7 +41,6 @@
   </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="site-directory.js"></script>
 <script>
 (() => {
   'use strict';
@@ -56,13 +55,7 @@
   };
   function note(message,error=false){$('#status').textContent=message;$('#status').style.color=error?'var(--red)':'var(--muted)'}
   function siteFor(lead){return sites.get(lead.id)||{} }
-  const directory=Array.isArray(window.ViewYourSiteDirectory)?window.ViewYourSiteDirectory:[],directoryBySlug=new Map(),directoryByCompact=new Map();
-  function slug(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/[’']/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()}
-  function compact(value){return slug(value).replace(/(^|-)and(?=-|$)/g,'').replace(/-/g,'')}
-  function ampersandCompact(value){return compact(String(value||'').replace(/\b([a-z])\s*&\s*([a-z])\b/gi,'$1 n $2'))}
-  directory.forEach(folder=>{directoryBySlug.set(slug(folder),folder);const key=compact(folder);if(!directoryByCompact.has(key))directoryByCompact.set(key,folder)});
-  function siteKeyFor(lead){const s=siteFor(lead),values=[s.sitekey,lead.sitekey,s.name,lead.company,lead.name];for(const value of values){const exact=directoryBySlug.get(slug(value));if(exact)return exact}for(const value of values){for(const candidate of[compact(value),slug(value).replace(/-/g,''),ampersandCompact(value)]){const approximate=directoryByCompact.get(candidate);if(approximate)return approximate;const close=directory.map(folder=>({folder,key:compact(folder)})).filter(item=>candidate.length>=6&&(candidate.startsWith(item.key)||item.key.startsWith(candidate))).sort((a,b)=>Math.abs(a.key.length-candidate.length)-Math.abs(b.key.length-candidate.length))[0];if(close)return close.folder}}return''}
-  function urls(lead){const s=siteFor(lead),key=siteKeyFor(lead),base=key?`https://viewyoursite.today/Sites/${encodeURIComponent(key)}/`:'',files=Array.isArray(s.files)?s.files:[],hasAdminFile=files.some(file=>/(^|\/)(admin)(\/|\.|$)/i.test(String(file.path||'')))||window.ViewYourSiteAdminFolders?.has(key),explicitAdmin=String(s.adminurl||lead.adminurl||'').trim();return{preview:s.previewurl||lead.previewurl||base,admin:hasAdminFile?(explicitAdmin||`${base}admin.html`):''}}
+  function urls(lead){const s=siteFor(lead),key=s.sitekey||lead.sitekey||'',base=key?`https://viewyoursite.today/Sites/${encodeURIComponent(key)}/`:'',files=Array.isArray(s.files)?s.files:[],hasAdminFile=files.some(file=>/(^|\/)(admin)(\/|\.|$)/i.test(String(file.path||''))),explicitAdmin=String(s.adminurl||lead.adminurl||'').trim();return{preview:s.previewurl||lead.previewurl||base,admin:explicitAdmin||(hasAdminFile?`${base}admin.html`:'')}}
   function renderedScript(){const first=(current?.name||'there').trim().split(/\s+/)[0]||'there';return scripts[activeScript].replaceAll('{name}',first).replaceAll('{business}',current?.company||'your business')}
   function renderScript(){if(current)$('#script').value=renderedScript()}
   function outcomeLabel(){return current?.outcome||'Not Contacted'}
