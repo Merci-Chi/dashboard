@@ -92,7 +92,13 @@
       $('#content').hidden=!active;if(!active)return;
       $('#company').textContent=clean(active.company,'Unnamed business');$('#category').textContent=clean(active.leadtype||active.category,'Category not provided');
       $('#owner').textContent=clean(active.name,'Name not provided');$('#phone').textContent=clean(active.phone);$('#email').textContent=clean(active.email);$('#timezone').textContent=clean(active.timezone);$('#preferred').textContent=preferred(active);
-      const tags=[...(Array.isArray(active.sources)?active.sources:[]),...(Array.isArray(active.tags)?active.tags:[])];if(active.stage)tags.push(active.stage==='outreach'?'In Outreach':active.stage);tags.push(active.lastcalled?'Called':'Not yet called');
+      const tags=[...(Array.isArray(active.sources)?active.sources:[]),...(Array.isArray(active.tags)?active.tags:[])];
+      if(active.leadtype&&!tags.some(tag=>String(tag).toLowerCase()===String(active.leadtype).toLowerCase()))tags.push(active.leadtype);
+      if(active.spanish)tags.push('Spanish?');
+      if(active.stage)tags.push(active.stage==='outreach'?'In Outreach':active.stage==='notinterested'?'Not Interested':active.stage);
+      if(active.answer)tags.push(active.answer);
+      if(active.outcome)tags.push(active.outcome);
+      tags.push(active.lastcalled?'Called':'Not yet called');
       $('#tags').innerHTML=[...new Set(tags.map(x=>clean(x,'')).filter(Boolean))].map(x=>'<span class="tag">'+escapeHtml(x)+'</span>').join('');
       $('#notes').value=clean(active.notes,'')==='Not provided'?'':clean(active.notes,'');
       const rows=historyRows(active);$('#history').innerHTML=(rows.length?rows:['Lead added']).map(row=>'<div class="history-row"><i class="bi bi-journal-text"></i><span>'+escapeHtml(typeof row==='string'?row:(row.text||row.action||row.note||'Activity updated'))+'</span></div>').join('');
@@ -106,13 +112,18 @@
       $('#copyAdmin').hidden=!adminReady;
       $('#copyAdmin').disabled=!adminReady;
     }
-    function populate(){$('#leadSelect').innerHTML=leads.map(l=>'<option value="'+escapeHtml(l.id)+'">'+escapeHtml(clean(l.company,l.name))+' — '+escapeHtml(clean(l.name,l.phone))+'</option>').join('')}
+    function populate(query=''){
+      const needle=String(query||'').trim().toLowerCase();
+      const matches=leads.filter(l=>!needle||[l.company,l.name,l.phone,l.email,l.leadtype,...(Array.isArray(l.tags)?l.tags:[]),...(Array.isArray(l.sources)?l.sources:[])].some(value=>String(value||'').toLowerCase().includes(needle)));
+      $('#leadSelect').innerHTML=matches.map(l=>'<option value="'+escapeHtml(l.id)+'">'+escapeHtml(clean(l.company,l.name))+' — '+escapeHtml(clean(l.name,l.phone))+'</option>').join('');
+      if(matches.length)$('#leadSelect').selectedIndex=0;
+    }
     async function getClient(){for(let i=0;i<30;i++){const p=window.parent!==window?window.parent.supabaseClient:null;if(p){const {data}=await p.auth.getSession();if(data?.session){const user=data.session.user||{};loggedInName=user.user_metadata?.full_name||user.user_metadata?.display_name||user.user_metadata?.name||String(user.email||'').split('@')[0]||'____';return p}}await new Promise(r=>setTimeout(r,250))}return window.parent!==window&&window.parent.supabaseClient?window.parent.supabaseClient:window.supabase.createClient(URL,KEY)}
     async function load(){client=await getClient();const {data,error}=await client.from('crm').select('*').order('company',{ascending:true});if(error)throw error;leads=data||[];const stored=localStorage.getItem('steady-hands-active-outreach-id');active=leads.find(l=>String(l.id)===String(stored))||leads.find(l=>String(l.stage).toLowerCase()==='outreach')||null;if(active)localStorage.setItem('steady-hands-active-outreach-id',active.id);populate();render()}
     $('#addLead').onclick=async()=>{$('#modal').hidden=false;try{await load()}catch(e){toast(e.message||'Could not load leads')}setTimeout(()=>$('#search').focus(),0)};
     function close(){ $('#modal').hidden=true;$('#search').value=''; }
     $('#closePicker').onclick=close;$('#cancelPicker').onclick=close;$('#modal').onclick=e=>{if(e.target===$('#modal'))close()};
-    $('#search').oninput=e=>{const q=e.target.value.toLowerCase();[...$('#leadSelect').options].forEach(o=>o.hidden=!!q&&!o.textContent.toLowerCase().includes(q))};
+    $('#search').oninput=e=>populate(e.target.value);
     $('#chooseLead').onclick=async()=>{const lead=leads.find(l=>String(l.id)===String($('#leadSelect').value));if(!lead)return toast('Select a lead first.');active=lead;localStorage.setItem('steady-hands-active-outreach-id',active.id);close();render()};
     $('#notes').oninput=()=>{clearTimeout(noteTimer);$('#saveState').textContent='Saving…';noteTimer=setTimeout(async()=>{if(!active)return;const value=$('#notes').value;const {error}=await client.from('crm').update({notes:value,updated:new Date().toISOString()}).eq('id',active.id);$('#saveState').textContent=error?'Could not save': 'Saved automatically';if(!error)active.notes=value},650)};
     document.addEventListener('click',async e=>{const b=e.target.closest('[data-copy-text],[data-copy-id]');if(!b)return;const value=b.dataset.copyText||(document.getElementById(b.dataset.copyId)?.textContent||'');await navigator.clipboard.writeText(value);toast('Copied')});
