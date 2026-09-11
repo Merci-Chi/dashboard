@@ -320,22 +320,43 @@
         renderLead();
       }
 
+      const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+      async function getAuthenticatedClient() {
+        for (let attempt = 0; attempt < 30; attempt += 1) {
+          const parentClient = window.parent !== window ? window.parent.supabaseClient : null;
+          const candidate = parentClient || client;
+          if (candidate) {
+            const { data } = await candidate.auth.getSession();
+            if (data?.session) return candidate;
+          }
+          await wait(250);
+        }
+        return window.parent !== window && window.parent.supabaseClient
+          ? window.parent.supabaseClient
+          : client;
+      }
+
       async function initialize() {
         try {
           client = window.parent !== window && window.parent.supabaseClient
             ? window.parent.supabaseClient
             : window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          $('#pickerStatus').textContent = 'Loading leads…';
+          client = await getAuthenticatedClient();
           await loadCrm();
-          realtime = client.channel('outreach-crm-live-v1').on('postgres_changes', { event: '*', schema: 'public', table: 'crm' }, loadCrm).subscribe();
+          if (realtime) await client.removeChannel(realtime);
+          realtime = client.channel('outreach-crm-live-v2').on('postgres_changes', { event: '*', schema: 'public', table: 'crm' }, () => {
+            loadCrm().catch(error => console.error('CRM refresh failed:', error));
+          }).subscribe();
         } catch (error) {
           console.error('CRM load failed:', error);
-          $('#pickerStatus').textContent = error.message || 'Could not load CRM.';
-          note('Could not load CRM data. Confirm you are signed in and have CRM access.');
+          $('#pickerStatus').textContent = error.message || 'Could not load leads. Click Add lead to retry.';
         }
       }
 
       function closePicker(){ $('#crmPicker').hidden=true; $('#leadSearch').value=''; }
-      $('#addProspectBtn').addEventListener('click',()=>{populateSelector();$('#crmPicker').hidden=false;setTimeout(()=>$('#leadSearch').focus(),0);});
+      $('#addProspectBtn').addEventListener('click',async()=>{$('#crmPicker').hidden=false;$('#pickerStatus').textContent='Loading leads…';try{client=await getAuthenticatedClient();await loadCrm();populateSelector();}catch(error){console.error('Lead picker load failed:',error);$('#pickerStatus').textContent=error.message||'Could not load leads.';}setTimeout(()=>$('#leadSearch').focus(),0);});
       $('#cancelSelectionBtn').addEventListener('click',closePicker);
       $('#pickerCancelBtn').addEventListener('click',closePicker);
       $('#crmPicker').addEventListener('click',event=>{if(event.target===$('#crmPicker'))closePicker();});
