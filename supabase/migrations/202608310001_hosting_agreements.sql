@@ -31,7 +31,7 @@ create policy "clients read own agreements" on public.hosting_agreements
 
 create policy "owner reads all agreements" on public.hosting_agreements
   for select to authenticated
-  using (lower(auth.jwt() ->> 'email') = 'kiara@steadyhandsop.com');
+  using ((auth.jwt() -> 'app_metadata' ->> 'dashboard_role') = 'admin');
 
 grant select, insert on public.hosting_agreements to authenticated;
 

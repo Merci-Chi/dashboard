@@ -39,7 +39,7 @@ alter table public.billing_subscriptions enable row level security;
 alter table public.payment_history enable row level security;
 create policy "owner reads subscriptions" on public.billing_subscriptions
   for select to authenticated
-  using (lower(auth.jwt() ->> 'email') = 'kiara@steadyhandsop.com');
+  using ((auth.jwt() -> 'app_metadata' ->> 'dashboard_role') = 'admin');
 create policy "owner reads payments" on public.payment_history
   for select to authenticated
-  using (lower(auth.jwt() ->> 'email') = 'kiara@steadyhandsop.com');
+  using ((auth.jwt() -> 'app_metadata' ->> 'dashboard_role') = 'admin');

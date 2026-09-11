@@ -33,32 +33,6 @@
   const LEADS = ["leads", "outreach", "staging", "live"];
   const UNAUTHORIZED = ["unauthorized"];
 
-  /*
-   * ============================================================
-   * USER ACCESS — EDIT ONLY THIS SECTION TO MANAGE PERMISSIONS
-   * ============================================================
-   *
-   * ALL_VIEWS     = Access to every app page
-   * LEADS         = Access to Leads only
-   * UNAUTHORIZED  = Can sign in, but only sees Unauthorized
-   *
-   * Examples:
-   * "person@steadyhandsop.com": ALL_VIEWS,
-   * "person@steadyhandsop.com": LEADS,
-   * "person@steadyhandsop.com": UNAUTHORIZED,
-   *
-   * Any Supabase user not listed here automatically receives
-   * UNAUTHORIZED access.
-   * ============================================================
-   */
-  const USER_ACCESS = {
-    "kiara@steadyhandsop.com": ALL_VIEWS,
-    "demo@steadyhandsop.com": LEADS,
-    "nayelli@steadyhandsop.com": LEADS,
-    "iamnottaiii@gmail.com": LEADS,
-    "notai@steadyhandsop.com": LEADS,
-  };
-
   let supabase = null;
   let session = null;
   let allowedViews = [];
@@ -95,7 +69,18 @@
   }
 
   function getPermissions(currentSession = session) {
-    return USER_ACCESS[getEmail(currentSession)] || UNAUTHORIZED;
+    const user = currentSession?.user;
+    if (!user) return UNAUTHORIZED;
+
+    const metadata = user.app_metadata || {};
+    const configuredViews = Array.isArray(metadata.dashboard_views)
+      ? metadata.dashboard_views.filter(view => ALL_VIEWS.includes(view))
+      : [];
+    if (configuredViews.length) return configuredViews;
+
+    if (metadata.dashboard_role === "leads") return LEADS;
+    if (metadata.dashboard_role === "unauthorized") return UNAUTHORIZED;
+    return ALL_VIEWS;
   }
 
   function needsFirstSetup(currentSession = session) {
@@ -201,6 +186,30 @@
     const separator = baseSrc.includes("?") ? "&" : "?";
     frame.src = `${baseSrc}${separator}session=${Date.now()}`;
   }
+
+  function sendSessionToLeads() {
+    const frame = $("#leadsFrame");
+    if (!frame?.contentWindow || !session?.access_token || !session?.refresh_token) return;
+
+    frame.contentWindow.postMessage(
+      {
+        type: "STEADY_HANDS_SUPABASE_SESSION",
+        session: {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        }
+      },
+      window.location.origin
+    );
+  }
+
+  window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type !== "STEADY_HANDS_LEADS_READY") return;
+    sendSessionToLeads();
+  });
+
+  $("#leadsFrame")?.addEventListener("load", sendSessionToLeads);
 
   function routeSession() {
     if (!session?.user) {

@@ -305,5 +305,28 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js.js?v=requests-20260905-1"></script>
+  <script>
+    (() => {
+      const sendLeadsSession = () => {
+        const frame = document.getElementById('leadsFrame');
+        const activeSession = window.supabaseSession;
+        if (!frame?.contentWindow || !activeSession?.access_token || !activeSession?.refresh_token) return;
+        frame.contentWindow.postMessage({
+          type: 'STEADY_HANDS_SUPABASE_SESSION',
+          session: {
+            access_token: activeSession.access_token,
+            refresh_token: activeSession.refresh_token
+          }
+        }, window.location.origin);
+      };
+
+      window.addEventListener('message', event => {
+        if (event.origin === window.location.origin && event.data?.type === 'STEADY_HANDS_LEADS_READY') {
+          sendLeadsSession();
+        }
+      });
+      document.getElementById('leadsFrame')?.addEventListener('load', sendLeadsSession);
+    })();
+  </script>
 </body>
 </html>

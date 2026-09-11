@@ -315,8 +315,7 @@ function updateSignedInUserUi() {
 }
 
 function currentUserIsKiara() {
-  const email = String(supabaseSession?.user?.email || '').trim().toLowerCase();
-  return email === 'kiara@steadyhandsop.com';
+  return supabaseSession?.user?.app_metadata?.dashboard_role === 'admin';
 }
 
 function addLeadHistory(lead, type, actor = currentUserName, at = new Date().toISOString(), details = {}) {
@@ -2845,7 +2844,7 @@ function finalizeSoldAndDraftEmail() {
   const bodyLead = { ...lead, phone: phoneForDraft };
   const subject = `New Sale — ${lead.company || lead.name || 'Client'}`;
   const body = soldEmailBody(bodyLead, products, seller);
-  const mailto = `mailto:kiara@steadyhands.op?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
   saveState(lead.id);
   closeModal('soldProductsModal');
