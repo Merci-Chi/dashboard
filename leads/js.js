@@ -71,6 +71,8 @@ function supabaseRowToLead(row, status = 'new') {
     phone: row.phone || '',
     email: row.email || '',
     site: row.website || '',
+    previewUrl: row.previewurl || '',
+    tier: row.tier || '',
     timezone: row.timezone || '',
     age: row.siteage || '',
     issue: row.issue || '',
