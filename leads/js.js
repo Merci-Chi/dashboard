@@ -32,6 +32,8 @@ function leadToSupabaseRow(lead) {
     phone: lead.phone || '',
     email: lead.email || '',
     website: lead.site || '',
+    previewurl: lead.previewUrl || '',
+    tier: lead.tier || '',
     timezone: lead.timezone || '',
     leadtype: getLeadType(lead) || '',
     tags: Array.isArray(lead.tags) ? lead.tags : [],
@@ -2918,7 +2920,7 @@ function setLeadEntryMode(mode) {
 }
 
 function resetLeadForm() {
-  ['newName','newCompany','newPhone','newEmail','newSite','newAge','newTimezone','newIssue','newConcerns','newNotes'].forEach(id => {
+  ['newName','newCompany','newPhone','newEmail','newLeadType','newSite','newPreviewUrl','newAge','newTimezone','newPreferredTimes','newTier','newTags','newSourceTags','newIssue','newConcerns','newNotes'].forEach(id => {
     const input = document.getElementById(id);
     if (input) input.value = '';
   });
@@ -2965,9 +2967,15 @@ function openLeadDetailsEditor(leadId = currentLeadId) {
   $('#newName').value = lead.name || '';
   $('#newPhone').value = lead.phone ? formatPhoneNumber(lead.phone) : '';
   $('#newEmail').value = lead.email || '';
+  $('#newLeadType').value = lead.leadType || '';
   $('#newSite').value = lead.site || '';
+  $('#newPreviewUrl').value = lead.previewUrl || '';
   $('#newAge').value = lead.age || '';
   $('#newTimezone').value = lead.timezone || '';
+  $('#newPreferredTimes').value = lead.timePreference || '';
+  $('#newTier').value = lead.tier || '';
+  $('#newTags').value = (Array.isArray(lead.tags) ? lead.tags : []).join(', ');
+  $('#newSourceTags').value = (Array.isArray(lead.sourceTags) ? lead.sourceTags : []).join(', ');
   $('#newIssue').value = lead.issue || '';
   $('#newConcerns').value = lead.concerns || '';
   $('#newNotes').value = lead.notes || '';
@@ -3068,6 +3076,8 @@ function makeLead(raw = {}) {
     phone: formatPhoneNumber(raw.phone ?? raw.phoneNumber),
     email: text(raw.email ?? raw.emailAddress),
     site: text(raw.site ?? raw.website ?? raw.url),
+    previewUrl: text(raw.previewUrl ?? raw.previewurl),
+    tier: text(raw.tier),
     timezone: text(raw.timezone ?? raw.timeZone),
     age: text(raw.age ?? raw.siteAge),
     issue: text(raw.issue ?? raw.mainIssue),
@@ -3088,7 +3098,7 @@ function makeLead(raw = {}) {
     preferredDate: '',
     preferredTime: '',
     days: [],
-    timePreference: '',
+    timePreference: text(raw.timePreference ?? raw.preferredContactTimes),
     specificTime: '',
     concerns: text(raw.concerns),
     notes: text(raw.notes)
@@ -3217,9 +3227,15 @@ $('#createLeadButton').addEventListener('click', async () => {
     company: $('#newCompany').value.trim(),
     phone: formatPhoneNumber($('#newPhone').value),
     email: $('#newEmail').value.trim(),
+    leadType: $('#newLeadType').value.trim(),
     site: $('#newSite').value.trim(),
+    previewUrl: $('#newPreviewUrl').value.trim(),
     age: $('#newAge').value.trim(),
     timezone: $('#newTimezone').value,
+    preferredTimes: $('#newPreferredTimes').value.trim(),
+    tier: $('#newTier').value,
+    tags: $('#newTags').value.split(',').map(value => value.trim()).filter(Boolean),
+    sourceTags: $('#newSourceTags').value.split(',').map(value => value.trim()).filter(Boolean),
     issue: $('#newIssue').value.trim(),
     concerns: $('#newConcerns')?.value.trim() || '',
     notes: $('#newNotes')?.value.trim() || ''
@@ -3232,7 +3248,13 @@ $('#createLeadButton').addEventListener('click', async () => {
     lead.company = values.company;
     lead.phone = values.phone;
     lead.email = values.email;
+    lead.leadType = values.leadType;
     lead.site = values.site;
+    lead.previewUrl = values.previewUrl;
+    lead.tier = values.tier;
+    lead.tags = values.tags;
+    lead.sourceTags = values.sourceTags;
+    lead.timePreference = values.preferredTimes;
     ensureAutomaticTags(lead);
     lead.age = values.age;
     lead.timezone = values.timezone;
