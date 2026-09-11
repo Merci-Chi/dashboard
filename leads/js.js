@@ -32,6 +32,7 @@ function leadToSupabaseRow(lead) {
     phone: lead.phone || '',
     email: lead.email || '',
     website: lead.site || '',
+    timezone: lead.timezone || '',
     leadtype: getLeadType(lead) || '',
     tags: Array.isArray(lead.tags) ? lead.tags : [],
     sources: Array.isArray(lead.sourceTags) ? lead.sourceTags.filter(tag => String(tag || '').trim().toLowerCase() !== 'other') : [],
@@ -68,6 +69,7 @@ function supabaseRowToLead(row, status = 'new') {
     phone: row.phone || '',
     email: row.email || '',
     site: row.website || '',
+    timezone: row.timezone || '',
     age: row.siteage || '',
     issue: row.issue || '',
     leadType: row.leadtype || '',
@@ -2903,7 +2905,7 @@ function setLeadEntryMode(mode) {
 }
 
 function resetLeadForm() {
-  ['newName','newCompany','newPhone','newEmail','newSite','newAge','newIssue','newConcerns','newNotes'].forEach(id => {
+  ['newName','newCompany','newPhone','newEmail','newSite','newAge','newTimezone','newIssue','newConcerns','newNotes'].forEach(id => {
     const input = document.getElementById(id);
     if (input) input.value = '';
   });
@@ -2952,6 +2954,7 @@ function openLeadDetailsEditor(leadId = currentLeadId) {
   $('#newEmail').value = lead.email || '';
   $('#newSite').value = lead.site || '';
   $('#newAge').value = lead.age || '';
+  $('#newTimezone').value = lead.timezone || '';
   $('#newIssue').value = lead.issue || '';
   $('#newConcerns').value = lead.concerns || '';
   $('#newNotes').value = lead.notes || '';
@@ -3052,6 +3055,7 @@ function makeLead(raw = {}) {
     phone: formatPhoneNumber(raw.phone ?? raw.phoneNumber),
     email: text(raw.email ?? raw.emailAddress),
     site: text(raw.site ?? raw.website ?? raw.url),
+    timezone: text(raw.timezone ?? raw.timeZone),
     age: text(raw.age ?? raw.siteAge),
     issue: text(raw.issue ?? raw.mainIssue),
     leadType: normalizeLeadType(raw.leadType ?? raw.type ?? raw.reason ?? (Array.isArray(raw.tags) ? raw.tags.find(tag => normalizeLeadType(tag) !== 'Spanish?') : '') ?? raw.issue ?? raw.mainIssue),
@@ -3202,6 +3206,7 @@ $('#createLeadButton').addEventListener('click', async () => {
     email: $('#newEmail').value.trim(),
     site: $('#newSite').value.trim(),
     age: $('#newAge').value.trim(),
+    timezone: $('#newTimezone').value,
     issue: $('#newIssue').value.trim(),
     concerns: $('#newConcerns')?.value.trim() || '',
     notes: $('#newNotes')?.value.trim() || ''
@@ -3217,6 +3222,7 @@ $('#createLeadButton').addEventListener('click', async () => {
     lead.site = values.site;
     ensureAutomaticTags(lead);
     lead.age = values.age;
+    lead.timezone = values.timezone;
     lead.issue = values.issue;
     lead.concerns = values.concerns;
     lead.notes = values.notes;
