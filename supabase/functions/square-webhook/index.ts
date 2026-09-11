@@ -45,19 +45,18 @@ Deno.serve(async req => {
         currency = phase?.pricing?.price_money?.currency || currency
       }
       const email = String(customer.email_address || '').toLowerCase()
-      const { data: project } = email ? await supabase.from('site_projects').select('id').ilike('email', email).limit(1).maybeSingle() : { data: null }
-      const row = { id: subscription.id, site_project_id: project?.id || null, square_customer_id: subscription.customer_id, customer_name: [customer.given_name, customer.family_name].filter(Boolean).join(' '), customer_company: customer.company_name || null, customer_email: customer.email_address || null, customer_phone: customer.phone_number || null, plan_variation_id: subscription.plan_variation_id || null, plan_name: planName, status: subscription.status, amount_money: amount, currency, start_date: subscription.start_date || null, canceled_date: subscription.canceled_date || null, charged_through_date: subscription.charged_through_date || null, updated_at: new Date().toISOString() }
-      const { error } = await supabase.from('billing_subscriptions').upsert(row)
+      const { data: person } = email ? await supabase.from('crm').select('id,userid').ilike('email', email).limit(1).maybeSingle() : { data: null }
+      const row = { crmid: person?.id || null, userid: person?.userid || null, source: 'square_webhook', sourceid: subscription.id, customerid: subscription.customer_id, subscriptionid: subscription.id, name: [customer.given_name, customer.family_name].filter(Boolean).join(' '), company: customer.company_name || '', email: customer.email_address || '', phone: customer.phone_number || '', plan: planName, status: subscription.status, amount, currency, cadence: 'MONTHLY', startdate: subscription.start_date || null, canceled: subscription.canceled_date || null, chargedthrough: subscription.charged_through_date || null, original: { planvariationid: subscription.plan_variation_id || null }, updated: new Date().toISOString() }
+      const { error } = await supabase.from('square').upsert(row, { onConflict: 'source,sourceid' })
       if (error) throw error
-      await supabase.from('payment_history').update({ subscription_id: subscription.id }).eq('square_customer_id', subscription.customer_id).is('subscription_id', null)
-      if (project?.id && ['ACTIVE','PENDING'].includes(subscription.status)) await supabase.from('site_projects').update({ status: 'client' }).eq('id', project.id)
+      if (person?.id && ['ACTIVE','PENDING'].includes(subscription.status)) await supabase.from('crm').update({ relationship: 'client', stage: 'complete', updated: new Date().toISOString() }).eq('id', person.id)
     }
     if (event.type === 'payment.created' || event.type === 'payment.updated') {
       const payment = event.data?.object?.payment
       if (payment?.id && payment.customer_id) {
-        const { data: subscription } = await supabase.from('billing_subscriptions').select('id').eq('square_customer_id', payment.customer_id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+        const { data: subscription } = await supabase.from('square').select('id,crmid').eq('customerid', payment.customer_id).order('created', { ascending: false }).limit(1).maybeSingle()
         const card = payment.card_details?.card || {}
-        const { error } = await supabase.from('payment_history').upsert({ id: payment.id, subscription_id: subscription?.id || null, square_customer_id: payment.customer_id, status: payment.status, amount_money: payment.amount_money?.amount || 0, currency: payment.amount_money?.currency || 'USD', paid_at: payment.status === 'COMPLETED' ? payment.updated_at || payment.created_at : null, card_brand: card.card_brand || null, card_last_4: card.last_4 || null, receipt_url: payment.receipt_url || null, updated_at: new Date().toISOString() })
+        const { error } = await supabase.from('payments').upsert({ crmid: subscription?.crmid || null, squareid: subscription?.id || null, source: 'square_webhook', sourceid: payment.id, customerid: payment.customer_id, status: payment.status, amount: payment.amount_money?.amount || 0, currency: payment.amount_money?.currency || 'USD', paid: payment.status === 'COMPLETED' ? payment.updated_at || payment.created_at : null, card: card.card_brand || null, lastfour: card.last_4 || null, receipt: payment.receipt_url || null, updated: new Date().toISOString() }, { onConflict: 'source,sourceid' })
         if (error) throw error
       }
     }
