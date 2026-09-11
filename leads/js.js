@@ -3098,7 +3098,7 @@ function makeLead(raw = {}) {
     preferredDate: '',
     preferredTime: '',
     days: [],
-    timePreference: text(raw.timePreference ?? raw.preferredContactTimes),
+    timePreference: text(raw.timePreference ?? raw.preferredTimes ?? raw.preferredContactTimes),
     specificTime: '',
     concerns: text(raw.concerns),
     notes: text(raw.notes)
