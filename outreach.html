@@ -294,7 +294,12 @@
         const fetchedLeads = data || [];
         if (fetchedLeads.length) allLeads = fetchedLeads;
         const savedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        const desiredIds = queue.length ? queue.map(lead => lead.id) : savedIds;
+        const outreachIds = allLeads.filter(lead => String(lead.stage || '').toLowerCase() === 'outreach').map(lead => lead.id);
+        const desiredIds = queue.length
+          ? queue.map(lead => lead.id)
+          : savedIds.length
+            ? savedIds
+            : outreachIds;
         const refreshedQueue = desiredIds.map(id => allLeads.find(lead => String(lead.id) === String(id))).filter(Boolean);
         if (refreshedQueue.length) {
           queue = refreshedQueue;
@@ -306,7 +311,7 @@
         updateOutreachButton();
       }
 
-      function loadSelection() {
+      async function loadSelection() {
         const id = $('#crmSelect').value;
         if (!id) { note('Select a lead first.'); return; }
         const lead = allLeads.find(item => item.id === id);
@@ -317,6 +322,14 @@
           if (queue.length >= 10) { note('You can have up to 10 outreach leads.'); return; }
           queue.push(lead);
           queueIndex = queue.length - 1;
+        }
+        const { error } = await client.from('crm').update({ stage: 'outreach', updated: new Date().toISOString() }).eq('id', lead.id);
+        if (error) {
+          console.error('Could not save outreach status:', error);
+          note('Lead opened, but its outreach status could not be saved.');
+        } else {
+          lead.stage = 'outreach';
+          lead.updated = new Date().toISOString();
         }
         updateOutreachButton();
         saveQueue();
