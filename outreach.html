@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#06162b">
-  <title>GrowthOps — Outreach</title>
+  <meta name="theme-color" content="#01050b">
+  <title>Outreach | Steady Hands Operations</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
@@ -17,16 +17,35 @@
     @media(max-width:1180px){.shell{grid-template-columns:88px minmax(0,1fr)}.brand{justify-content:center;padding-inline:0}.brand-copy,.nav span,.sidebar-foot span{display:none}.nav a{justify-content:center;padding-inline:8px}.sidebar-foot{justify-content:center}.topbar{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.grid .steps-card{grid-column:1/-1}.steps{grid-template-columns:repeat(5,1fr)}.step{grid-template-columns:36px 1fr}.details{grid-template-columns:1fr 1fr}.detail:nth-child(2){border-right:0}.detail:nth-child(n+3){margin-top:15px}}
     @media(max-width:760px){.shell{display:block}.sidebar{position:static;width:100%;height:auto;padding:12px}.brand,.sidebar-foot{display:none}.nav{display:flex;overflow:auto;margin:0}.nav a{flex:0 0 auto}.nav span{display:inline}.main{padding:20px 14px}.topbar{margin-bottom:20px}.title h1{font-size:33px}.tools{grid-template-columns:1fr}.prospect{padding:16px}.prospect-top{grid-template-columns:70px 1fr}.company-icon{width:64px;height:64px;font-size:32px}.company h2{font-size:25px}.record-meta{grid-column:1/-1;justify-items:start}.record-meta .select-row{position:absolute;right:26px;top:206px}.tags{gap:8px}.tag{padding:7px 12px;font-size:13px}.details{grid-template-columns:1fr}.detail{border-right:0;border-bottom:1px solid #24527a;padding:11px 5px!important;margin:0!important}.detail:last-child{border:0}.grid,.lower{grid-template-columns:1fr}.grid .steps-card{grid-column:auto}.steps{grid-template-columns:1fr}.pricing{grid-template-columns:1fr}}
   </style>
+  <style>
+    /* Leads-page visual system */
+    :root{--bg:#01050b;--panel:#07182b;--panel2:#06111f;--line:#12385f;--line-soft:rgba(70,139,210,.16);--text:#f3f8ff;--muted:#7994b3;--blue:#2e8bff;--cyan:#69b4ff;--green:#53d98b;--orange:#ffbd5b;--red:#ff5e61}
+    html{background:var(--bg)}
+    body{background:radial-gradient(circle at 50% -20%,#06172d 0%,#020912 34%,#01050b 68%,#000 100%);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+    .shell{display:block;min-height:100vh}
+    .main{width:100%;max-width:1500px;margin:0 auto;padding:24px 26px 40px}
+    .topbar{grid-template-columns:minmax(310px,1fr) minmax(480px,720px);gap:28px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #09182a}
+    .title h1{font-size:28px;line-height:1.1;letter-spacing:-.04em}
+    .title p{margin-top:6px;color:var(--muted);font-size:14px}
+    .tools{grid-template-columns:minmax(280px,1fr) 210px;gap:12px}
+    .search i{left:14px;font-size:18px;color:var(--muted)}
+    .search input,.tools select{height:46px;border-color:var(--line);border-radius:10px;background:var(--panel)}
+    .search input{padding-left:44px}
+    .prospect{border:1px solid var(--line);border-radius:16px;padding:18px 22px 19px;background:linear-gradient(145deg,var(--panel),var(--panel2));box-shadow:0 14px 32px rgba(0,0,0,.16)}
+    .company-icon{background:#09182a;color:var(--blue)}
+    .pill-select{border-color:var(--line);background:var(--panel2)}
+    .details{border-color:var(--line-soft)}
+    .detail{border-color:var(--line-soft)}
+    .card{border-color:var(--line);border-radius:16px;background:linear-gradient(145deg,var(--panel),var(--panel2))}
+    .card-body{border-color:var(--line-soft);background:var(--panel2)}
+    .btn{border-color:var(--line);background:var(--panel)}
+    .btn.primary,.step b{background:var(--blue);border-color:var(--blue)}
+    @media(max-width:1180px){.topbar{grid-template-columns:1fr}}
+    @media(max-width:760px){.main{padding:14px 12px 28px}.topbar{margin-bottom:18px;padding-bottom:14px}.title h1{font-size:25px}.tools{grid-template-columns:1fr}.record-meta .select-row{position:static}.detail{border-color:var(--line-soft)}}
+  </style>
 </head>
 <body>
   <div class="shell">
-    <aside class="sidebar">
-      <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand-copy"><strong>GrowthOps</strong><small>Sales Operations</small></span></div>
-      <nav class="nav" aria-label="Primary navigation">
-        <a href="#"><i class="bi bi-grid"></i><span>Dashboard</span></a><a class="active" href="#" aria-current="page"><i class="bi bi-send"></i><span>Outreach</span></a><a href="#"><i class="bi bi-people"></i><span>Prospects</span></a><a href="#"><i class="bi bi-funnel"></i><span>Pipeline</span></a><a href="#"><i class="bi bi-check2-square"></i><span>Tasks</span></a><a href="#"><i class="bi bi-calendar3"></i><span>Calendar</span></a><a href="#"><i class="bi bi-bar-chart"></i><span>Reports</span></a><a href="#"><i class="bi bi-gear"></i><span>Settings</span></a>
-      </nav>
-      <div class="sidebar-foot"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span>Build<br>More Businesses<br>Together</span></div>
-    </aside>
     <main class="main">
       <header class="topbar"><div class="title"><h1>OUTREACH</h1><p>Find prospects. Start conversations. Grow together.</p></div><div class="tools"><label class="search"><i class="bi bi-search"></i><input id="search" type="search" placeholder="Search businesses, locations, or keywords…" aria-label="Search prospects"></label><select id="prospectSelect" aria-label="Prospect filter"><option>Prospect</option><option>Qualified</option><option>Follow Up</option><option>All Businesses</option></select></div></header>
       <section class="prospect" aria-labelledby="companyName">
