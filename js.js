@@ -152,7 +152,7 @@
   function applyPermissions() {
     allowedViews = getPermissions();
 
-    $("[data-view], [data-page-link]").forEach((item) => {
+    $$("[data-view], [data-page-link]").forEach((item) => {
       const permissionKey = item.dataset.view || item.dataset.pageLink;
       const visible = allowedViews.includes(permissionKey);
       item.classList.toggle("permission-hidden", !visible);
