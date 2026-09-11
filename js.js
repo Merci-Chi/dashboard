@@ -234,11 +234,16 @@
   }
 
   function setupNavigation() {
-    $$("[data-view]").forEach((item) => {
+    $("[data-view], [data-page-link]").forEach((item) => {
       item.addEventListener("click", (event) => {
-        event.preventDefault();
+        const view = item.dataset.view || item.dataset.pageLink;
+        const embeddedView = document.getElementById(`view-${view}`);
 
-        const view = item.dataset.view;
+        // Embedded dashboard views stay inside index.html. This also protects
+        // against a stale cached anchor that still points to a standalone page.
+        if (!item.dataset.view && !embeddedView) return;
+
+        event.preventDefault();
         if (allowedViews.includes(view)) {
           showView(view);
         }
