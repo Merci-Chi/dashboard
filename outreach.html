@@ -291,11 +291,15 @@
         $('#pickerStatus').textContent = 'Loading live CRM…';
         const { data, error } = await client.from('crm').select('*').order('businessrank', { ascending: true }).order('company', { ascending: true });
         if (error) throw error;
-        allLeads = data || [];
+        const fetchedLeads = data || [];
+        if (fetchedLeads.length) allLeads = fetchedLeads;
         const savedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         const desiredIds = queue.length ? queue.map(lead => lead.id) : savedIds;
-        queue = desiredIds.map(id => allLeads.find(lead => lead.id === id)).filter(Boolean);
-        saveQueue();
+        const refreshedQueue = desiredIds.map(id => allLeads.find(lead => String(lead.id) === String(id))).filter(Boolean);
+        if (refreshedQueue.length) {
+          queue = refreshedQueue;
+          saveQueue();
+        }
         queueIndex = Math.min(queueIndex, Math.max(0, queue.length - 1));
         populateSelector();
         renderLead();
