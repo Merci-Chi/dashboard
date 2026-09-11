@@ -30,7 +30,12 @@
     "reports"
   ];
 
-  const LEADS = ["leads", "outreach", "staging", "live"];
+  const ROLE_VIEWS = Object.freeze({
+    ADMIN: ALL_VIEWS,
+    MOD: ["leads", "staging", "outreach", "review"],
+    SALES: ["outreach"],
+    PREP: ["staging"]
+  });
   const UNAUTHORIZED = ["unauthorized"];
 
   let supabase = null;
@@ -68,19 +73,42 @@
     return user.email ? user.email.split("@")[0] : "User";
   }
 
+  function getRoles(currentSession = session) {
+    const metadata = currentSession?.user?.app_metadata || {};
+    const configuredRoles = Array.isArray(metadata.roles)
+      ? metadata.roles
+      : (metadata.role ? [metadata.role] : []);
+
+    return [...new Set(
+      configuredRoles
+        .map(role => String(role || "").trim().toUpperCase())
+        .filter(role => Object.prototype.hasOwnProperty.call(ROLE_VIEWS, role))
+    )];
+  }
+
   function getPermissions(currentSession = session) {
     const user = currentSession?.user;
     if (!user) return UNAUTHORIZED;
 
+    const roles = getRoles(currentSession);
+    if (roles.includes("ADMIN")) return ALL_VIEWS;
+
+    const roleViews = new Set(roles.flatMap(role => ROLE_VIEWS[role] || []));
+    const permitted = ALL_VIEWS.filter(view => roleViews.has(view));
+    if (permitted.length) return permitted;
+
+    // Temporary compatibility for accounts already configured with the
+    // previous app_metadata dashboard_views/dashboard_role format.
     const metadata = user.app_metadata || {};
     const configuredViews = Array.isArray(metadata.dashboard_views)
       ? metadata.dashboard_views.filter(view => ALL_VIEWS.includes(view))
       : [];
     if (configuredViews.length) return configuredViews;
+    if (metadata.dashboard_role === "leads") {
+      return ROLE_VIEWS.MOD;
+    }
 
-    if (metadata.dashboard_role === "leads") return LEADS;
-    if (metadata.dashboard_role === "unauthorized") return UNAUTHORIZED;
-    return ALL_VIEWS;
+    return UNAUTHORIZED;
   }
 
   function needsFirstSetup(currentSession = session) {
