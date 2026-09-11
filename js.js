@@ -234,7 +234,7 @@
   }
 
   function setupNavigation() {
-    $("[data-view], [data-page-link]").forEach((item) => {
+    $$("[data-view], [data-page-link]").forEach((item) => {
       item.addEventListener("click", (event) => {
         const view = item.dataset.view || item.dataset.pageLink;
         const embeddedView = document.getElementById(`view-${view}`);
