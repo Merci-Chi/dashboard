@@ -8,6 +8,7 @@
   const ALL_VIEWS = [
     "dashboard",
     "leads",
+    "outreach",
     "staging",
     "review",
     "live",
@@ -29,7 +30,7 @@
     "reports"
   ];
 
-  const LEADS = ["leads", "staging", "live"];
+  const LEADS = ["leads", "outreach", "staging", "live"];
   const UNAUTHORIZED = ["unauthorized"];
 
   /*
