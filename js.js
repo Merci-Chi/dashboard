@@ -152,13 +152,14 @@
   function applyPermissions() {
     allowedViews = getPermissions();
 
-    $$("[data-view]").forEach((item) => {
-      const visible = allowedViews.includes(item.dataset.view);
+    $("[data-view], [data-page-link]").forEach((item) => {
+      const permissionKey = item.dataset.view || item.dataset.pageLink;
+      const visible = allowedViews.includes(permissionKey);
       item.classList.toggle("permission-hidden", !visible);
     });
 
     $$(".nav-section").forEach((section) => {
-      const hasVisibleItem = [...section.querySelectorAll("[data-view]")]
+      const hasVisibleItem = [...section.querySelectorAll("[data-view], [data-page-link]")]
         .some((item) => !item.classList.contains("permission-hidden"));
 
       section.classList.toggle("permission-hidden", !hasVisibleItem);
