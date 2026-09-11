@@ -88,29 +88,35 @@
     @media(max-width:820px){.topbar{grid-template-columns:1fr}.capacity-card{width:100%;max-width:280px}.tools{grid-template-columns:1fr}.crm-picker{grid-template-columns:1fr}.picker-status{text-align:left}.grid,.lower{grid-template-columns:1fr}.grid .steps-card{grid-column:auto}.steps{grid-template-columns:1fr}}
     @media(max-width:760px){.main{padding:24px 14px 28px}.topbar{margin-bottom:18px}.title h1{font-size:34px}.title p{font-size:14px}.prospect-top{grid-template-columns:58px 1fr}.company-icon{width:52px;height:52px;font-size:25px}.record-meta{grid-column:1/-1;justify-items:start}.record-meta .select-row{position:static}.detail{border-color:var(--line-soft)}}
   </style>
-</head>
+<style>
+    .outreach-actionbar{display:flex;justify-content:center;align-items:center;min-height:calc(100vh - 120px);padding:24px}
+    .outreach-actionbar.has-prospects{min-height:auto;justify-content:flex-end;padding:0 0 20px}
+    .add-prospect-btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;min-height:58px;padding:0 25px;border:1px solid #2e8bff;border-radius:13px;background:#0a2341;color:#fff;font-weight:850;font-size:16px;box-shadow:0 12px 30px rgba(46,139,255,.16)}
+    .add-prospect-btn:hover{background:#10345f;border-color:#69b4ff;transform:translateY(-1px)}
+    .add-prospect-btn i{color:#69b4ff;font-size:20px}.crm-picker[hidden]{display:none}
+    @media(max-width:760px){.outreach-actionbar{min-height:calc(100vh - 48px);padding:14px}.outreach-actionbar.has-prospects{padding:0 0 14px}.add-prospect-btn{width:100%}}
+  </style></head>
 <body>
   <div class="shell">
     <main class="main">
-      <header class="topbar">
-        <div class="title"><span class="title-kicker">SALES PIPELINE</span><h1>Outreach</h1><p>Find prospects, start conversations, and move qualified businesses forward.</p></div>
-        <aside class="capacity-card" aria-label="Active outreach capacity"><div class="capacity-row"><span>Active queue</span><strong>1 / 10</strong></div><div class="capacity-track" aria-hidden="true"><span></span></div></aside>
-        <div class="tools"><label class="search"><i class="bi bi-search"></i><input id="search" type="search" placeholder="Search businesses, locations, or keywords…" aria-label="Search prospects"></label><select id="prospectSelect" aria-label="Prospect filter"><option>Prospect</option><option>Qualified</option><option>Follow Up</option><option>All Businesses</option></select></div>
+      <header class="outreach-actionbar">
+        <button class="add-prospect-btn" id="addProspectBtn" type="button"><i class="bi bi-plus-lg"></i><span>Add a Prospect for Outreach</span></button>
       </header>
-      <section class="crm-picker" aria-label="CRM outreach queue">
-        <label>Select up to 10 CRM leads
-          <select id="crmSelect" multiple size="4" aria-describedby="crmSelectionHelp"></select>
-          <small id="crmSelectionHelp">Use Command or Control to select multiple leads.</small>
+      <section class="crm-picker" id="crmPicker" aria-label="Choose prospects for outreach" hidden>
+        <label>Choose prospects
+          <select id="crmSelect" multiple size="6" aria-describedby="crmSelectionHelp"></select>
+          <small id="crmSelectionHelp">Choose up to 10. Use Command or Control to select more than one.</small>
         </label>
         <div class="picker-actions">
-          <button class="btn primary" id="loadSelectionBtn" type="button"><i class="bi bi-check2-circle"></i> Load selection</button>
-          <button class="btn" id="refreshCrmBtn" type="button"><i class="bi bi-arrow-clockwise"></i> Refresh CRM</button>
+          <button class="btn primary" id="loadSelectionBtn" type="button"><i class="bi bi-check2-circle"></i> Add selected</button>
+          <button class="btn" id="cancelSelectionBtn" type="button">Cancel</button>
+          <button class="btn" id="refreshCrmBtn" type="button"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
           <button class="btn" id="previousLeadBtn" type="button"><i class="bi bi-chevron-left"></i> Previous</button>
           <button class="btn" id="nextLeadBtn" type="button">Next <i class="bi bi-chevron-right"></i></button>
           <span class="picker-status" id="pickerStatus" aria-live="polite">Connecting to CRM…</span>
         </div>
       </section>
-      <div class="empty-crm" id="emptyCrm">Select one or more CRM leads to begin outreach.</div>
+      <div class="empty-crm" id="emptyCrm" hidden></div>
       <section class="prospect" id="prospectCard" aria-labelledby="companyName" hidden>
         <div class="prospect-top"><div class="company-icon"><i class="bi bi-shop"></i></div><div class="company"><h2 id="companyName"></h2><p id="leadType"></p></div><div class="record-meta"><div class="select-row"><span class="pill-select" id="relationship"></span><button class="more" aria-label="More actions"><i class="bi bi-three-dots-vertical"></i></button></div><p id="leadIssue"></p><p><i class="bi bi-globe2"></i><span id="leadWebsite"></span></p></div></div>
         <div class="tags" id="leadTags"><button id="statusBtn" class="tag blue" type="button"></button></div>
@@ -140,6 +146,9 @@
       let queue = [];
       let queueIndex = 0;
       let realtime = null;
+      const STORAGE_KEY = 'steady-hands-outreach-prospect-ids';
+      function saveQueue(){localStorage.setItem(STORAGE_KEY,JSON.stringify(queue.map(lead=>lead.id)));}
+      function updateOutreachButton(){const hasProspects=queue.length>0;$('.outreach-actionbar').classList.toggle('has-prospects',hasProspects);$('#addProspectBtn span').textContent=hasProspects?'Add Another Prospect':'Add a Prospect for Outreach';}
 
       function note(text) {
         toast.textContent = text;
@@ -188,8 +197,9 @@
       function renderLead() {
         const lead = queue[queueIndex];
         const hasLead = Boolean(lead);
-        $('#emptyCrm').hidden = hasLead;
+        $('#emptyCrm').hidden = true;
         $('#prospectCard').hidden = !hasLead;
+        updateOutreachButton();
         document.querySelectorAll('.grid,.lower').forEach(section => section.hidden = !hasLead);
         if (!lead) {
           $('#pickerStatus').textContent = allLeads.length ? 'Select up to 10 leads.' : 'No CRM records available.';
@@ -234,13 +244,14 @@
         const { data, error } = await client.from('crm').select('*').order('businessrank', { ascending: true }).order('company', { ascending: true });
         if (error) throw error;
         allLeads = data || [];
-        queue = queue.map(current => allLeads.find(lead => lead.id === current.id)).filter(Boolean);
-        if (!queue.length && allLeads.length) queue = [allLeads[0]];
+        const savedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const desiredIds = queue.length ? queue.map(lead => lead.id) : savedIds;
+        queue = desiredIds.map(id => allLeads.find(lead => lead.id === id)).filter(Boolean);
+        saveQueue();
         queueIndex = Math.min(queueIndex, Math.max(0, queue.length - 1));
         populateSelector();
         renderLead();
-        $('.capacity-row strong').textContent = `${queue.length} / 10`;
-        $('.capacity-track span').style.width = `${queue.length * 10}%`;
+        updateOutreachButton();
       }
 
       function loadSelection() {
@@ -251,8 +262,9 @@
         }
         queue = ids.map(id => allLeads.find(lead => lead.id === id)).filter(Boolean);
         queueIndex = 0;
-        $('.capacity-row strong').textContent = `${queue.length} / 10`;
-        $('.capacity-track span').style.width = `${queue.length * 10}%`;
+        updateOutreachButton();
+        saveQueue();
+        $('#crmPicker').hidden = true;
         renderLead();
       }
 
@@ -270,15 +282,13 @@
         }
       }
 
+      $('#addProspectBtn').addEventListener('click',()=>{populateSelector();$('#crmPicker').hidden=false;$('#crmPicker').scrollIntoView({behavior:'smooth',block:'start'});});
+      $('#cancelSelectionBtn').addEventListener('click',()=>{$('#crmPicker').hidden=true;});
       $('#loadSelectionBtn').addEventListener('click', loadSelection);
       $('#refreshCrmBtn').addEventListener('click', () => loadCrm().catch(error => note(error.message || 'Refresh failed.')));
       $('#previousLeadBtn').addEventListener('click', () => { if (queue.length) { queueIndex = (queueIndex - 1 + queue.length) % queue.length; renderLead(); } });
       $('#nextLeadBtn').addEventListener('click', () => { if (queue.length) { queueIndex = (queueIndex + 1) % queue.length; renderLead(); } });
       $('#crmSelect').addEventListener('change', event => { if (event.target.selectedOptions.length > 10) { event.target.options[event.target.selectedIndex].selected = false; note('Maximum 10 leads.'); } });
-      $('#search').addEventListener('input', event => {
-        const query = event.target.value.trim().toLowerCase();
-        [...$('#crmSelect').options].forEach(option => option.hidden = query && !option.textContent.toLowerCase().includes(query));
-      });
       document.addEventListener('click', async event => {
         const copy = event.target.closest('[data-copy]');
         if (copy) { await navigator.clipboard.writeText($('#' + copy.dataset.copy).value); note('Copied to clipboard.'); }
