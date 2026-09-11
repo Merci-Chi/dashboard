@@ -31,35 +31,32 @@ function leadToSupabaseRow(lead) {
     company: lead.company || '',
     phone: lead.phone || '',
     email: lead.email || '',
-    site: lead.site || '',
-    lead_type: getLeadType(lead) || '',
+    website: lead.site || '',
+    leadtype: getLeadType(lead) || '',
     tags: Array.isArray(lead.tags) ? lead.tags : [],
-    source_tags: Array.isArray(lead.sourceTags) ? lead.sourceTags.filter(tag => String(tag || '').trim().toLowerCase() !== 'other') : [],
-    spanish_possible: Boolean(lead.spanishPossible),
-    age: lead.age || '',
+    sources: Array.isArray(lead.sourceTags) ? lead.sourceTags.filter(tag => String(tag || '').trim().toLowerCase() !== 'other') : [],
+    spanish: Boolean(lead.spanishPossible),
+    siteage: lead.age || '',
     issue: lead.issue || '',
     concerns: lead.concerns || '',
     notes: lead.notes || '',
-    answer_status: lead.answerStatus || '',
+    answer: lead.answerStatus || '',
     mood: lead.mood || '',
     outcome: lead.outcome || '',
-    callback_date: lead.callbackDate || null,
-    callback_time: lead.callbackTime || null,
-    preferred_contact: lead.preferredContact || '',
-    preferred_date: lead.preferredDate || null,
-    preferred_time: lead.preferredTime || null,
-    preferred_days: Array.isArray(lead.days) ? lead.days : [],
-    time_preference: lead.timePreference || '',
-    specific_time: lead.specificTime || null,
-    tag: String(lead.tag || '').trim().toLowerCase() === 'hot lead'
-      ? ((Array.isArray(lead.tags) ? lead.tags : [])
-          .map(tag => String(tag || '').trim())
-          .find(tag => tag && tag.toLowerCase() !== 'hot lead' && FOLLOWUP_TAGS.has(tag)) || '')
-      : (lead.tag || ''),
-    last_called: lead.lastCalled || null,
+    callbackdate: lead.callbackDate || null,
+    callbacktime: lead.callbackTime || null,
+    contactmethod: lead.preferredContact || '',
+    preferreddate: lead.preferredDate || null,
+    preferredtime: lead.preferredTime || null,
+    preferreddays: Array.isArray(lead.days) ? lead.days : [],
+    timepreference: lead.timePreference || '',
+    specifictime: lead.specificTime || null,
+    lastcalled: lead.lastCalled || null,
     history: Array.isArray(lead.history) ? lead.history : [],
-    sold_by: lead.soldBy || '',
-    updated_at: new Date().toISOString()
+    soldby: lead.soldBy || '',
+    relationship: lead.status === 'sold' ? 'client' : 'prospect',
+    stage: lead.status === 'new' ? 'notstarted' : (lead.status === 'sold' ? 'complete' : (String(lead.tag||'').toLowerCase()==='not interested' ? 'notinterested' : 'outreach')),
+    updated: new Date().toISOString()
   };
 }
 
@@ -70,56 +67,50 @@ function supabaseRowToLead(row, status = 'new') {
     company: row.company || '',
     phone: row.phone || '',
     email: row.email || '',
-    site: row.site || '',
-    age: row.age || '',
+    site: row.website || '',
+    age: row.siteage || '',
     issue: row.issue || '',
-    leadType: row.lead_type || '',
+    leadType: row.leadtype || '',
     tags: Array.isArray(row.tags) ? row.tags : [],
-    sourceTags: Array.isArray(row.source_tags) ? row.source_tags.filter(tag => String(tag || '').trim().toLowerCase() !== 'other') : [],
-    spanishPossible: Boolean(row.spanish_possible),
+    sourceTags: Array.isArray(row.sources) ? row.sources.filter(tag => String(tag || '').trim().toLowerCase() !== 'other') : [],
+    spanishPossible: Boolean(row.spanish),
     status,
-    lastCalled: row.last_called || '',
-    createdAt: row.created_at || '',
+    lastCalled: row.lastcalled || '',
+    createdAt: row.created || '',
     history: Array.isArray(row.history) ? row.history : [],
-    tag: row.tag || '',
-    answerStatus: row.answer_status || '',
+    tag: row.stage === 'notinterested' ? 'Not Interested' : '',
+    answerStatus: row.answer || '',
     mood: row.mood || '',
     outcome: row.outcome || '',
-    callbackDate: row.callback_date || '',
-    callbackTime: row.callback_time || '',
-    preferredContact: row.preferred_contact || '',
-    preferredDate: row.preferred_date || '',
-    preferredTime: row.preferred_time || '',
-    days: Array.isArray(row.preferred_days) ? row.preferred_days : [],
-    timePreference: row.time_preference || '',
-    specificTime: row.specific_time || '',
+    callbackDate: row.callbackdate || '',
+    callbackTime: row.callbacktime || '',
+    preferredContact: row.contactmethod || '',
+    preferredDate: row.preferreddate || '',
+    preferredTime: row.preferredtime || '',
+    days: Array.isArray(row.preferreddays) ? row.preferreddays : [],
+    timePreference: row.timepreference || '',
+    specificTime: row.specifictime || '',
     concerns: row.concerns || '',
     notes: row.notes || '',
-    soldBy: row.sold_by || ((Array.isArray(row.history) ? row.history : []).slice().reverse().find(item => item?.type === 'sold')?.actor || ''),
-    updatedAt: row.updated_at || row.created_at || ''
+    soldBy: row.soldby || ((Array.isArray(row.history) ? row.history : []).slice().reverse().find(item => item?.type === 'sold')?.actor || ''),
+    updatedAt: row.updated || row.created || ''
   });
 }
 
 function tableForLead(lead) {
-  if (lead?.status === 'sold') return 'sold_leads';
-  return lead?.status === 'followup' ? 'follow_ups' : 'new_leads';
+  return 'crm';
 }
 
 function otherTablesForLead(lead) {
-  return ['new_leads', 'follow_ups', 'sold_leads'].filter(table => table !== tableForLead(lead));
+  return [];
 }
 
 function soldPublicRow(lead) {
-  return { ...leadToSupabaseRow(lead), phone: '' };
+  return leadToSupabaseRow(lead);
 }
 
 async function storeSoldPhoneSecurely(lead) {
-  if (!lead || lead.status !== 'sold') return;
-  const { error } = await supabaseClient.rpc('store_sold_phone', {
-    p_lead_id: lead.id,
-    p_phone: lead.phone || ''
-  });
-  if (error) throw error;
+  return;
 }
 
 function showSyncStatus(text) {
@@ -131,29 +122,10 @@ function showSyncStatus(text) {
 }
 
 async function upsertLeadsByTable(leads) {
-  const newLeads = leads.filter(lead => lead.status === 'new');
-  const followLeads = leads.filter(lead => lead.status === 'followup');
-  const soldLeads = leads.filter(lead => lead.status === 'sold');
-
-  const groups = [
-    ['new_leads', newLeads, leadToSupabaseRow],
-    ['follow_ups', followLeads, leadToSupabaseRow],
-    ['sold_leads', soldLeads, soldPublicRow]
-  ];
-
-  for (const [table, group, mapper] of groups) {
-    if (!group.length) continue;
-    const rows = group.map(mapper);
-    const { error } = await supabaseClient.from(table).upsert(rows, { onConflict: 'id' });
-    if (error) throw error;
-    const ids = rows.map(row => row.id);
-    for (const otherTable of ['new_leads', 'follow_ups', 'sold_leads'].filter(name => name !== table)) {
-      const { error: cleanupError } = await supabaseClient.from(otherTable).delete().in('id', ids);
-      if (cleanupError) throw cleanupError;
-    }
-  }
-
-  for (const lead of soldLeads) await storeSoldPhoneSecurely(lead);
+  if (!leads.length) return;
+  const rows = leads.map(leadToSupabaseRow);
+  const { error } = await supabaseClient.from('crm').upsert(rows, { onConflict: 'id' });
+  if (error) throw error;
 }
 
 async function syncAllLeadsToSupabase() {
@@ -205,15 +177,9 @@ function queueAllLeadSync() {
 async function syncLeadNow(lead) {
   if (!supabaseSession || !lead) return;
   pendingSyncIds.delete(lead.id);
-  const table = tableForLead(lead);
-  const row = lead.status === 'sold' ? soldPublicRow(lead) : leadToSupabaseRow(lead);
-  const { error } = await supabaseClient.from(table).upsert(row, { onConflict: 'id' });
+  const row = leadToSupabaseRow(lead);
+  const { error } = await supabaseClient.from('crm').upsert(row, { onConflict: 'id' });
   if (error) throw error;
-  for (const otherTable of otherTablesForLead(lead)) {
-    const { error: cleanupError } = await supabaseClient.from(otherTable).delete().eq('id', lead.id);
-    if (cleanupError) throw cleanupError;
-  }
-  if (lead.status === 'sold') await storeSoldPhoneSecurely(lead);
 }
 
 async function syncLeadTagsOnly(lead) {
@@ -238,19 +204,22 @@ async function syncLeadTagsOnly(lead) {
   return savedTags;
 }
 
-function applyRealtimeLeadChange(payload, status) {
+function crmStatus(row = {}) {
+  if (row.relationship === 'client') return 'sold';
+  return row.stage === 'notstarted' ? 'new' : 'followup';
+}
+
+function applyRealtimeLeadChange(payload) {
   if (!payload) return;
   if (payload.eventType === 'DELETE') {
     const deletedId = payload.old?.id;
     const index = state.leads.findIndex(lead => lead.id === deletedId);
-    if (index >= 0 && state.leads[index].status === status) state.leads.splice(index, 1);
+    if (index >= 0) state.leads.splice(index, 1);
   } else {
-    const incoming = supabaseRowToLead(payload.new || {}, status);
+    const row = payload.new || {};
+    const incoming = supabaseRowToLead(row, crmStatus(row));
     if (!incoming.id) return;
     const index = state.leads.findIndex(lead => lead.id === incoming.id);
-    if (status === 'sold' && currentUserIsKiara() && index >= 0 && state.leads[index].phone && !incoming.phone) {
-      incoming.phone = state.leads[index].phone;
-    }
     if (index >= 0) state.leads[index] = incoming;
     else state.leads.push(incoming);
   }
@@ -267,10 +236,8 @@ function subscribeToLeadChanges() {
   if (!supabaseSession) return;
   if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
   realtimeChannel = supabaseClient
-    .channel('steady-hands-leads-live-v2')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'new_leads' }, payload => applyRealtimeLeadChange(payload, 'new'))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'follow_ups' }, payload => applyRealtimeLeadChange(payload, 'followup'))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'sold_leads' }, payload => applyRealtimeLeadChange(payload, 'sold'))
+    .channel('steady-hands-crm-live-v1')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'crm' }, applyRealtimeLeadChange)
     .subscribe();
 }
 
@@ -284,21 +251,9 @@ async function hydrateFromSupabase() {
   if (!supabaseSession) return;
   ensureUuidIds();
 
-  const [newResult, followResult, soldResult] = await Promise.all([
-    supabaseClient.from('new_leads').select('*').order('created_at', { ascending: true }),
-    supabaseClient.from('follow_ups').select('*').order('created_at', { ascending: true }),
-    supabaseClient.from('sold_leads').select('*').order('created_at', { ascending: true })
-  ]);
-
-  if (newResult.error) throw newResult.error;
-  if (followResult.error) throw followResult.error;
-  if (soldResult.error) throw soldResult.error;
-
-  const loadedLeads = [
-    ...(newResult.data || []).map(row => supabaseRowToLead(row, 'new')),
-    ...(followResult.data || []).map(row => supabaseRowToLead(row, 'followup')),
-    ...(soldResult.data || []).map(row => supabaseRowToLead(row, 'sold'))
-  ];
+  const result = await supabaseClient.from('crm').select('*').order('created', { ascending: true });
+  if (result.error) throw result.error;
+  const loadedLeads = (result.data || []).map(row => supabaseRowToLead(row, crmStatus(row)));
 
   const dedupedById = new Map();
   for (const lead of loadedLeads) {
@@ -308,19 +263,6 @@ async function hydrateFromSupabase() {
     if (!existing || leadTime >= existingTime) dedupedById.set(lead.id, lead);
   }
   const remoteLeads = [...dedupedById.values()];
-
-  if (currentUserIsKiara()) {
-    const { data: privatePhones, error: privateError } = await supabaseClient
-      .from('sold_private_phones')
-      .select('lead_id, phone');
-    if (privateError) console.error('Could not load Kiara-only sold phone numbers:', privateError);
-    else {
-      const phoneById = new Map((privatePhones || []).map(row => [row.lead_id, row.phone || '']));
-      remoteLeads.forEach(lead => {
-        if (lead.status === 'sold' && phoneById.has(lead.id)) lead.phone = phoneById.get(lead.id);
-      });
-    }
-  }
 
   const systemNoteLeads = remoteLeads.filter(addInitialSystemNoteHistory);
   if (systemNoteLeads.length) await upsertLeadsByTable(systemNoteLeads);
@@ -679,8 +621,8 @@ async function deleteHistoryEntry(historyId) {
     const table = tableForLead(lead);
     const patch = {
       history: Array.isArray(lead.history) ? lead.history : [],
-      last_called: lead.lastCalled || null,
-      updated_at: new Date().toISOString()
+      lastcalled: lead.lastCalled || null,
+      updated: new Date().toISOString()
     };
     if (item.type === 'note') patch.notes = lead.notes || '';
 
@@ -688,14 +630,14 @@ async function deleteHistoryEntry(historyId) {
       .from(table)
       .update(patch)
       .eq('id', lead.id)
-      .select('id,history,last_called,notes')
+      .select('id,history,lastcalled,notes')
       .single();
 
     if (error) throw error;
     if (!data?.id) throw new Error('History update did not match the lead row');
 
     lead.history = Array.isArray(data.history) ? data.history : [];
-    lead.lastCalled = data.last_called || '';
+    lead.lastCalled = data.lastcalled || '';
     if (typeof data.notes === 'string') lead.notes = data.notes;
     saveState(lead.id);
     renderLeadHistory();
@@ -2032,12 +1974,8 @@ async function deleteLeadPermanently(leadId) {
   if (!lead) return;
 
   if (supabaseSession) {
-    for (const table of ['new_leads', 'follow_ups', 'sold_leads']) {
-      const { error } = await supabaseClient.from(table).delete().eq('id', leadId);
-      if (error) throw error;
-    }
-    const { error: privatePhoneError } = await supabaseClient.from('sold_private_phones').delete().eq('lead_id', leadId);
-    if (privatePhoneError) console.warn('Could not delete private sold phone:', privatePhoneError);
+    const { error } = await supabaseClient.from('crm').delete().eq('id', leadId);
+    if (error) throw error;
   }
 
   state.leads = state.leads.filter(item => item.id !== leadId);
@@ -2126,28 +2064,28 @@ async function sendLeadToStaging(leadId) {
   if (!db) return toast('Supabase pipeline is not ready.');
 
   const { count, error: countError } = await db
-    .from('site_projects')
+    .from('sites')
     .select('*', { count: 'exact', head: true })
-    .eq('status', 'staging');
+    .eq('stage', 'staging');
   if (countError) return toast(countError.message || 'Could not check Staging.');
   if ((count || 0) >= 10) return toast('Staging is full. Only 10 sites can be staged at once.');
 
   const { data: existing, error: existingError } = await db
-    .from('site_projects')
-    .select('id,status')
-    .eq('lead_id', String(lead.id))
-    .neq('status', 'archived')
+    .from('sites')
+    .select('id,stage')
+    .eq('crmid', lead.id)
+    .neq('stage', 'archived')
     .limit(1);
   if (existingError) return toast(existingError.message || 'Could not check the site pipeline.');
-  if (existing?.length) return toast(`This lead is already in ${existing[0].status}.`);
+  if (existing?.length) return toast(`This lead is already in ${existing[0].stage}.`);
 
-  const { error } = await db.from('site_projects').insert({
-    lead_id: String(lead.id),
-    company: lead.company || lead.name || 'Unnamed lead',
-    contact_name: lead.name || '',
-    email: lead.email || '',
-    phone: lead.phone || '',
-    status: 'staging'
+  const { error } = await db.from('sites').insert({
+    crmid: lead.id,
+    source: 'dashboard',
+    sourceid: crypto.randomUUID(),
+    name: lead.company || lead.name || 'Unnamed lead',
+    stage: 'staging',
+    original: { contact_name: lead.name || '', email: lead.email || '', phone: lead.phone || '' }
   });
   if (error) return toast(error.message || 'Could not send lead to Staging.');
 
@@ -3051,9 +2989,6 @@ async function setLeadPipelineStatus(leadId, nextStatus) {
     return;
   }
 
-  const sourceTable = previousStatus === 'sold' ? 'sold_leads' : (previousStatus === 'followup' ? 'follow_ups' : 'new_leads');
-  const targetTable = nextStatus === 'sold' ? 'sold_leads' : (nextStatus === 'followup' ? 'follow_ups' : 'new_leads');
-
   const movedLead = {
     ...lead,
     history: Array.isArray(lead.history) ? lead.history.map(item => ({ ...item })) : [],
@@ -3080,34 +3015,16 @@ async function setLeadPipelineStatus(leadId, nextStatus) {
     const row = nextStatus === 'sold' ? soldPublicRow(movedLead) : leadToSupabaseRow(movedLead);
 
     const { data: savedRows, error: saveError } = await supabaseClient
-      .from(targetTable)
+      .from('crm')
       .upsert(row, { onConflict: 'id' })
-      .select('id,updated_at');
+      .select('id,updated');
 
     if (saveError) throw saveError;
     if (!Array.isArray(savedRows) || !savedRows.some(saved => saved.id === lead.id)) {
       throw new Error('Supabase did not confirm the destination lead');
     }
 
-    if (nextStatus === 'sold') {
-      await storeSoldPhoneSecurely(movedLead);
-    }
-
     state.leads[leadIndex] = movedLead;
-
-    for (const table of ['new_leads', 'follow_ups', 'sold_leads']) {
-      if (table === targetTable) continue;
-      const { error: cleanupError } = await supabaseClient.from(table).delete().eq('id', lead.id);
-      if (cleanupError) console.warn(`Status saved, but stale copy could not be removed from ${table}:`, cleanupError);
-    }
-
-    if (previousStatus === 'sold' && nextStatus !== 'sold') {
-      const { error: phoneCleanupError } = await supabaseClient
-        .from('sold_private_phones')
-        .delete()
-        .eq('lead_id', lead.id);
-      if (phoneCleanupError) console.warn('Status saved, but old sold phone record could not be removed:', phoneCleanupError);
-    }
 
     renderLists();
     if (currentLeadId === lead.id) renderCurrentLead();
