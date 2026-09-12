@@ -1598,7 +1598,7 @@ function renderCurrentLead() {
 }
 
 function setTab(panelId) {
-  const validTabs = new Set(['detailsPanel', 'followupPanel', 'quickPanel']);
+  const validTabs = new Set(['detailsPanel', 'followupPanel']);
   const safePanelId = validTabs.has(panelId) ? panelId : 'detailsPanel';
   $$('.tab').forEach(tab => tab.classList.toggle('active', tab.dataset.tab === safePanelId));
   $$('.panel').forEach(panel => panel.classList.toggle('active', panel.id === safePanelId));
@@ -1607,7 +1607,7 @@ function setTab(panelId) {
 
 function restorePageState() {
   const saved = loadPageState();
-  const validTabs = new Set(['detailsPanel', 'followupPanel', 'quickPanel']);
+  const validTabs = new Set(['detailsPanel', 'followupPanel']);
   const savedTab = validTabs.has(saved.tab) ? saved.tab : 'detailsPanel';
 
   if (saved.screen === 'detail' && saved.leadId && state.leads.some(lead => lead.id === saved.leadId)) {
