@@ -486,29 +486,28 @@
 </div>
 </section>
 </div>
+<div aria-hidden="true" class="modal-backdrop" id="callCompleteConfirmModal">
+<section aria-labelledby="callCompleteTitle" aria-modal="true" class="modal-card call-complete-confirm-card" role="dialog">
+<span class="section-kicker">CALL COMPLETER</span>
+<h2 id="callCompleteTitle">Call Complete?</h2>
+<p class="modal-help">Finish the call before leaving this lead.</p>
+<div class="call-complete-choice-row">
+<button aria-label="Yes, complete the call" class="call-complete-choice confirm" id="confirmCallCompleteButton" type="button"><i class="bi bi-check-lg"></i></button>
+<button aria-label="No, stay on this lead" class="call-complete-choice cancel" id="cancelCallCompleteButton" type="button"><i class="bi bi-x-lg"></i></button>
+</div>
+</section>
+</div>
 <div aria-hidden="true" class="modal-backdrop" id="postCallModal">
 <section aria-labelledby="postCallTitle" aria-modal="true" class="modal-card call-flow-modal post-call-modal" role="dialog">
 <div class="modal-heading">
-<div><span class="section-kicker">CALL CHECK-IN</span><h2 id="postCallTitle">How did the call go?</h2></div>
-<button aria-label="Close" class="icon-button bare modal-close" data-close="postCallModal" type="button"><i class="bi bi-x-lg"></i></button>
+<div><span class="section-kicker">CALL COMPLETER</span><h2 id="postCallTitle">Complete your call</h2></div>
 </div>
-<div class="mini-question" id="postAnswerQuestion">
-<span class="mini-question-label">Did the lead pick up?</span>
-<div class="mini-choice-row two">
-<button class="mini-choice" data-post-answer="Answered" type="button"><i class="bi bi-telephone-inbound"></i> Yes</button>
-<button class="mini-choice" data-post-answer="No Answer" type="button"><i class="bi bi-telephone-x"></i> No</button>
+<div class="call-completer-progress" aria-label="Call completion progress">
+<span class="active" data-call-step-dot="1">1</span><i></i><span data-call-step-dot="2">2</span><i></i><span data-call-step-dot="3"><i class="bi bi-check-lg"></i></span>
 </div>
-</div>
-<div class="mini-question" id="postMoodQuestion">
-<span class="mini-question-label">Their mood</span>
-<div class="mini-choice-row three">
-<button aria-label="Positive" class="mini-choice mood-mini" data-post-mood="Positive" type="button"><i class="bi bi-emoji-smile"></i></button>
-<button aria-label="Neutral" class="mini-choice mood-mini" data-post-mood="Neutral" type="button"><i class="bi bi-emoji-neutral"></i></button>
-<button aria-label="Negative" class="mini-choice mood-mini" data-post-mood="Negative" type="button"><i class="bi bi-emoji-frown"></i></button>
-</div>
-</div>
-<div class="mini-question" id="postStatusQuestion">
-<span class="mini-question-label">Call outcome</span>
+<div class="call-completer-page active" data-call-step="1">
+<span class="call-step-label">STEP 1 OF 2</span>
+<h3>Choose a call status</h3>
 <div class="post-call-tags">
 <button class="mini-tag" data-post-tag="Interested" type="button">Interested</button>
 <button class="mini-tag" data-post-tag="Call Back" type="button">Call Back</button>
@@ -519,10 +518,23 @@
 <button class="mini-tag danger" data-post-tag="Wrong Number" type="button">Wrong Number</button>
 <button class="mini-tag sold" data-post-tag="Conversion" type="button"><i class="bi bi-trophy"></i> Conversion</button>
 </div>
+<div class="modal-actions call-flow-actions single-action">
+<button class="modal-primary" disabled id="postCallNextButton" type="button">Next <i class="bi bi-arrow-right"></i></button>
 </div>
+</div>
+<div class="call-completer-page" data-call-step="2">
+<span class="call-step-label">STEP 2 OF 2</span>
+<h3>Add call notes</h3>
+<textarea id="postCallNotes" placeholder="What happened on the call? Add anything useful for the next follow-up." rows="6"></textarea>
 <div class="modal-actions call-flow-actions">
-<button class="modal-secondary" id="skipPostCallButton" type="button">Skip</button>
-<button class="modal-primary" id="savePostCallButton" type="button">Done</button>
+<button class="modal-secondary" id="postCallPreviousButton" type="button"><i class="bi bi-arrow-left"></i> Back</button>
+<button class="modal-primary" id="savePostCallButton" type="button">Complete Call</button>
+</div>
+</div>
+<div class="call-completer-page call-completer-success" data-call-step="3">
+<div class="animated-checkmark"><i class="bi bi-check-lg"></i></div>
+<h3>Call completed!</h3>
+<p>Saved to Follow Ups</p>
 </div>
 </section>
 </div>
