@@ -8,6 +8,44 @@ let syncInProgress = false;
 let realtimeChannel = null;
 const pendingSyncIds = new Set();
 let siteFilterMode = 'has-site';
+let siteFolderMap = new Map();
+
+function normalizeSiteFolder(value) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function loadSiteFolderManifest() {
+  if (siteFolderMap.size) return;
+  const response = await fetch('../site-folders.json?v=20260913-1', { cache: 'no-store' });
+  if (!response.ok) throw new Error('Could not load the ViewYourSite folder list.');
+  const folders = await response.json();
+  siteFolderMap = new Map((Array.isArray(folders) ? folders : []).map(folder => [normalizeSiteFolder(folder), folder]));
+}
+
+function siteFolderFromPreviewUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const parsed = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    if (host !== 'viewyoursite.today' && !host.endsWith('.viewyoursite.today')) return '';
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    const candidate = parts[0]?.toLowerCase() === 'sites' ? parts[1] : '';
+    return siteFolderMap.get(normalizeSiteFolder(decodeURIComponent(candidate || ''))) || '';
+  } catch (_) {
+    return '';
+  }
+}
+
+function siteFolderForLead(lead) {
+  const linkedFolder = siteFolderFromPreviewUrl(lead?.previewUrl);
+  if (linkedFolder) return linkedFolder;
+  for (const value of [lead?.company, lead?.name]) {
+    const folder = siteFolderMap.get(normalizeSiteFolder(value));
+    if (folder) return folder;
+  }
+  return '';
+}
 
 function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
@@ -224,15 +262,7 @@ function crmStatus(row = {}) {
 }
 
 function hasViewYourSitePreview(lead) {
-  const raw = String(lead?.previewUrl || '').trim();
-  if (!raw) return false;
-  try {
-    const parsed = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`);
-    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-    return host === 'viewyoursite.today' || host.endsWith('.viewyoursite.today');
-  } catch (_) {
-    return false;
-  }
+  return Boolean(siteFolderForLead(lead));
 }
 
 function leadDirectoryCategory(lead) {
@@ -282,6 +312,7 @@ function unsubscribeFromLeadChanges() {
 
 async function hydrateFromSupabase() {
   if (!supabaseSession) return;
+  await loadSiteFolderManifest();
   ensureUuidIds();
 
   const rows = [];
