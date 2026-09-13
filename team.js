@@ -44,7 +44,7 @@
   };
   const ROLE_LABELS = {
     ADMIN: "Administrator",
-    MOD: "Manager",
+    MOD: "Team Member",
     SALES: "Sales",
     PREP: "Site Prep",
     CUSTOM: "Custom",
