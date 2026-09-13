@@ -22,8 +22,7 @@ const ROLE_DEFAULTS: Record<string, string[]> = {
     "site-development", "delivery", "reports",
   ],
   SALES: ["leads", "outreach"],
-  PREP: ["staging"],
-  CUSTOM: [],
+  BUILDING: ["staging"],
 };
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -43,7 +42,7 @@ function normalizeViews(value: unknown) {
 }
 
 function normalizeRole(value: unknown) {
-  const role = String(value || "CUSTOM").trim().toUpperCase();
+  const role = String(value || "SALES").trim().toUpperCase();
   if (!Object.hasOwn(ROLE_DEFAULTS, role)) throw new Error("Choose a valid team role.");
   return role;
 }
@@ -121,7 +120,7 @@ Deno.serve(async (req) => {
         users: users.map((user) => {
           const permission = permissionMap.get(user.id);
           const owner = memberMap.get(user.id) === "owner";
-          const metadataRole = Array.isArray(user.app_metadata?.roles) ? user.app_metadata.roles[0] : "CUSTOM";
+          const metadataRole = Array.isArray(user.app_metadata?.roles) ? user.app_metadata.roles[0] : "BUILDING";
           const role = owner ? "ADMIN" : (permission?.role || normalizeRole(metadataRole));
           const views = role === "ADMIN"
             ? [...ALL_VIEWS]
