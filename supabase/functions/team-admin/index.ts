@@ -22,7 +22,7 @@ const ROLE_DEFAULTS: Record<string, string[]> = {
     "site-development", "delivery", "reports",
   ],
   SALES: ["leads", "outreach"],
-  BUILDING: ["staging"],
+  BUILDER: ["staging"],
 };
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
         users: users.map((user) => {
           const permission = permissionMap.get(user.id);
           const owner = memberMap.get(user.id) === "owner";
-          const metadataRole = Array.isArray(user.app_metadata?.roles) ? user.app_metadata.roles[0] : "BUILDING";
+          const metadataRole = Array.isArray(user.app_metadata?.roles) ? user.app_metadata.roles[0] : "BUILDER";
           const role = owner ? "ADMIN" : (permission?.role || normalizeRole(metadataRole));
           const views = role === "ADMIN"
             ? [...ALL_VIEWS]
