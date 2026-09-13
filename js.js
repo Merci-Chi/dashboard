@@ -52,7 +52,7 @@
       "reports"
     ],
     SALES: ["leads", "outreach"],
-    BUILDING: ["staging"]
+    BUILDER: ["staging"]
   });
   const UNAUTHORIZED = ["unauthorized"];
 
