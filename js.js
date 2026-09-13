@@ -27,7 +27,8 @@
     "payment",
     "site-development",
     "delivery",
-    "reports"
+    "reports",
+    "team"
   ];
 
   const ROLE_VIEWS = Object.freeze({
@@ -41,6 +42,7 @@
   let supabase = null;
   let session = null;
   let allowedViews = [];
+  let serverPermissions = null;
   let leadsLoadedForUser = "";
   let passwordRecoveryMode = false;
 
@@ -89,6 +91,16 @@
   function getPermissions(currentSession = session) {
     const user = currentSession?.user;
     if (!user) return UNAUTHORIZED;
+
+    if (serverPermissions) {
+      if (!serverPermissions.active) return UNAUTHORIZED;
+      if (serverPermissions.role === "ADMIN") return ALL_VIEWS;
+
+      const configuredViews = Array.isArray(serverPermissions.views)
+        ? serverPermissions.views.filter(view => ALL_VIEWS.includes(view) && view !== "team")
+        : [];
+      return configuredViews.length ? configuredViews : UNAUTHORIZED;
+    }
 
     const roles = getRoles(currentSession);
     if (roles.includes("ADMIN")) return ALL_VIEWS;
@@ -240,8 +252,27 @@
 
   $("#leadsFrame")?.addEventListener("load", sendSessionToLeads);
 
-  function routeSession() {
+  async function loadServerPermissions() {
+    serverPermissions = null;
+    if (!session?.user || !supabase) return;
+
+    const { data, error } = await supabase
+      .from("team_permissions")
+      .select("role, views, active")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("Could not load current dashboard permissions:", error);
+      return;
+    }
+
+    serverPermissions = data || null;
+  }
+
+  async function routeSession() {
     if (!session?.user) {
+      serverPermissions = null;
       setScreen("login");
       return;
     }
@@ -253,6 +284,7 @@
       return;
     }
 
+    await loadServerPermissions();
     setScreen("app");
     applyPermissions();
 
@@ -337,7 +369,7 @@
 
       session = data.session;
       window.supabaseSession = session;
-      routeSession();
+      await routeSession();
     } catch (error) {
       console.error("Login error:", error);
       status.textContent = error?.message || "Could not sign in.";
@@ -448,6 +480,7 @@
       leadsLoadedForUser = "";
       passwordRecoveryMode = false;
 
+      await loadServerPermissions();
       setScreen("app");
       applyPermissions();
 
@@ -471,6 +504,7 @@
     session = null;
     window.supabaseSession = null;
     allowedViews = [];
+    serverPermissions = null;
     leadsLoadedForUser = "";
 
     $("#authPassword").value = "";
@@ -529,9 +563,9 @@
 
       session = data?.session || null;
       window.supabaseSession = session;
-      routeSession();
+      await routeSession();
 
-      supabase.auth.onAuthStateChange((event, nextSession) => {
+      supabase.auth.onAuthStateChange(async (event, nextSession) => {
         if (event === "PASSWORD_RECOVERY") {
           passwordRecoveryMode = true;
         }
@@ -540,13 +574,14 @@
 
         if (!session) {
           allowedViews = [];
+          serverPermissions = null;
           leadsLoadedForUser = "";
           setScreen("login");
           return;
         }
 
         // Do not route password-recovery URLs into the normal app.
-        routeSession();
+        await routeSession();
       });
     } catch (error) {
       console.error("Supabase initialization error:", error);
