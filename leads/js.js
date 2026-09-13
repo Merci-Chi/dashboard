@@ -2059,7 +2059,44 @@ $('#deleteLeadFromEditButton')?.addEventListener('click', () => {
   openLeadDeleteConfirmation(id);
 });
 
-$('#backButton').addEventListener('click', () => { renderLists(); clearDetailPageState(); showScreen('leads'); });
+function shakeBackButton() {
+  const button = $('#backButton');
+  if (!button) return;
+  button.animate?.([
+    { translate: '0 0' },
+    { translate: '-8px 0', offset: .2 },
+    { translate: '7px 0', offset: .4 },
+    { translate: '-5px 0', offset: .6 },
+    { translate: '3px 0', offset: .8 },
+    { translate: '0 0' }
+  ], { duration: 480, easing: 'ease' });
+  button.classList.remove('attention-shake');
+  void button.offsetWidth;
+  button.classList.add('attention-shake');
+  setTimeout(() => button.classList.remove('attention-shake'), 520);
+}
+
+$('#backButton').addEventListener('click', event => {
+  if (pendingCallLeadId && pendingCallLeadId === currentLeadId) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    shakeBackButton();
+    openModal('callCompleteConfirmModal');
+    return;
+  }
+  renderLists();
+  clearDetailPageState();
+  showScreen('leads');
+});
+
+$('#confirmCallCompleteButton')?.addEventListener('click', () => {
+  closeModal('callCompleteConfirmModal');
+  openPostCallCheckIn();
+});
+
+$('#cancelCallCompleteButton')?.addEventListener('click', () => {
+  closeModal('callCompleteConfirmModal');
+});
 $('#leadSearch').addEventListener('input', renderLists);
 // Lower mobile Add Lead button was intentionally removed.
 // Header Add Lead remains the single Add Lead control.
@@ -2325,11 +2362,10 @@ $$('[data-save]').forEach(element => {
   element.addEventListener('change', () => autosaveField(element));
 });
 
-let postCallAnswer = '';
-let postCallMood = '';
 let postCallTag = '';
 let pendingCallLeadId = '';
 let callLaunchAt = 0;
+let postCallCompletionTimer = null;
 
 function callPromptForLead(lead) {
   const type = getActiveSiteTag(lead);
@@ -2416,27 +2452,29 @@ $('#callPromptToggle')?.addEventListener('click', () => {
 });
 
 function resetPostCallForm(lead) {
-  postCallAnswer = '';
-  postCallMood = '';
   postCallTag = '';
-  $$('[data-post-answer], [data-post-mood], [data-post-tag]').forEach(button => button.classList.remove('selected'));
-  const missingAnswer = !String(lead?.answerStatus || '').trim();
-  const missingMood = !String(lead?.mood || '').trim();
-  const missingStatus = !String(lead?.tag || '').trim();
+  clearTimeout(postCallCompletionTimer);
+  $$('[data-post-tag]').forEach(button => button.classList.remove('selected'));
+  $('#postCallNotes').value = '';
+  $('#postCallNextButton').disabled = true;
+  setPostCallStep(1);
+}
 
-  $('#postAnswerQuestion').hidden = !missingAnswer;
-  $('#postMoodQuestion').hidden = !missingMood;
-  $('#postStatusQuestion').hidden = !missingStatus;
-
-  return { missingAnswer, missingMood, missingStatus };
+function setPostCallStep(step) {
+  $$('.call-completer-page').forEach(page => {
+    page.classList.toggle('active', Number(page.dataset.callStep) === step);
+  });
+  $$('[data-call-step-dot]').forEach(dot => {
+    const dotStep = Number(dot.dataset.callStepDot);
+    dot.classList.toggle('active', dotStep === step);
+    dot.classList.toggle('complete', dotStep < step);
+  });
 }
 
 function openPostCallCheckIn() {
   const lead = currentLead();
   if (!lead) return false;
-  const missing = resetPostCallForm(lead);
-  const hasMissing = Object.values(missing).some(Boolean);
-  if (!hasMissing) return false;
+  resetPostCallForm(lead);
   openModal('postCallModal');
   return true;
 }
@@ -2449,6 +2487,8 @@ $('#startActualCallButton')?.addEventListener('click', () => {
   lead.lastCalled = new Date().toISOString();
   addLeadHistory(lead, 'called', currentUserName, lead.lastCalled);
   if (lead.status !== 'sold') lead.status = 'followup';
+  pendingCallLeadId = lead.id;
+  callLaunchAt = Date.now();
   saveState(lead.id);
   renderCurrentLead();
   renderLists();
@@ -2457,49 +2497,33 @@ $('#startActualCallButton')?.addEventListener('click', () => {
   window.location.href = tel;
 });
 
-$$('[data-post-answer]').forEach(button => {
-  button.addEventListener('click', () => {
-    postCallAnswer = button.dataset.postAnswer || '';
-    $$('[data-post-answer]').forEach(btn => btn.classList.toggle('selected', btn === button));
-  });
-});
-$$('[data-post-mood]').forEach(button => {
-  button.addEventListener('click', () => {
-    postCallMood = button.dataset.postMood || '';
-    $$('[data-post-mood]').forEach(btn => btn.classList.toggle('selected', btn === button));
-  });
-});
 $$('[data-post-tag]').forEach(button => {
   button.addEventListener('click', () => {
     const value = button.dataset.postTag || '';
     postCallTag = postCallTag === value ? '' : value;
     $$('[data-post-tag]').forEach(btn => btn.classList.toggle('selected', btn.dataset.postTag === postCallTag));
+    $('#postCallNextButton').disabled = !postCallTag;
   });
 });
 
-async function saveVisiblePostCallAnswers() {
+async function savePostCallCompletion() {
   const lead = currentLead();
   if (!lead) return;
 
-  if (!$('#postAnswerQuestion').hidden && postCallAnswer) lead.answerStatus = postCallAnswer;
-  if (!$('#postMoodQuestion').hidden && postCallMood) lead.mood = postCallMood;
+  const outcomeSet = new Set([
+    'interested', 'call back', 'needs more info', 'skeptical',
+    'no answer', 'not interested', 'wrong number', 'conversion', 'sold'
+  ]);
+  lead.tags = Array.isArray(lead.tags) ? lead.tags : [];
+  lead.tags = lead.tags.filter(tag => !outcomeSet.has(String(tag || '').trim().toLowerCase()));
+  lead.tags.push(postCallTag);
+  lead.tag = postCallTag;
+  lead.outcome = postCallTag;
 
-  if (!$('#postStatusQuestion').hidden && postCallTag) {
-    if (postCallTag === 'Conversion') {
-      closeModal('postCallModal');
-      beginSoldFlow();
-      return 'sold-flow';
-    }
-
-    const outcomeSet = new Set([
-      'interested', 'call back', 'needs more info', 'skeptical',
-      'no answer', 'not interested', 'wrong number', 'conversion', 'sold'
-    ]);
-    lead.tags = Array.isArray(lead.tags) ? lead.tags : [];
-    lead.tags = lead.tags.filter(tag => !outcomeSet.has(String(tag || '').trim().toLowerCase()));
-    lead.tags.push(postCallTag);
-    lead.tag = postCallTag;
-    lead.outcome = postCallTag;
+  const note = String($('#postCallNotes').value || '').trim();
+  if (note) {
+    lead.notes = lead.notes ? `${lead.notes}\n${note}` : note;
+    addLeadHistory(lead, 'note', currentUserName, new Date().toISOString(), { note });
   }
 
   saveState(lead.id);
@@ -2515,21 +2539,34 @@ async function saveVisiblePostCallAnswers() {
     showSyncStatus('Sync failed');
   }
 
-  return 'saved';
+  return lead;
 }
 
-$('#skipPostCallButton')?.addEventListener('click', async () => {
-  closeModal('postCallModal');
-  const lead = currentLead();
-  await finishLeadAndExit(lead?.tag || '');
+$('#postCallNextButton')?.addEventListener('click', () => {
+  if (!postCallTag) return;
+  setPostCallStep(2);
 });
 
+$('#postCallPreviousButton')?.addEventListener('click', () => setPostCallStep(1));
+
 $('#savePostCallButton')?.addEventListener('click', async () => {
-  const result = await saveVisiblePostCallAnswers();
-  if (result === 'sold-flow') return;
-  closeModal('postCallModal');
-  const lead = currentLead();
-  await finishLeadAndExit(lead?.tag || '');
+  const button = $('#savePostCallButton');
+  button.disabled = true;
+  const lead = await savePostCallCompletion();
+  if (!lead) return;
+
+  pendingCallLeadId = '';
+  callLaunchAt = 0;
+  setPostCallStep(3);
+  postCallCompletionTimer = setTimeout(async () => {
+    closeModal('postCallModal');
+    button.disabled = false;
+    if (postCallTag === 'Conversion') {
+      beginSoldFlow();
+      return;
+    }
+    await finishLeadAndExit(postCallTag);
+  }, 1450);
 });
 
 $('#historyToggleButton')?.addEventListener('click', () => {
