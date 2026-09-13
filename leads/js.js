@@ -7,6 +7,7 @@ let syncTimer = null;
 let syncInProgress = false;
 let realtimeChannel = null;
 const pendingSyncIds = new Set();
+let siteFilterMode = 'has-site';
 
 function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
@@ -220,6 +221,25 @@ function crmStatus(row = {}) {
   if (row.lastcalled || hasCallHistory) return 'followup';
 
   return row.stage === 'notstarted' ? 'new' : 'followup';
+}
+
+function hasViewYourSitePreview(lead) {
+  const raw = String(lead?.previewUrl || '').trim();
+  if (!raw) return false;
+  try {
+    const parsed = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    return host === 'viewyoursite.today' || host.endsWith('.viewyoursite.today');
+  } catch (_) {
+    return false;
+  }
+}
+
+function leadDirectoryCategory(lead) {
+  const values = [lead?.tag, lead?.outcome, ...(Array.isArray(lead?.tags) ? lead.tags : [])]
+    .map(value => String(value || '').trim().toLowerCase().replace(/[\s_-]+/g, ''));
+  if (values.includes('notinterested')) return 'notinterested';
+  return lead?.lastCalled || latestCallHistory(lead) ? 'followup' : 'uncalled';
 }
 
 function applyRealtimeLeadChange(payload) {
@@ -1450,30 +1470,32 @@ function renderLists() {
   const query = ($('#leadSearch').value || '').trim().toLowerCase();
   const kiara = currentUserIsKiara();
   const canSeeLead = lead => kiara || !leadHasTag(lead, 'Hot Lead');
-  const matches = lead => canSeeLead(lead) && (!query || [lead.name, lead.company, lead.phone, lead.email, lead.tag, getLeadType(lead), hasPossibleSpanishTag(lead) ? 'Spanish?' : '', ...(Array.isArray(lead.sourceTags) ? lead.sourceTags : [])].some(v => String(v || '').toLowerCase().includes(query)));
+  const matchesSiteFilter = lead => siteFilterMode === 'has-site' ? hasViewYourSitePreview(lead) : !hasViewYourSitePreview(lead);
+  const matches = lead => canSeeLead(lead) && matchesSiteFilter(lead) && (!query || [lead.name, lead.company, lead.phone, lead.email, lead.tag, getLeadType(lead), hasPossibleSpanishTag(lead) ? 'Spanish?' : '', ...(Array.isArray(lead.sourceTags) ? lead.sourceTags : [])].some(v => String(v || '').toLowerCase().includes(query)));
   const sortPriority = (a, b, fallback) => {
     const priorityDiff = leadPriority(b) - leadPriority(a);
     return priorityDiff || fallback(a, b);
   };
   const fresh = state.leads
-    .filter(l => l.status === 'new' && matches(l))
+    .filter(l => leadDirectoryCategory(l) === 'uncalled' && matches(l))
     .slice()
     .sort((a, b) => (a.businessRank || 999) - (b.businessRank || 999)
       || String(a.company || a.name || '').localeCompare(String(b.company || b.name || '')));
   const follow = state.leads
-    .filter(l => l.status === 'followup' && matches(l))
+    .filter(l => leadDirectoryCategory(l) === 'followup' && matches(l))
     .sort((a,b) => sortPriority(a, b, (x, y) => new Date(y.lastCalled || 0) - new Date(x.lastCalled || 0)));
   const sold = state.leads
-    .filter(l => l.status === 'sold' && matches(l))
+    .filter(l => leadDirectoryCategory(l) === 'notinterested' && matches(l))
     .sort((a,b) => sortPriority(a, b, (x, y) => new Date(y.soldAt || y.updatedAt || y.lastCalled || 0) - new Date(x.soldAt || x.updatedAt || x.lastCalled || 0)));
 
   $('#newLeadList').innerHTML = fresh.length ? fresh.map(leadCard).join('') : '<div class="empty-state">No CRM prospects found.</div>';
   $('#followLeadList').innerHTML = follow.length ? follow.map(leadCard).join('') : '<div class="empty-state">No follow-ups yet.</div>';
-  $('#soldLeadList').innerHTML = sold.length ? sold.map(leadCard).join('') : '<div class="empty-state sold-empty-state">No sold leads yet.</div>';
+  $('#soldLeadList').innerHTML = sold.length ? sold.map(leadCard).join('') : '<div class="empty-state sold-empty-state">No not-interested leads.</div>';
 
-  const newCount = state.leads.filter(l => l.status !== 'sold' && canSeeLead(l)).length;
-  const followCount = state.leads.filter(l => l.status === 'followup' && canSeeLead(l)).length;
-  const soldCount = state.leads.filter(l => l.status === 'sold' && canSeeLead(l)).length;
+  const visibleLeads = state.leads.filter(l => canSeeLead(l) && matchesSiteFilter(l));
+  const newCount = visibleLeads.filter(l => leadDirectoryCategory(l) === 'uncalled').length;
+  const followCount = visibleLeads.filter(l => leadDirectoryCategory(l) === 'followup').length;
+  const soldCount = visibleLeads.filter(l => leadDirectoryCategory(l) === 'notinterested').length;
   $('#newCount').textContent = newCount;
   $('#followCount').textContent = followCount;
   $('#soldCount').textContent = soldCount;
@@ -2098,6 +2120,11 @@ $('#cancelCallCompleteButton')?.addEventListener('click', () => {
   closeModal('callCompleteConfirmModal');
 });
 $('#leadSearch').addEventListener('input', renderLists);
+$$('[data-site-filter]').forEach(button => button.addEventListener('click', () => {
+  siteFilterMode = button.dataset.siteFilter === 'needs-site' ? 'needs-site' : 'has-site';
+  $$('[data-site-filter]').forEach(item => item.classList.toggle('active', item === button));
+  renderLists();
+}));
 // Lower mobile Add Lead button was intentionally removed.
 // Header Add Lead remains the single Add Lead control.
 document.getElementById('desktopHeaderAddLeadButton')?.addEventListener('click', openNewLeadModal);
@@ -3482,7 +3509,7 @@ document.addEventListener('keydown', event => {
 
   let currentPipelineView = 'leads';
 
-  const normalizePipeline = () => 'leads';
+  const normalizePipeline = value => ['leads', 'followups', 'sold'].includes(value) ? value : 'leads';
 
   const setDesktopActive = (which) => {
     [leadsNav, followNav, soldNav, addNav, accountNav].forEach(btn => {

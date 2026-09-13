@@ -16,7 +16,7 @@
 <link href="../app-icon/favicon-64.png" rel="icon" sizes="64x64" type="image/png"/>
 <link href="https://cdn.jsdelivr.net" rel="preconnect"/>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
-<link href="css.css?v=viewyoursite-sync-20260828-1" rel="stylesheet"/>
+<link href="css.css?v=lead-filters-20260913-1" rel="stylesheet"/>
 <style>[aria-hidden="true"]{display:none!important}</style>
 </head>
 <body>
@@ -42,21 +42,25 @@
 <i class="bi bi-search"></i>
 <input autocomplete="off" id="leadSearch" placeholder="Search leads, company, or number" type="search"/>
 </label>
+<div class="site-filter-toggle" role="group" aria-label="Site preview filter">
+<button class="active" data-site-filter="has-site" type="button"><i class="bi bi-link-45deg"></i>Has Site Preview</button>
+<button data-site-filter="needs-site" type="button"><i class="bi bi-tools"></i>Needs Site Build</button>
+</div>
 <section aria-label="Lead categories" class="summary-row pipeline-switcher">
 <button aria-pressed="true" class="pipeline-summary active" data-pipeline-view="leads" type="button">
-<span>CRM Prospects</span><strong id="newCount">0</strong>
+<span>Leads Not Called</span><strong id="newCount">0</strong>
 </button>
 <button aria-hidden="true" aria-pressed="false" class="pipeline-summary" data-pipeline-view="followups" style="display:none" type="button">
 <span>Follow-ups</span><strong id="followCount">0</strong>
 </button>
 <button aria-hidden="true" aria-pressed="false" class="pipeline-summary" data-pipeline-view="sold" style="display:none" type="button">
-<span>Sold Leads</span><strong id="soldCount">0</strong>
+<span>Not Interested</span><strong id="soldCount">0</strong>
 </button>
 </section>
 <div class="section-heading">
 <div>
 <span class="section-kicker">CRM</span>
-<h2>Prospects</h2>
+<h2>Leads Not Called</h2>
 </div>
 <span class="count-chip" id="newCountChip">0</span>
 </div>
@@ -71,8 +75,8 @@
 <section aria-hidden="true" class="lead-list" id="followLeadList" style="display:none"></section>
 <div aria-hidden="true" class="section-heading sold-heading" style="display:none">
 <div>
-<span class="section-kicker">CLOSED</span>
-<h2>Sold</h2>
+<span class="section-kicker">CLOSED OUT</span>
+<h2>Not Interested</h2>
 </div>
 <span class="count-chip sold-count-chip" id="soldCountChip">0</span>
 </div>
@@ -692,7 +696,7 @@
 </div>
 <div aria-live="polite" class="toast" id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js.js?v=outreach-fields-20260911-3"></script>
+<script src="js.js?v=lead-filters-20260913-1"></script>
 <script>
 (function () {
   const companySource = document.getElementById('leadCompany');
