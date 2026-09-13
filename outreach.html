@@ -102,10 +102,11 @@
     const normalizeStatus=value=>String(value||'').trim().toLowerCase().replace(/[\s_-]+/g,'');
     function leadTags(lead){return [...(Array.isArray(lead?.tags)?lead.tags:[]),...(Array.isArray(lead?.sources)?lead.sources:[])]}
     function isNotInterested(lead){return [...leadTags(lead),lead?.stage,lead?.outcome].some(value=>normalizeStatus(value)==='notinterested')}
-    function leadCategory(lead){if(isNotInterested(lead))return'notinterested';return lead?.lastcalled?'followups':'uncalled'}
+    function hasCalledHistory(lead){return String(typeof lead?.history==='string'?lead.history:JSON.stringify(lead?.history||'')).toLowerCase().includes('called by')}
+    function leadCategory(lead){if(isNotInterested(lead))return'notinterested';return lead?.lastcalled||hasCalledHistory(lead)?'followups':'uncalled'}
     function categoryLabel(category){return category==='notinterested'?'Not Interested':category==='followups'?'Follow Up':'Not Called'}
     function lastCalledLabel(lead){
-      if(!lead?.lastcalled)return clean(lead?.phone,'No phone number');
+      if(!lead?.lastcalled)return hasCalledHistory(lead)?'Called previously':clean(lead?.phone,'No phone number');
       const date=new Date(lead.lastcalled);
       return Number.isNaN(date.getTime())?'Previously called':'Last called '+date.toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
     }
