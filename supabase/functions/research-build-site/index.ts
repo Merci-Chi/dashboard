@@ -22,20 +22,31 @@ function outputText(payload: any) {
 }
 
 async function openAI(apiKey: string, body: Record<string, unknown>) {
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const payload = await response.json();
-  if (!response.ok) {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    if (response.ok) return payload;
+
     const message = payload?.error?.message || `OpenAI request failed (${response.status}).`;
-    throw new Error(message);
+    if (response.status !== 429 || attempt === 5) throw new Error(message);
+
+    const retryHeader = Number(response.headers.get("retry-after"));
+    const secondsFromMessage = Number(message.match(/try again in\s+([\d.]+)s/i)?.[1]);
+    const waitSeconds = Number.isFinite(retryHeader) && retryHeader > 0
+      ? retryHeader
+      : Number.isFinite(secondsFromMessage) && secondsFromMessage > 0
+        ? secondsFromMessage
+        : 12 * (attempt + 1);
+    await new Promise((resolve) => setTimeout(resolve, Math.ceil((waitSeconds + 2) * 1000)));
   }
-  return payload;
+  throw new Error("OpenAI rate limit retries were exhausted.");
 }
 
 const researchInstructions = `You research public businesses for professional website creation. Search the live web thoroughly and cross-reference reliable sources. Never invent facts or combine similarly named businesses. Use only a publicly listed business address, never a private residential address. Put a direct URL beside every factual finding. Clearly mark conflicts as Unverified and missing information as Not found. Keep quoted material minimal. Return a concise Markdown report covering: business overview; public owner/contact; phone, email, address and hours; services/products and public prices; service areas; official website and social profiles; map/directory listings; reviews and reputation; years, licenses and awards; brand colors/tone/slogan; usable public image links with reuse warnings; customer priorities; FAQs; recommended website sections and calls to action; missing/unverified details; and a numbered source list.`;
