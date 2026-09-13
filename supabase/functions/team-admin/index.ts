@@ -16,7 +16,11 @@ const ALL_VIEWS = [
 
 const ROLE_DEFAULTS: Record<string, string[]> = {
   ADMIN: [...ALL_VIEWS],
-  MOD: ["leads", "staging", "outreach", "review"],
+  MOD: [
+    "dashboard", "leads", "staging", "outreach", "live", "ideas", "scripts",
+    "assets", "seo", "prospects", "onboarding", "data-collection", "payment",
+    "site-development", "delivery", "reports",
+  ],
   SALES: ["leads", "outreach"],
   PREP: ["staging"],
   CUSTOM: [],
@@ -90,16 +94,11 @@ Deno.serve(async (req) => {
       const { data: listed, error: listError } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
       if (listError) throw listError;
 
-      const users = listed.users.filter((user) => {
-        const email = String(user.email || "").toLowerCase();
-        const meta = user.app_metadata || {};
-        return email.endsWith("@steadyhandsop.com") || meta.team_member === true || Array.isArray(meta.roles);
-      });
-
-      const ids = users.map((user) => user.id);
+      const allUsers = listed.users;
+      const ids = allUsers.map((user) => user.id);
       const [{ data: permissions, error: permissionError }, { data: members, error: memberError }] = await Promise.all([
         ids.length
-          ? db.from("team_permissions").select("user_id, role, views, active").in("user_id", ids)
+          ? db.from("team_permissions").select("user_id, role, views, active, listed").in("user_id", ids)
           : Promise.resolve({ data: [], error: null }),
         ids.length
           ? db.from("members").select("userid, role").in("userid", ids)
@@ -110,6 +109,13 @@ Deno.serve(async (req) => {
 
       const permissionMap = new Map((permissions || []).map((item) => [item.user_id, item]));
       const memberMap = new Map((members || []).map((item) => [item.userid, item.role]));
+      const users = allUsers.filter((user) => {
+        const email = String(user.email || "").toLowerCase();
+        const meta = user.app_metadata || {};
+        const permission = permissionMap.get(user.id);
+        if (permission?.listed === false) return false;
+        return Boolean(permission) || email.endsWith("@steadyhandsop.com") || meta.team_member === true || Array.isArray(meta.roles);
+      });
 
       return json({
         users: users.map((user) => {
@@ -160,6 +166,7 @@ Deno.serve(async (req) => {
         role,
         views,
         active: true,
+        listed: true,
       });
       if (permissionError) {
         await db.auth.admin.deleteUser(created.user.id);
