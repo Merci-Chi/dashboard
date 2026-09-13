@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.team-admin]
 verify_jwt = true
+
+[functions.research-build-site]
+verify_jwt = true
