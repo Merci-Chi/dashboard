@@ -39,13 +39,13 @@
       "site-development", "delivery", "reports",
     ],
     SALES: ["leads", "outreach"],
-    BUILDING: ["staging"],
+    BUILDER: ["staging"],
   };
   const ROLE_LABELS = {
     ADMIN: "ADMIN",
     MOD: "MOD",
     SALES: "SALES",
-    BUILDING: "BUILDING",
+    BUILDER: "BUILDER",
   };
 
   let client = null;
