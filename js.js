@@ -33,7 +33,24 @@
 
   const ROLE_VIEWS = Object.freeze({
     ADMIN: ALL_VIEWS,
-    MOD: ["leads", "staging", "outreach", "review"],
+    MOD: [
+      "dashboard",
+      "leads",
+      "staging",
+      "outreach",
+      "live",
+      "ideas",
+      "scripts",
+      "assets",
+      "seo",
+      "prospects",
+      "onboarding",
+      "data-collection",
+      "payment",
+      "site-development",
+      "delivery",
+      "reports"
+    ],
     SALES: ["leads", "outreach"],
     PREP: ["staging"]
   });

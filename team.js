@@ -33,7 +33,11 @@
   const ALL_VIEWS = VIEWS.map((item) => item[0]);
   const ROLE_DEFAULTS = {
     ADMIN: ALL_VIEWS,
-    MOD: ["leads", "staging", "outreach", "review"],
+    MOD: [
+      "dashboard", "leads", "staging", "outreach", "live", "ideas", "scripts",
+      "assets", "seo", "prospects", "onboarding", "data-collection", "payment",
+      "site-development", "delivery", "reports",
+    ],
     SALES: ["leads", "outreach"],
     PREP: ["staging"],
     CUSTOM: [],
