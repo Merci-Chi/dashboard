@@ -39,15 +39,13 @@
       "site-development", "delivery", "reports",
     ],
     SALES: ["leads", "outreach"],
-    PREP: ["staging"],
-    CUSTOM: [],
+    BUILDING: ["staging"],
   };
   const ROLE_LABELS = {
-    ADMIN: "Administrator",
-    MOD: "Team Member",
-    SALES: "Sales",
-    PREP: "Site Prep",
-    CUSTOM: "Custom",
+    ADMIN: "ADMIN",
+    MOD: "MOD",
+    SALES: "SALES",
+    BUILDING: "BUILDING",
   };
 
   let client = null;
@@ -140,7 +138,7 @@
         defaults.length === chosen.length &&
         defaults.every((view) => chosen.includes(view))
       );
-      roleSelect.value = matched?.[0] || "CUSTOM";
+      if (matched) roleSelect.value = matched[0];
     });
   }
 
@@ -159,7 +157,7 @@
     $(".member-avatar", fragment).textContent = initials(member.name, member.email);
     $(".member-name", fragment).textContent = member.name;
     $(".member-email", fragment).textContent = member.email;
-    $(".role-pill", fragment).textContent = member.owner ? "Owner" : (ROLE_LABELS[member.role] || member.role);
+    $(".role-pill", fragment).textContent = ROLE_LABELS[member.role] || member.role;
 
     const statusPill = $(".status-pill", fragment);
     statusPill.textContent = member.active ? "Active" : "No access";
