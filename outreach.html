@@ -124,6 +124,7 @@
     function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),1800)}
     function preferred(lead){return clean([lead.preferredcontact,lead.preferreddays,lead.timepreference,lead.specifictime].filter(Boolean).join(' · '))}
     function slug(lead){const raw=clean(lead.company,lead.name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return raw||'site-preview'}
+    function hasOutreachPreview(lead){const raw=String(lead?.previewurl||'').trim();if(!raw)return false;try{const parsed=new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(raw)?raw:'https://'+raw),host=parsed.hostname.toLowerCase().replace(/^www\./,'');return host==='viewyoursite.today'||host.endsWith('.viewyoursite.today')}catch{return false}}
     function firstName(value){const name=clean(value,'____');return name==='Not provided'?'____':name.split(/\s+/)[0]}
     const normalizeStatus=value=>String(value||'').trim().toLowerCase().replace(/[\s_-]+/g,'');
     function leadTags(lead){return [...(Array.isArray(lead?.tags)?lead.tags:[]),...(Array.isArray(lead?.sources)?lead.sources:[])]}
@@ -227,7 +228,7 @@
       if(matches.length)$('#leadSelect').selectedIndex=0;
     }
     async function getClient(){for(let i=0;i<30;i++){const p=window.parent!==window?window.parent.supabaseClient:null;if(p){const refreshed=await p.auth.refreshSession();const current=refreshed.data?.session||(await p.auth.getSession()).data?.session;if(current){const user=current.user||{};loggedInName=user.user_metadata?.full_name||user.user_metadata?.display_name||user.user_metadata?.name||String(user.email||'').split('@')[0]||'____';return p}}await new Promise(r=>setTimeout(r,250))}return window.parent!==window&&window.parent.supabaseClient?window.parent.supabaseClient:window.supabase.createClient(URL,KEY)}
-    async function load(){client=await getClient();const {data,error}=await client.from('crm').select('*').order('company',{ascending:true});if(error)throw error;leads=data||[];if(!restorePendingCall())showDirectory()}
+    async function load(){client=await getClient();const {data,error}=await client.from('crm').select('*').order('company',{ascending:true});if(error)throw error;leads=(data||[]).filter(hasOutreachPreview);if(!restorePendingCall())showDirectory()}
     function setWizardStep(step){document.querySelectorAll('.wizard-page').forEach(page=>page.classList.toggle('active',Number(page.dataset.step)===step));document.querySelectorAll('[data-step-dot]').forEach(dot=>{const n=Number(dot.dataset.stepDot);dot.classList.toggle('active',n===step);dot.classList.toggle('complete',n<step)})}
     function updateCallButton(){const button=$('#callLead');if(!button)return;button.classList.toggle('pending',callPending);button.innerHTML=callPending?'<i class="bi bi-check2-circle"></i>Done calling':'<i class="bi bi-telephone-fill"></i>Call'}
     function shakeBack(){const button=$('#backToList');button.classList.remove('attention-shake');void button.offsetWidth;button.classList.add('attention-shake');button.animate?.([{translate:'0 0'},{translate:'-8px 0'},{translate:'7px 0'},{translate:'-5px 0'},{translate:'3px 0'},{translate:'0 0'}],{duration:480,easing:'ease'})}
