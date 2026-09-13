@@ -213,6 +213,12 @@ async function syncLeadTagsOnly(lead) {
 }
 
 function crmStatus(row = {}) {
+  if (row.stage === 'complete') return 'sold';
+
+  const hasCallHistory = Array.isArray(row.history) &&
+    row.history.some(item => item?.type === 'called');
+  if (row.lastcalled || hasCallHistory) return 'followup';
+
   return row.stage === 'notstarted' ? 'new' : 'followup';
 }
 
@@ -533,7 +539,7 @@ function latestCallHistory(lead) {
 
 function callerSummary(lead, includeTime = false) {
   const call = latestCallHistory(lead);
-  if (!call) return 'Not called yet';
+  if (!call) return lead?.lastCalled ? 'Called by Unknown' : 'Not called yet';
   const actor = String(call.actor || 'User').trim() || 'User';
   if (!includeTime) return `Called by ${actor}`;
   const when = formatHistoryMoment(call.at);
@@ -1450,7 +1456,7 @@ function renderLists() {
     return priorityDiff || fallback(a, b);
   };
   const fresh = state.leads
-    .filter(l => l.status !== 'sold' && matches(l))
+    .filter(l => l.status === 'new' && matches(l))
     .slice()
     .sort((a, b) => (a.businessRank || 999) - (b.businessRank || 999)
       || String(a.company || a.name || '').localeCompare(String(b.company || b.name || '')));
@@ -2442,6 +2448,7 @@ $('#startActualCallButton')?.addEventListener('click', () => {
   const tel = `tel:${String(lead.phone || '').replace(/[^\d+]/g, '')}`;
   lead.lastCalled = new Date().toISOString();
   addLeadHistory(lead, 'called', currentUserName, lead.lastCalled);
+  if (lead.status !== 'sold') lead.status = 'followup';
   saveState(lead.id);
   renderCurrentLead();
   renderLists();
