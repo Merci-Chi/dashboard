@@ -32,6 +32,41 @@
   <script>
     const stagingScript = document.createElement('script');
     stagingScript.src = `staging.js?fresh=${Date.now()}`;
+    stagingScript.onload = () => {
+      let activeLeadId = '';
+      let noteRequest = 0;
+
+      document.addEventListener('click', event => {
+        const leadButton = event.target.closest('[data-lead]');
+        if (leadButton) activeLeadId = leadButton.dataset.lead || '';
+      }, true);
+
+      const addCrmNotesToPrompt = async () => {
+        const prompt = document.getElementById('researchPrompt');
+        if (!prompt || !activeLeadId || prompt.dataset.crmNotesLead === activeLeadId) return;
+
+        const requestId = ++noteRequest;
+        prompt.dataset.crmNotesLead = activeLeadId;
+
+        try {
+          const db = await SitePipeline.init();
+          const { data, error } = await db.from('crm').select('notes').eq('id', activeLeadId).maybeSingle();
+          if (error) throw error;
+          if (requestId !== noteRequest || !prompt.isConnected) return;
+
+          const notes = String(data?.notes ?? '').trim();
+          if (notes) prompt.value += `\n- **Notes:** ${notes}`;
+
+          const description = prompt.closest('[data-workflow-page="1"]')?.querySelector('p');
+          if (description) description.textContent = 'Copy this prompt, complete the research, then paste the report below. Available name, company, phone, email, and CRM notes are included automatically.';
+        } catch (error) {
+          console.warn('Could not add CRM notes to staging prompt:', error);
+          delete prompt.dataset.crmNotesLead;
+        }
+      };
+
+      new MutationObserver(addCrmNotesToPrompt).observe(document.getElementById('uploadWorkspace'), { childList: true, subtree: true });
+    };
     document.body.appendChild(stagingScript);
   </script>
 </body>
