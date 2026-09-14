@@ -10,85 +10,79 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="pipeline.css">
   <style>
-    [hidden]{display:none!important}.staging-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:22px 0 12px}.staging-search{width:min(390px,100%);min-height:44px;padding:0 13px;border:1px solid #17436f;border-radius:11px;background:#041323;color:#fff}.staging-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.staging-lead{width:100%;padding:15px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;color:#eef7ff;cursor:pointer}.staging-lead:hover{border-color:#2e8bff}.staging-lead-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:11px;background:#0a3155;color:#73bdff;font-size:20px}.staging-lead strong,.staging-lead span{display:block}.staging-lead span{color:#8eb4dc;font-size:12px}.needs-site{padding:5px 9px;border:1px solid #d98a32;border-radius:999px;color:#ffc278!important;background:#5c350d;font-size:10px!important;font-weight:900;white-space:nowrap}.detail-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.back{width:44px;height:44px;border:1px solid #17436f;border-radius:11px;background:#071d35;color:#73bdff;font-size:19px}.detail-head h2{margin:0}.detail-head p{margin:2px 0 0;color:#8eb4dc}.upload-card{max-width:920px;margin:auto}.empty{grid-column:1/-1}@media(max-width:720px){.staging-toolbar{align-items:stretch;flex-direction:column}.staging-search{width:100%}.staging-list{grid-template-columns:1fr}.staging-lead{grid-template-columns:40px minmax(0,1fr)}.needs-site{grid-column:2;justify-self:start}}
+    [hidden]{display:none!important}
+    .staging-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:22px 0 12px}
+    .staging-search{width:min(390px,100%);min-height:44px;padding:0 13px;border:1px solid #17436f;border-radius:11px;background:#041323;color:#fff}
+    .staging-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+    .staging-lead{width:100%;padding:15px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;color:#eef7ff;cursor:pointer}
+    .staging-lead:hover{border-color:#2e8bff}
+    .staging-lead-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:11px;background:#0a3155;color:#73bdff;font-size:20px}
+    .staging-lead strong,.staging-lead span{display:block}
+    .staging-lead span{color:#8eb4dc;font-size:12px}
+    .needs-site{padding:5px 9px;border:1px solid #d98a32;border-radius:999px;color:#ffc278!important;background:#5c350d;font-size:10px!important;font-weight:900;white-space:nowrap}
+    .detail-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .back{width:44px;height:44px;border:1px solid #17436f;border-radius:11px;background:#071d35;color:#73bdff;font-size:19px;cursor:pointer}
+    .detail-head h2{margin:0}
+    .detail-head p{margin:2px 0 0;color:#8eb4dc}
+    .upload-card{max-width:920px;margin:auto}
+    .empty{grid-column:1/-1}
+    @media(max-width:720px){
+      .staging-toolbar{align-items:stretch;flex-direction:column}
+      .staging-search{width:100%}
+      .staging-list{grid-template-columns:1fr}
+      .staging-lead{grid-template-columns:40px minmax(0,1fr)}
+      .needs-site{grid-column:2;justify-self:start}
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section id="stagingDirectory">
-      <header class="top"><div><span class="kicker">SITE PIPELINE</span><h1>Staging</h1><p class="subtitle">CRM leads that still need a ViewYourSite preview.</p></div></header>
-      <div class="staging-toolbar"><div><h2>Needs Site Build</h2><span class="status" id="status"></span></div><input class="staging-search" id="stagingSearch" type="search" placeholder="Search leads…"></div>
+      <header class="top">
+        <div>
+          <span class="kicker">SITE PIPELINE</span>
+          <h1>Staging</h1>
+          <p class="subtitle">Choose a business, research it, then create its website.</p>
+        </div>
+      </header>
+
+      <div class="staging-toolbar">
+        <div>
+          <h2>Needs Site Build</h2>
+          <span class="status" id="status"></span>
+        </div>
+        <input class="staging-search" id="stagingSearch" type="search" placeholder="Search businesses…">
+      </div>
+
       <section class="staging-list" id="stagingList"></section>
     </section>
+
     <section id="stagingDetail" hidden>
-      <header class="detail-head"><button class="back" id="backToStaging" type="button" aria-label="Back to staging list"><i class="bi bi-arrow-left"></i></button><div><span class="kicker">BUILD WORKSPACE</span><h2 id="detailCompany"></h2><p id="detailContact"></p></div></header>
+      <header class="detail-head">
+        <button class="back" id="backToStaging" type="button" aria-label="Back to staging list">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <div>
+          <span class="kicker">BUILD WORKSPACE</span>
+          <h2 id="detailCompany"></h2>
+          <p id="detailContact"></p>
+        </div>
+      </header>
+
       <article class="card upload-card" id="uploadWorkspace"></article>
     </section>
   </main>
+
   <input id="filePicker" type="file" multiple hidden>
   <input id="folderPicker" type="file" webkitdirectory directory multiple hidden>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="pipeline.js"></script>
   <script>
+    // Load the staging workflow fresh so GitHub Pages/browser cache does not
+    // leave users on an older version of the two-step research/build flow.
     const stagingScript = document.createElement('script');
-    stagingScript.src = `staging.js?fresh=${Date.now()}`;
-    stagingScript.onload = () => {
-      let activeLeadId = '';
-      let noteRequest = 0;
-
-      document.addEventListener('click', event => {
-        const leadButton = event.target.closest('[data-lead]');
-        if (leadButton) activeLeadId = leadButton.dataset.lead || '';
-      }, true);
-
-      const addCrmNotesToPrompt = async () => {
-        const prompt = document.getElementById('researchPrompt');
-        if (!prompt || !activeLeadId || prompt.dataset.crmNotesLead === activeLeadId) return;
-
-        const requestId = ++noteRequest;
-        prompt.dataset.crmNotesLead = activeLeadId;
-
-        try {
-          const db = await SitePipeline.init();
-          const { data, error } = await db.from('crm').select('notes').eq('id', activeLeadId).maybeSingle();
-          if (error) throw error;
-          if (requestId !== noteRequest || !prompt.isConnected) return;
-
-          const notes = String(data?.notes ?? '').trim();
-          if (notes) prompt.value += `\n- **Notes:** ${notes}`;
-
-          const description = prompt.closest('[data-workflow-page="1"]')?.querySelector('p');
-          if (description) description.textContent = 'Copy this prompt, complete the research, then paste the report below. Available name, company, phone, email, and CRM notes are included automatically.';
-        } catch (error) {
-          console.warn('Could not add CRM notes to staging prompt:', error);
-          delete prompt.dataset.crmNotesLead;
-        }
-      };
-
-      const requireSingleHtmlFile = () => {
-        const prompt = document.getElementById('websitePrompt');
-        if (!prompt || prompt.dataset.singleHtmlRequired === 'true') return;
-
-        const instruction = `**Single-File Output Requirement**\n\n- Create and return exactly ONE complete HTML file named **index.html**.\n- Put all HTML, CSS, and JavaScript inside that single file.\n- Do not create separate CSS files, JavaScript files, pages, folders, JSON files, or other code files.\n- The site must be fully functional when **index.html** is opened by itself.\n- External CDN libraries, fonts, icons, and hosted image URLs may be referenced from inside index.html when useful.\n- Your final answer must contain the complete finished **index.html** code, not just a plan, outline, design direction, or partial snippets.\n\n`;
-
-        const marker = '**Design Requirements**';
-        prompt.value = prompt.value.includes(marker)
-          ? prompt.value.replace(marker, instruction + marker)
-          : instruction + prompt.value;
-        prompt.dataset.singleHtmlRequired = 'true';
-
-        const description = prompt.closest('[data-workflow-page="2"]')?.querySelector('p');
-        if (description) description.textContent = 'Your research report is already included below. Copy this prompt to generate one complete self-contained index.html file.';
-      };
-
-      const syncPromptEnhancements = () => {
-        addCrmNotesToPrompt();
-        requireSingleHtmlFile();
-      };
-
-      new MutationObserver(syncPromptEnhancements).observe(document.getElementById('uploadWorkspace'), { childList: true, subtree: true });
-      syncPromptEnhancements();
-    };
+    stagingScript.src = `staging.js?v=${Date.now()}`;
     document.body.appendChild(stagingScript);
   </script>
 </body>
