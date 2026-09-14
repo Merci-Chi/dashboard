@@ -208,11 +208,13 @@
       const list = document.getElementById(listId);
       if (!list) return;
       const cards = [...list.children].filter(node => node.querySelector?.('[data-open-lead]'));
-      cards.sort((a, b) => {
+      const sorted = cards.slice().sort((a, b) => {
         const aId = a.querySelector('[data-open-lead]')?.dataset.openLead;
         const bId = b.querySelector('[data-open-lead]')?.dataset.openLead;
         return rankForLeadId(aId) - rankForLeadId(bId) || companyForLeadId(aId).localeCompare(companyForLeadId(bId));
-      }).forEach(card => list.appendChild(card));
+      });
+      const changed = sorted.some((card, index) => card !== cards[index]);
+      if (changed) sorted.forEach(card => list.appendChild(card));
     });
   }
 
@@ -229,34 +231,23 @@
   function applyEditVisibility() {
     const editButton = document.getElementById('editLeadButton');
     if (editButton) editButton.hidden = !canEditLeads;
-
     document.querySelectorAll('[data-edit-lead-status]').forEach(button => {
       button.hidden = !canEditLeads;
     });
-
     ensureCategoryDropdown();
   }
 
   async function refreshEditPermission() {
     const roles = sessionRoles();
     canEditLeads = [...roles].some(role => EDIT_ROLES.has(role));
-
     if (!canEditLeads && supabaseSession?.user?.id) {
       try {
-        const { data, error } = await supabaseClient
-          .from('team_permissions')
-          .select('role, active')
-          .eq('user_id', supabaseSession.user.id)
-          .maybeSingle();
-
-        if (!error && data?.active !== false) {
-          canEditLeads = EDIT_ROLES.has(String(data?.role || '').trim().toUpperCase());
-        }
+        const { data, error } = await supabaseClient.from('team_permissions').select('role, active').eq('user_id', supabaseSession.user.id).maybeSingle();
+        if (!error && data?.active !== false) canEditLeads = EDIT_ROLES.has(String(data?.role || '').trim().toUpperCase());
       } catch (error) {
         console.warn('Could not load lead edit permission:', error);
       }
     }
-
     applyEditVisibility();
   }
 
@@ -321,7 +312,7 @@
 
   const observer = new MutationObserver(() => {
     applyEditVisibility();
-    enforceRankedDomOrder();
+    requestAnimationFrame(enforceRankedDomOrder);
   });
   observer.observe(document.body, { childList: true, subtree: true });
 
