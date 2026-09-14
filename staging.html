@@ -65,7 +65,29 @@
         }
       };
 
-      new MutationObserver(addCrmNotesToPrompt).observe(document.getElementById('uploadWorkspace'), { childList: true, subtree: true });
+      const requireSingleHtmlFile = () => {
+        const prompt = document.getElementById('websitePrompt');
+        if (!prompt || prompt.dataset.singleHtmlRequired === 'true') return;
+
+        const instruction = `**Single-File Output Requirement**\n\n- Create and return exactly ONE complete HTML file named **index.html**.\n- Put all HTML, CSS, and JavaScript inside that single file.\n- Do not create separate CSS files, JavaScript files, pages, folders, JSON files, or other code files.\n- The site must be fully functional when **index.html** is opened by itself.\n- External CDN libraries, fonts, icons, and hosted image URLs may be referenced from inside index.html when useful.\n- Your final answer must contain the complete finished **index.html** code, not just a plan, outline, design direction, or partial snippets.\n\n`;
+
+        const marker = '**Design Requirements**';
+        prompt.value = prompt.value.includes(marker)
+          ? prompt.value.replace(marker, instruction + marker)
+          : instruction + prompt.value;
+        prompt.dataset.singleHtmlRequired = 'true';
+
+        const description = prompt.closest('[data-workflow-page="2"]')?.querySelector('p');
+        if (description) description.textContent = 'Your research report is already included below. Copy this prompt to generate one complete self-contained index.html file.';
+      };
+
+      const syncPromptEnhancements = () => {
+        addCrmNotesToPrompt();
+        requireSingleHtmlFile();
+      };
+
+      new MutationObserver(syncPromptEnhancements).observe(document.getElementById('uploadWorkspace'), { childList: true, subtree: true });
+      syncPromptEnhancements();
     };
     document.body.appendChild(stagingScript);
   </script>
