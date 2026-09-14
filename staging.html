@@ -12,6 +12,7 @@
   <style>
     [hidden]{display:none!important}
     .staging-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:22px 0 12px}
+    .staging-toolbar-left{display:flex;flex-direction:column;gap:8px}
     .staging-search{width:min(390px,100%);min-height:44px;padding:0 13px;border:1px solid #17436f;border-radius:11px;background:#041323;color:#fff}
     .staging-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
     .staging-lead{width:100%;padding:15px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;color:#eef7ff;cursor:pointer}
@@ -19,7 +20,17 @@
     .staging-lead-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:11px;background:#0a3155;color:#73bdff;font-size:20px}
     .staging-lead strong,.staging-lead span{display:block}
     .staging-lead span{color:#8eb4dc;font-size:12px}
-    .needs-site{padding:5px 9px;border:1px solid #d98a32;border-radius:999px;color:#ffc278!important;background:#5c350d;font-size:10px!important;font-weight:900;white-space:nowrap}
+    .business-priority{display:block;margin-top:5px;color:#73bdff;font-size:10px;line-height:1.35}
+    .needs-site,.site-ready-tag{padding:5px 9px;border-radius:999px;font-size:10px!important;font-weight:900;white-space:nowrap}
+    .needs-site{border:1px solid #d98a32;color:#ffc278!important;background:#5c350d}
+    .site-ready-tag{border:1px solid #1f9c68;color:#9ff5cd!important;background:#0d5138}
+    .site-ready-tag i{margin-right:3px}
+    .crm-toggle{display:flex;align-items:center;gap:9px;width:max-content;color:#cce6ff;font-size:12px;font-weight:800;cursor:pointer;user-select:none}
+    .crm-toggle input{position:absolute;opacity:0;pointer-events:none}
+    .crm-toggle-track{width:42px;height:24px;padding:3px;border:1px solid #17436f;border-radius:999px;background:#071d35;transition:.2s}
+    .crm-toggle-thumb{display:block;width:16px;height:16px;border-radius:50%;background:#8eb4dc;transition:.2s}
+    .crm-toggle input:checked+.crm-toggle-track{background:#1267ae;border-color:#2e8bff}
+    .crm-toggle input:checked+.crm-toggle-track .crm-toggle-thumb{transform:translateX(18px);background:#fff}
     .detail-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
     .back{width:44px;height:44px;border:1px solid #17436f;border-radius:11px;background:#071d35;color:#73bdff;font-size:19px;cursor:pointer}
     .detail-head h2{margin:0}
@@ -31,7 +42,7 @@
       .staging-search{width:100%}
       .staging-list{grid-template-columns:1fr}
       .staging-lead{grid-template-columns:40px minmax(0,1fr)}
-      .needs-site{grid-column:2;justify-self:start}
+      .needs-site,.site-ready-tag{grid-column:2;justify-self:start}
     }
   </style>
 </head>
@@ -47,9 +58,16 @@
       </header>
 
       <div class="staging-toolbar">
-        <div>
-          <h2>Needs Site Build</h2>
-          <span class="status" id="status"></span>
+        <div class="staging-toolbar-left">
+          <div>
+            <h2>Needs Site Build</h2>
+            <span class="status" id="status"></span>
+          </div>
+          <label class="crm-toggle" for="showAllCrmLeads">
+            <input id="showAllCrmLeads" type="checkbox">
+            <span class="crm-toggle-track" aria-hidden="true"><span class="crm-toggle-thumb"></span></span>
+            <span>Show all CRM leads</span>
+          </label>
         </div>
         <input class="staging-search" id="stagingSearch" type="search" placeholder="Search businesses…">
       </div>
@@ -83,6 +101,11 @@
     // leave users on an older version of the two-step research/build flow.
     const stagingScript = document.createElement('script');
     stagingScript.src = `staging.js?v=${Date.now()}`;
+    stagingScript.onload = () => {
+      const priorityScript = document.createElement('script');
+      priorityScript.src = `staging-priority.js?v=${Date.now()}`;
+      document.body.appendChild(priorityScript);
+    };
     document.body.appendChild(stagingScript);
   </script>
 </body>
