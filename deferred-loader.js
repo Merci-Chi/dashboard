@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  const ACTIVE_FRAME_ATTR = 'data-active-frame';
+
   const installLeadPerformancePatch = frame => {
     if (!frame || frame.id !== 'leadsFrameDeferred') return;
 
@@ -26,26 +28,58 @@
     }
   };
 
-  const loadActiveFrame = () => {
-    const active = document.querySelector('.view.active');
-    const frame = active?.querySelector('iframe[data-src]');
-    if (!frame || frame.getAttribute('src')) return;
+  const unloadFrame = frame => {
+    if (!frame || !frame.getAttribute('src')) return;
 
-    prepareFrame(frame);
-    frame.setAttribute('src', frame.dataset.src);
+    try {
+      frame.removeAttribute('src');
+      frame.removeAttribute(ACTIVE_FRAME_ATTR);
+      frame.src = 'about:blank';
+      frame.removeAttribute('src');
+    } catch (error) {
+      console.error('Could not unload inactive dashboard frame:', error);
+    }
+  };
+
+  const syncFrames = () => {
+    const activeView = document.querySelector('.view.active');
+    const activeFrame = activeView?.querySelector('iframe[data-src]') || null;
+
+    document.querySelectorAll('iframe[data-src]').forEach(frame => {
+      prepareFrame(frame);
+
+      if (frame !== activeFrame) {
+        unloadFrame(frame);
+        return;
+      }
+
+      if (!frame.getAttribute('src')) {
+        frame.setAttribute(ACTIVE_FRAME_ATTR, 'true');
+        frame.setAttribute('src', frame.dataset.src);
+      }
+    });
   };
 
   document.querySelectorAll('iframe[data-src]').forEach(prepareFrame);
 
-  const observer = new MutationObserver(loadActiveFrame);
+  const observer = new MutationObserver(() => {
+    requestAnimationFrame(syncFrames);
+  });
+
   document.querySelectorAll('.view').forEach(view => {
     observer.observe(view, { attributes: true, attributeFilter: ['class'] });
   });
 
   document.addEventListener('click', event => {
-    if (event.target.closest('[data-view]')) setTimeout(loadActiveFrame, 0);
+    if (event.target.closest('[data-view]')) {
+      setTimeout(syncFrames, 0);
+    }
   }, true);
 
-  window.addEventListener('hashchange', () => setTimeout(loadActiveFrame, 0));
-  setTimeout(loadActiveFrame, 0);
+  window.addEventListener('hashchange', () => setTimeout(syncFrames, 0));
+  window.addEventListener('pagehide', () => {
+    document.querySelectorAll('iframe[data-src]').forEach(unloadFrame);
+  });
+
+  setTimeout(syncFrames, 0);
 })();
