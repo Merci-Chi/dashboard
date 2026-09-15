@@ -37,9 +37,6 @@
         <button class="btn secondary" id="copyFullList" type="button"><i class="bi bi-clipboard"></i> Copy Full List</button>
         <button class="btn secondary" id="copyNeedsSite" type="button"><i class="bi bi-clipboard"></i> Copy Needs Site</button>
         <button class="btn secondary" id="copyNeedsAdmin" type="button"><i class="bi bi-clipboard"></i> Copy Needs Admin</button>
-        <button class="btn secondary" id="copyJsonTemplate" type="button"><i class="bi bi-clipboard"></i> Copy JSON Template</button>
-        <button class="btn secondary" id="openJsonImport" type="button"><i class="bi bi-braces"></i> Paste JSON</button>
-        <button class="btn secondary" id="chooseJsonFile" type="button"><i class="bi bi-filetype-json"></i> Import JSON File</button>
       </div>
     </div>
 
@@ -47,16 +44,6 @@
       <button class="filter-tab active" data-filter="all" type="button">All</button>
       <button class="filter-tab" data-filter="website" type="button">Needs Website</button>
       <button class="filter-tab" data-filter="admin" type="button">Needs Admin</button>
-    </div>
-
-    <div class="import-panel" id="jsonImportPanel" hidden>
-      <h3>Paste site links JSON</h3>
-      <p>Fastest format: <code>["example-site","another-site"]</code>. Preview and admin URLs are created automatically.</p>
-      <textarea id="jsonImportText" spellcheck="false" placeholder='["example-site","another-site"]'></textarea>
-      <div class="import-row">
-        <button class="btn secondary" id="cancelJsonImport" type="button">Cancel</button>
-        <button class="btn" id="runJsonImport" type="button">Import Links</button>
-      </div>
     </div>
 
     <input class="staging-search" id="stagingSearch" type="search" placeholder="Search leads…">
@@ -74,9 +61,8 @@
 
 <input id="filePicker" type="file" multiple hidden>
 <input id="folderPicker" type="file" webkitdirectory directory multiple hidden>
-<input id="jsonFilePicker" type="file" accept="application/json,.json" hidden>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="pipeline.js?v=admin-staging-20260914-1"></script>
-<script src="staging.js?v=copy-lists-20260915-1"></script>
+<script src="staging.js?v=all-sites-no-json-20260915-1"></script>
 </body>
 </html>

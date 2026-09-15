@@ -1,5 +1,5 @@
 (() => {
-  const listEl=document.getElementById('stagingList'),status=document.getElementById('status'),filePicker=document.getElementById('filePicker'),folderPicker=document.getElementById('folderPicker'),jsonFilePicker=document.getElementById('jsonFilePicker');
+  const listEl=document.getElementById('stagingList'),status=document.getElementById('status'),filePicker=document.getElementById('filePicker'),folderPicker=document.getElementById('folderPicker');
   let db=null,leads=[],projects=[],active=null,activeProject=null,filterMode='all';
   const MAX=25*1024*1024;
   const fmt=n=>n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(1)} MB`;
@@ -31,11 +31,11 @@
   function badge(label,state){return `<span class="build-pill ${state}">${esc(label)}</span>`}
   function renderList(){
     const q=String(document.getElementById('stagingSearch').value||'').trim().toLowerCase();
-    let matches=leads.filter(inQueue).filter(lead=>!q||[lead.company,lead.name,lead.phone,lead.email,lead.sitekey].some(value=>String(value||'').toLowerCase().includes(q)));
+    let matches=leads.filter(lead=>!q||[lead.company,lead.name,lead.phone,lead.email,lead.sitekey].some(value=>String(value||'').toLowerCase().includes(q)));
     if(filterMode==='website')matches=matches.filter(needsWebsite);
     if(filterMode==='admin')matches=matches.filter(needsAdmin);
     const websiteCount=leads.filter(needsWebsite).length,adminCount=leads.filter(needsAdmin).length;
-    message(`${matches.length} shown · ${websiteCount} need website · ${adminCount} need admin`);
+    message(`${matches.length} shown · ${leads.length} total · ${websiteCount} need website · ${adminCount} need admin`);
     listEl.innerHTML=matches.map(lead=>{
       const ws=websiteReady(lead),as=adminState(lead),p=projectFor(lead);
       const adminLabel=as==='ready'?'Admin Ready':as==='redirect'?'Admin Redirects':as==='error'?'Admin Error':'Needs Admin';
@@ -130,32 +130,8 @@
   function entry(item,path=''){return new Promise(resolve=>{if(item.isFile)item.file(file=>{file.pipelinePath=path+file.name;resolve([file])});else{const reader=item.createReader(),all=[];const next=()=>reader.readEntries(async entries=>{if(!entries.length)return resolve(all);for(const child of entries)all.push(...await entry(child,`${path}${item.name}/`));next()});next()}})}
   async function dropped(dt){const entries=[...(dt.items||[])].map(item=>item.webkitGetAsEntry?.()).filter(Boolean),out=[];if(!entries.length)return[...dt.files];for(const item of entries)out.push(...await entry(item));return out}
 
-  function normalizeImport(raw){
-    let rows=raw;if(raw&&typeof raw==='object'&&!Array.isArray(raw)&&Array.isArray(raw.sites))rows=raw.sites;if(!Array.isArray(rows))rows=[rows];
-    return rows.map(item=>typeof item==='string'?{sitekey:item}:item).filter(item=>item&&typeof item==='object').map(item=>{const key=String(item.sitekey||item.site_key||item.slug||'').trim();return{sitekey:key,company:String(item.company||'').trim(),previewurl:String(item.previewurl||item.preview_url||'').trim()||(key?siteUrl(key):''),adminurl:String(item.adminurl||item.admin_url||'').trim()||(key?adminUrl(key):'')}}).filter(item=>item.sitekey);
-  }
-
-  async function importJsonText(text){
-    let parsed;try{parsed=JSON.parse(text)}catch{throw Error('That JSON is not valid. Copy the template and replace the sitekeys.')}
-    const rows=normalizeImport(parsed);if(!rows.length)throw Error('No sitekeys found in the JSON.');
-    let updated=0,skipped=[];
-    for(const row of rows){
-      const keyLower=row.sitekey.toLowerCase();
-      const lead=leads.find(x=>String(x.sitekey||'').trim().toLowerCase()===keyLower)||leads.find(x=>slug(x.company)===keyLower)||leads.find(x=>row.company&&String(x.company||'').trim().toLowerCase()===row.company.toLowerCase());
-      if(!lead){skipped.push(row.sitekey);continue}
-      let p=projectFor(lead);
-      if(!p){p=await SitePipeline.create({leadId:lead.id,company:lead.company,contactName:lead.name,email:lead.email,phone:lead.phone,sitekey:row.sitekey,previewurl:row.previewurl,adminurl:row.adminurl,adminstatus:'unchecked'});projects.push(p)}
-      else{await SitePipeline.update(p.id,{sitekey:row.sitekey,previewurl:row.previewurl,adminurl:row.adminurl,adminstatus:'unchecked',adminchecked:null,adminfinalurl:null});Object.assign(p,{sitekey:row.sitekey,previewurl:row.previewurl,adminurl:row.adminurl,adminstatus:'unchecked',adminchecked:null,adminfinalurl:null})}
-      const {error}=await db.from('crm').update({sitekey:row.sitekey,previewurl:row.previewurl,updated:new Date().toISOString()}).eq('id',lead.id);if(error)throw error;
-      Object.assign(lead,{sitekey:row.sitekey,previewurl:row.previewurl});updated++;
-    }
-    renderList();
-    document.getElementById('jsonImportPanel').hidden=true;
-    const suffix=skipped.length?` · ${skipped.length} not matched: ${skipped.join(', ')}`:'';message(`${updated} site link${updated===1?'':'s'} imported${suffix}`,Boolean(skipped.length));
-  }
-
   function copyListRows(mode='all'){
-    let rows=leads.filter(inQueue);
+    let rows=[...leads];
     if(mode==='website')rows=rows.filter(needsWebsite);
     if(mode==='admin')rows=rows.filter(needsAdmin);
     const keys=rows.map(lead=>{const p=projectFor(lead);return slug(lead.sitekey||p?.sitekey||lead.company||lead.name)}).filter(Boolean);
@@ -168,16 +144,9 @@
     message(`${text.split('\n').length} ${label.toLowerCase()} item${text.includes('\n')?'s':''} copied.`);
   }
 
-  const template=JSON.stringify(["example-site","another-site"],null,2);
   document.getElementById('copyFullList').onclick=()=>copyQueueList('all','Full List');
   document.getElementById('copyNeedsSite').onclick=()=>copyQueueList('website','Needs Site');
   document.getElementById('copyNeedsAdmin').onclick=()=>copyQueueList('admin','Needs Admin');
-  document.getElementById('copyJsonTemplate').onclick=async()=>{await navigator.clipboard.writeText(template);message('JSON template copied. Replace the example sitekeys and paste it back here.')};
-  document.getElementById('openJsonImport').onclick=()=>{const panel=document.getElementById('jsonImportPanel');panel.hidden=false;const box=document.getElementById('jsonImportText');if(!box.value.trim())box.value=template;box.focus()};
-  document.getElementById('cancelJsonImport').onclick=()=>document.getElementById('jsonImportPanel').hidden=true;
-  document.getElementById('runJsonImport').onclick=async()=>{try{await importJsonText(document.getElementById('jsonImportText').value)}catch(error){message(error.message,true)}};
-  document.getElementById('chooseJsonFile').onclick=()=>jsonFilePicker.click();
-  jsonFilePicker.onchange=async()=>{try{const file=jsonFilePicker.files?.[0];if(file)await importJsonText(await file.text())}catch(error){message(error.message,true)}jsonFilePicker.value=''};
 
   document.getElementById('stagingFilters').onclick=e=>{const b=e.target.closest('[data-filter]');if(!b)return;filterMode=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x===b));renderList()};
   listEl.onclick=e=>{const b=e.target.closest('[data-lead]');if(b)openLead(b.dataset.lead)};
