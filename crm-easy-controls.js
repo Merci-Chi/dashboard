@@ -5,7 +5,7 @@
   const potentialOptions=['Very high','High','Medium-high','Medium','Low','Very low'];
   const colorClasses=['blue','purple','orange','red','yellow'];
   const MASTER_TAGS=['Broken Site','Outdated Site','Site Removed','Spanish?','No Phone','Hot Lead','Interested','Call Back','Needs More Info','Skeptical','No Answer','Not Interested','Wrong Number'];
-  const MASTER_SOURCES=['Google','Google Maps','Yelp','Facebook','Instagram','Nextdoor','Facebook Marketplace','TikTok','Reddit','Threads','LinkedIn','X / Twitter','OfferUp','Other'];
+  const MASTER_SOURCES=['Google','Google Maps','Yelp','Facebook','Instagram','Nextdoor','Facebook Marketplace','TikTok','Reddit','Threads','LinkedIn','X / Twitter','OfferUp'];
   const tagColorGroups={
     blue:new Set(['Broken Site','Outdated Site','Site Removed']),
     purple:new Set(['Spanish?','No Phone']),
@@ -32,11 +32,13 @@
   }
   function availableValues(kind){
     const key=kind==='tag'?'tags':'sources';
-    const master=kind==='tag'?MASTER_TAGS:MASTER_SOURCES;
-    const all=[...master];
+    if(kind==='source'){
+      const currentRecordSources=(typeof sources!=='undefined'&&Array.isArray(sources))?sources:[];
+      return uniqueSorted([...MASTER_SOURCES,...currentRecordSources]);
+    }
+    const all=[...MASTER_TAGS];
     if(typeof leads!=='undefined'&&Array.isArray(leads))for(const lead of leads)if(Array.isArray(lead?.[key]))all.push(...lead[key]);
-    if(kind==='tag'&&typeof tags!=='undefined'&&Array.isArray(tags))all.push(...tags);
-    if(kind==='source'&&typeof sources!=='undefined'&&Array.isArray(sources))all.push(...sources);
+    if(typeof tags!=='undefined'&&Array.isArray(tags))all.push(...tags);
     return uniqueSorted(all);
   }
   function selectedList(kind){return kind==='tag'?tags:sources;}
