@@ -203,7 +203,7 @@
       $('#callLead').disabled=!String(active.phone||'').trim();updateCallButton();$('#company').textContent=clean(active.company,'Unnamed business');$('#category').textContent=clean(active.leadtype||active.category,'Category not provided');
       $('#owner').textContent=clean(active.name,'Name not provided');$('#phone').textContent=clean(active.phone);$('#email').textContent=clean(active.email);$('#timezone').textContent=clean(active.timezone);$('#preferred').textContent=preferred(active);
       const tags=[...(Array.isArray(active.sources)?active.sources:[]),...(Array.isArray(active.tags)?active.tags:[])];
-      if(active.leadtype&&!tags.some(tag=>String(tag).toLowerCase()===String(active.leadtype).toLowerCase()))tags.push(active.leadtype);
+      
       if(active.spanish)tags.push('Spanish?');
       if(active.stage)tags.push(active.stage==='outreach'?'In Outreach':active.stage==='notinterested'?'Not Interested':active.stage);
       if(active.answer)tags.push(active.answer);
