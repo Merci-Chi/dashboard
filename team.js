@@ -73,6 +73,22 @@
     return [...container.querySelectorAll("[data-permission]:checked")].map((input) => input.value);
   }
 
+  function displayViews(views) {
+    const selected = new Set((views || []).map(String));
+    if (selected.has("leads")) selected.add("crm");
+    if (selected.has("live")) selected.add("deleted-leads");
+    return VIEWS.map(([value]) => value).filter((value) => selected.has(value));
+  }
+
+  function backendViews(views) {
+    const selected = new Set((views || []).map(String));
+    // Send both current and legacy aliases so this works before and after
+    // the Team Edge Function is upgraded.
+    if (selected.has("crm")) selected.add("leads");
+    if (selected.has("deleted-leads")) selected.add("live");
+    return [...selected];
+  }
+
   function setPermissionSelection(container, views, disabled = false) {
     const selected = new Set(views || []);
     container.querySelectorAll("[data-permission]").forEach((input) => {
@@ -164,7 +180,7 @@
 
     roleSelect.value = member.role;
     activeInput.checked = member.active;
-    renderPermissions(permissionContainer, member.views, member.role === "ADMIN" || locked);
+    renderPermissions(permissionContainer, displayViews(member.views), member.role === "ADMIN" || locked);
     bindRoleControls(roleSelect, permissionContainer);
 
     summary.addEventListener("click", () => {
@@ -191,7 +207,7 @@
           action: "update",
           userId: member.id,
           role: roleSelect.value,
-          views: selectedViews(permissionContainer),
+          views: backendViews(selectedViews(permissionContainer)),
           active: activeInput.checked,
         });
         setStatus(status, "Access saved.", "success");
@@ -281,7 +297,7 @@
         firstName,
         displayName,
         role: $("#newRole").value,
-        views: selectedViews($("#newPermissions")),
+        views: backendViews(selectedViews($("#newPermissions"))),
       });
       setStatus(status, "Created " + data.email + " with temporary password: " + data.temporaryPassword, "success");
       $("#createForm").reset();
