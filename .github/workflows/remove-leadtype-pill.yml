@@ -1,0 +1,41 @@
+name: Remove leadtype pill from Outreach
+
+on:
+  push:
+    paths:
+      - '.github/workflows/remove-leadtype-pill.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-outreach:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stop rendering leadtype as a tag pill
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('outreach.html')
+          s = p.read_text()
+          old = "if(active.leadtype&&!tags.some(tag=>String(tag).toLowerCase()===String(active.leadtype).toLowerCase()))tags.push(active.leadtype);"
+          if old not in s:
+              raise SystemExit('Leadtype tag render line not found')
+          s = s.replace(old, "")
+          p.write_text(s)
+
+          p = Path('index.html')
+          s = p.read_text()
+          s = re.sub(r'outreach\.html\?v=[^\"\']+', 'outreach.html?v=no-leadtype-pill-20260914-1', s)
+          p.write_text(s)
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name 'Merci-Chi'
+          git config user.email 'actions@users.noreply.github.com'
+          git add outreach.html index.html
+          git commit -m 'Do not render leadtype as Outreach tag pill [skip ci]'
+          git push
