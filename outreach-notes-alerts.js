@@ -4,7 +4,7 @@
   const client=window.supabase?.createClient?.(SUPABASE_URL,SUPABASE_KEY);
   if(!client)return;
 
-  let currentLead=null,currentRows=[],activeTab='notes',formKind='note',authorName='',isAdmin=false;
+  let currentLead=null,currentRows=[],activeTab='notes',formKind='note',authorName='',isAdmin=false,selectedCrmId='';
   let popupTimer=null;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -49,6 +49,11 @@
   }
 
   async function resolveLead(){
+    if(selectedCrmId){
+      const {data,error}=await client.from('crm').select('id,company,name,phone,notes').eq('id',selectedCrmId).maybeSingle();
+      if(error)throw error;
+      if(data)return data;
+    }
     const company=visibleLeadText();if(!company)return null;
     let q=client.from('crm').select('id,company,name,phone,notes').eq('company',company).limit(5);
     const {data,error}=await q;if(error)throw error;if(!data?.length)return null;
@@ -123,7 +128,13 @@
   main.addEventListener('click',e=>{if(e.target===main)main.hidden=true});form.addEventListener('click',e=>{if(e.target===form)form.hidden=true});
 
   document.addEventListener('click',e=>{
-    if(e.target.closest('.back-button'))dismissPopup();
-    if(e.target.closest('.lead-choice')){dismissPopup();setTimeout(showLatestAlertForLead,350);}
+    if(e.target.closest('.back-button')){selectedCrmId='';currentLead=null;dismissPopup();}
+    const choice=e.target.closest('.lead-choice');
+    if(choice){
+      selectedCrmId=String(choice.dataset.leadId||'').trim();
+      currentLead=null;
+      dismissPopup();
+      setTimeout(showLatestAlertForLead,350);
+    }
   });
 })();
