@@ -8,7 +8,7 @@ const cors = {
 };
 
 const ALL_VIEWS = [
-  "dashboard", "leads", "outreach", "staging", "review", "live", "contact",
+  "dashboard", "crm", "deleted-leads", "outreach", "staging", "review",
   "clients", "requests", "ideas", "scripts", "assets", "seo", "domain",
   "hosting", "prospects", "onboarding", "data-collection", "payment",
   "site-development", "delivery", "reports", "team",
@@ -17,11 +17,11 @@ const ALL_VIEWS = [
 const ROLE_DEFAULTS: Record<string, string[]> = {
   ADMIN: [...ALL_VIEWS],
   MOD: [
-    "dashboard", "leads", "staging", "outreach", "live", "ideas", "scripts",
+    "dashboard", "crm", "staging", "outreach", "ideas", "scripts",
     "assets", "seo", "prospects", "onboarding", "data-collection", "payment",
     "site-development", "delivery", "reports",
   ],
-  SALES: ["leads", "outreach"],
+  SALES: ["outreach"],
   BUILDER: ["staging"],
 };
 
@@ -37,7 +37,7 @@ const adminClient = () => createClient(
 );
 
 function normalizeViews(value: unknown) {
-  const requested = Array.isArray(value) ? value.map(String) : [];
+  const requested = Array.isArray(value) ? value.map(String).map((view) => view === "leads" ? "crm" : view) : [];
   return ALL_VIEWS.filter((view) => requested.includes(view));
 }
 

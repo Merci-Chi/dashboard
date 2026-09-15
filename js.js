@@ -8,6 +8,7 @@
   const ALL_VIEWS = [
     "dashboard",
     "crm",
+    "deleted-leads",
     "outreach",
     "staging",
     "review",
@@ -129,7 +130,7 @@
     // previous app_metadata dashboard_views/dashboard_role format.
     const metadata = user.app_metadata || {};
     const configuredViews = Array.isArray(metadata.dashboard_views)
-      ? metadata.dashboard_views.filter(view => ALL_VIEWS.includes(view))
+      ? metadata.dashboard_views.map(view => view === "leads" ? "crm" : view).filter(view => ALL_VIEWS.includes(view))
       : [];
     if (configuredViews.length) return configuredViews;
     if (metadata.dashboard_role === "leads" || metadata.dashboard_role === "crm") {

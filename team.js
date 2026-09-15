@@ -6,7 +6,8 @@
 
   const VIEWS = [
     ["dashboard", "Dashboard"],
-    ["leads", "Leads"],
+    ["crm", "CRM"],
+    ["deleted-leads", "Deleted Leads"],
     ["outreach", "Outreach"],
     ["staging", "Staging"],
     ["review", "Review"],
@@ -32,7 +33,7 @@
   const ROLE_DEFAULTS = {
     ADMIN: ALL_VIEWS,
     MOD: [
-      "dashboard", "leads", "staging", "outreach", "ideas", "scripts",
+      "dashboard", "crm", "staging", "outreach", "ideas", "scripts",
       "assets", "seo", "prospects", "onboarding", "data-collection", "payment",
       "site-development", "delivery", "reports",
     ],
