@@ -135,7 +135,7 @@
     if(mode==='website')rows=rows.filter(needsWebsite);
     if(mode==='admin')rows=rows.filter(needsAdmin);
     const keys=rows.map(lead=>{const p=projectFor(lead);return slug(lead.sitekey||p?.sitekey||lead.company||lead.name)}).filter(Boolean);
-    return [...new Set(keys)].join('\n');
+    return keys.join('\n');
   }
   async function copyQueueList(mode,label){
     const text=copyListRows(mode);
