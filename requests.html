@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Website Requests</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -13,51 +16,56 @@
 <body>
   <main class="page">
     <header class="head"><div><div class="eyebrow">Client support</div><h1>Website Requests</h1><p>Bug reports and website changes submitted from connected client admins.</p></div><button class="refresh" id="refresh"><i class="bi bi-arrow-clockwise"></i> Refresh</button></header>
-    <section class="metrics"><article class="metric"><span>All requests</span><strong id="total">—</strong></article><article class="metric"><span>New</span><strong id="newCount">—</strong></article><article class="metric"><span>In progress</span><strong id="progressCount">—</strong></article><article class="metric"><span>Completed</span><strong id="doneCount">—</strong></article></section>
+    <section class="metrics"><article class="metric"><span>All requests</span><strong id="total">0</strong></article><article class="metric"><span>New</span><strong id="newCount">0</strong></article><article class="metric"><span>In progress</span><strong id="progressCount">0</strong></article><article class="metric"><span>Completed</span><strong id="doneCount">0</strong></article></section>
     <section class="toolbar"><input id="search" type="search" placeholder="Search requests…"><select id="statusFilter"><option value="">All statuses</option><option value="new">New</option><option value="in_progress">In progress</option><option value="completed">Completed</option><option value="closed">Closed</option></select><select id="typeFilter"><option value="">All types</option><option value="bug">Bugs</option><option value="request">Requests</option></select><select id="priorityFilter"><option value="">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></section>
-    <section class="list" id="list"><div class="empty">Loading requests…</div></section>
+    <section class="list" id="list"><div class="empty card">No requests yet.</div></section>
   </main>
   <script>
     const URL='https://wfxuxrvygyzonkflpwoq.supabase.co';
-    const KEY='sb_publishable_e2h4t8AvCobzftt36UrDbw_NJGq8qlJ';
-    const REST=`${URL}/rest/v1/website_requests`;
+    const ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmeHV4cnZ5Z3l6b25rZmxwd29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4ODI2MjEsImV4cCI6MjEwMzQ1ODYyMX0.SpvX06m-ZptRRy5LNU6pOa-ZvMmGJ-8vFUi9cZekS7M';
+    const REST=URL+'/rest/v1/website_requests';
     let rows=[];
 
     const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
     const label=value=>String(value||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
     const date=value=>value?new Date(value).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'Unknown date';
 
-    async function request(url,options={}){
+    async function api(path='',options={}){
       const controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),10000);
+      const timeout=setTimeout(()=>controller.abort(),8000);
       try{
-        const response=await fetch(url,{
+        const response=await fetch(REST+path,{
           ...options,
+          cache:'no-store',
           signal:controller.signal,
-          headers:{apikey:KEY,Authorization:`Bearer ${KEY}`,'Content-Type':'application/json',...(options.headers||{})}
+          headers:{
+            apikey:ANON_KEY,
+            Authorization:'Bearer '+ANON_KEY,
+            'Content-Type':'application/json',
+            ...(options.headers||{})
+          }
         });
-        const text=await response.text();
+        const raw=await response.text();
         let body=null;
-        try{body=text?JSON.parse(text):null}catch{body=text}
-        if(!response.ok)throw new Error(body?.message||body?.error||`Request failed (${response.status})`);
+        try{body=raw?JSON.parse(raw):null}catch{body=raw}
+        if(!response.ok)throw new Error(body?.message||body?.error||('Request failed ('+response.status+')'));
         return body;
-      }finally{clearTimeout(timer)}
+      }finally{
+        clearTimeout(timeout);
+      }
     }
 
     async function load(){
       const list=document.querySelector('#list');
-      list.innerHTML='<div class="empty">Loading requests…</div>';
       try{
-        const data=await request(`${REST}?select=*&order=created_at.desc`);
+        const data=await api('?select=*&order=created_at.desc');
         rows=Array.isArray(data)?data:[];
         render();
       }catch(error){
-        const message=error?.name==='AbortError'?'The requests connection timed out.':(error?.message||'Please refresh and try again.');
-        list.innerHTML=`<div class="error"><strong>Could not load requests.</strong><br>${esc(message)}</div>`;
-        document.querySelector('#total').textContent='—';
-        document.querySelector('#newCount').textContent='—';
-        document.querySelector('#progressCount').textContent='—';
-        document.querySelector('#doneCount').textContent='—';
+        rows=[];
+        render();
+        const message=error?.name==='AbortError'?'The requests connection timed out.':(error?.message||'Could not connect to website_requests.');
+        list.innerHTML='<div class="error card"><strong>Could not load requests.</strong><br>'+esc(message)+'</div>';
       }
     }
 
@@ -66,9 +74,12 @@
       document.querySelector('#newCount').textContent=rows.filter(r=>r.status==='new').length;
       document.querySelector('#progressCount').textContent=rows.filter(r=>r.status==='in_progress').length;
       document.querySelector('#doneCount').textContent=rows.filter(r=>r.status==='completed').length;
-      const query=document.querySelector('#search').value.trim().toLowerCase(),status=document.querySelector('#statusFilter').value,type=document.querySelector('#typeFilter').value,priority=document.querySelector('#priorityFilter').value;
+      const query=document.querySelector('#search').value.trim().toLowerCase();
+      const status=document.querySelector('#statusFilter').value;
+      const type=document.querySelector('#typeFilter').value;
+      const priority=document.querySelector('#priorityFilter').value;
       const shown=rows.filter(r=>(!status||r.status===status)&&(!type||r.request_type===type)&&(!priority||r.priority===priority)&&(!query||[r.subject,r.details,r.source_site,r.submitted_by,r.page].join(' ').toLowerCase().includes(query)));
-      document.querySelector('#list').innerHTML=shown.length?shown.map(card).join(''):'<div class="empty card">No requests match these filters.</div>';
+      document.querySelector('#list').innerHTML=shown.length?shown.map(card).join(''):'<div class="empty card">No requests yet.</div>';
       bind();
     }
 
@@ -78,7 +89,7 @@
       document.querySelectorAll('[data-status]').forEach(input=>input.onchange=async()=>{
         input.disabled=true;
         try{
-          await request(`${REST}?id=eq.${encodeURIComponent(input.dataset.status)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:input.value,updated_at:new Date().toISOString()})});
+          await api('?id=eq.'+encodeURIComponent(input.dataset.status),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:input.value,updated_at:new Date().toISOString()})});
           await load();
         }catch(error){input.disabled=false;alert(error.message)}
       });
@@ -86,7 +97,7 @@
         if(!confirm('Delete this request permanently?'))return;
         button.disabled=true;
         try{
-          await request(`${REST}?id=eq.${encodeURIComponent(button.dataset.delete)}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+          await api('?id=eq.'+encodeURIComponent(button.dataset.delete),{method:'DELETE',headers:{Prefer:'return=minimal'}});
           await load();
         }catch(error){button.disabled=false;alert(error.message)}
       });
@@ -94,6 +105,7 @@
 
     ['search','statusFilter','typeFilter','priorityFilter'].forEach(id=>document.querySelector('#'+id).addEventListener(id==='search'?'input':'change',render));
     document.querySelector('#refresh').onclick=load;
+    window.addEventListener('pageshow',load);
     load();
   </script>
 </body>
