@@ -7,7 +7,7 @@
 
   const ALL_VIEWS = [
     "dashboard",
-    "leads",
+    "crm",
     "outreach",
     "staging",
     "review",
@@ -33,7 +33,7 @@
     ADMIN: ALL_VIEWS,
     MOD: [
       "dashboard",
-      "leads",
+      "crm",
       "staging",
       "outreach",
         "ideas",
@@ -111,7 +111,9 @@
       if (serverPermissions.role === "ADMIN") return ALL_VIEWS;
 
       const configuredViews = Array.isArray(serverPermissions.views)
-        ? serverPermissions.views.filter(view => ALL_VIEWS.includes(view) && view !== "team")
+        ? serverPermissions.views
+            .map(view => view === "leads" ? "crm" : view)
+            .filter(view => ALL_VIEWS.includes(view) && view !== "team")
         : [];
       return configuredViews.length ? configuredViews : UNAUTHORIZED;
     }
@@ -130,7 +132,7 @@
       ? metadata.dashboard_views.filter(view => ALL_VIEWS.includes(view))
       : [];
     if (configuredViews.length) return configuredViews;
-    if (metadata.dashboard_role === "leads") {
+    if (metadata.dashboard_role === "leads" || metadata.dashboard_role === "crm") {
       return ROLE_VIEWS.MOD;
     }
 
