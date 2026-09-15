@@ -336,7 +336,7 @@ function getUserDisplayName(session = supabaseSession) {
 function updateSignedInUserUi() {
   currentUserName = getUserDisplayName();
   const historyCard = document.getElementById('kiaraHistoryCard');
-  if (historyCard) historyCard.hidden = !currentUserIsKiara();
+  if (historyCard) historyCard.hidden = !currentUserIsAdmin();
   const el = document.getElementById('signedInUserName');
   if (el) el.textContent = currentUserName;
   const accountName = document.getElementById('accountUserName');
@@ -344,7 +344,7 @@ function updateSignedInUserUi() {
   updateQuickInfoScriptNames();
 }
 
-function currentUserIsKiara() {
+function currentUserIsAdmin() {
   return supabaseSession?.user?.app_metadata?.dashboard_role === 'admin';
 }
 
@@ -577,7 +577,7 @@ function updateHistoryVisibility() {
 
 function renderLeadHistory() {
   const historyCard = document.getElementById('kiaraHistoryCard');
-  const isKiara = currentUserIsKiara();
+  const isKiara = currentUserIsAdmin();
   if (historyCard) historyCard.hidden = !isKiara;
   if (!isKiara) return;
 
@@ -590,7 +590,7 @@ function renderLeadHistory() {
     list.innerHTML = '<div class="history-empty">No history available.</div>';
     return;
   }
-  const canDeleteHistory = currentUserIsKiara();
+  const canDeleteHistory = currentUserIsAdmin();
   list.innerHTML = items.map(item => {
     const dotClass = item.type === 'called' ? 'called' : item.type === 'note' ? 'note' : item.type === 'sold' ? 'sold' : 'added';
     const iconClass = item.type === 'called' ? 'bi-telephone-fill' : item.type === 'note' ? 'bi-journal-text' : item.type === 'sold' ? 'bi-trophy-fill' : 'bi-person-plus-fill';
@@ -636,7 +636,7 @@ function removeNoteTextFromLead(lead, noteText) {
 }
 
 async function deleteHistoryEntry(historyId) {
-  if (!currentUserIsKiara()) return toast('Only Kiara can delete history entries');
+  if (!currentUserIsAdmin()) return toast('Only admins can delete history entries');
   const lead = currentLead();
   if (!lead || !historyId) return;
   const item = (lead.history || []).find(entry => entry.id === historyId);
@@ -1184,7 +1184,7 @@ function renderQuickInfoTags() {
   };
 
   const groupHtml = LEAD_TAG_GROUPS.map(group => {
-    const visibleTags = currentUserIsKiara()
+    const visibleTags = currentUserIsAdmin()
       ? group.tags
       : group.tags.filter(label => normalizeLeadType(label) !== 'Hot Lead');
     const chips = visibleTags.map(label => renderChip(label, group.key)).join('');
@@ -1227,8 +1227,8 @@ async function toggleQuickInfoTag(label) {
   const cleanLabel = String(label || '').trim();
   const normalized = normalizeLeadType(cleanLabel);
 
-  if (normalized === 'Hot Lead' && !currentUserIsKiara()) {
-    toast('Only Kiara can use the Hot Lead tag');
+  if (normalized === 'Hot Lead' && !currentUserIsAdmin()) {
+    toast('Only admins can use the Hot Lead tag');
     return;
   }
 
@@ -1468,7 +1468,7 @@ function leadCard(lead) {
 
 function renderLists() {
   const query = ($('#leadSearch').value || '').trim().toLowerCase();
-  const kiara = currentUserIsKiara();
+  const kiara = currentUserIsAdmin();
   const canSeeLead = lead => kiara || !leadHasTag(lead, 'Hot Lead');
   const matchesSiteFilter = lead => siteFilterMode === 'has-site' ? hasViewYourSitePreview(lead) : !hasViewYourSitePreview(lead);
   const matches = lead => canSeeLead(lead) && matchesSiteFilter(lead) && (!query || [lead.name, lead.company, lead.phone, lead.email, lead.tag, getLeadType(lead), hasPossibleSpanishTag(lead) ? 'Spanish?' : '', ...(Array.isArray(lead.sourceTags) ? lead.sourceTags : [])].some(v => String(v || '').toLowerCase().includes(query)));
@@ -1520,7 +1520,7 @@ function renderLists() {
 function openLead(id) {
   const requestedLead = state.leads.find(lead => lead.id === id);
   if (!requestedLead) return;
-  if (leadHasTag(requestedLead, 'Hot Lead') && !currentUserIsKiara()) {
+  if (leadHasTag(requestedLead, 'Hot Lead') && !currentUserIsAdmin()) {
     toast('This lead is private');
     renderLists();
     showScreen('leads');
@@ -1544,14 +1544,14 @@ function renderCurrentLead() {
   updatePreferredContactInfoFields(lead);
 
   const editLeadButton = $('#editLeadButton');
-  if (editLeadButton) editLeadButton.hidden = !currentUserIsKiara();
+  if (editLeadButton) editLeadButton.hidden = !currentUserIsAdmin();
 
   const soldLead = lead.status === 'sold';
-  const kiaraCanSeeSoldPhone = soldLead && currentUserIsKiara();
+  const kiaraCanSeeSoldPhone = soldLead && currentUserIsAdmin();
   const phoneIsHidden = soldLead && !kiaraCanSeeSoldPhone;
   $('#leadPhone').textContent = phoneIsHidden ? 'Hidden after sale' : (lead.phone ? formatPhoneNumber(lead.phone) : 'No phone');
   const phoneLabel = document.querySelector('.phone-card-label');
-  if (phoneLabel) phoneLabel.textContent = phoneIsHidden ? 'PHONE NUMBER · KIARA ONLY' : 'PHONE NUMBER';
+  if (phoneLabel) phoneLabel.textContent = phoneIsHidden ? 'PHONE NUMBER · ADMIN ONLY' : 'PHONE NUMBER';
   const calledByEl = $('#leadCalledBy');
   if (calledByEl) {
     calledByEl.hidden = soldLead;
@@ -2015,7 +2015,7 @@ function escapeHTML(text) {
 }
 
 async function deleteLeadPermanently(leadId) {
-  if (!currentUserIsKiara()) return toast('Only Kiara can delete leads');
+  if (!currentUserIsAdmin()) return toast('Only admins can delete leads');
 
   const lead = state.leads.find(item => item.id === leadId);
   if (!lead) return;
@@ -2034,7 +2034,7 @@ async function deleteLeadPermanently(leadId) {
 }
 
 function openLeadDeleteConfirmation(leadId) {
-  if (!currentUserIsKiara()) return toast('Only Kiara can delete leads');
+  if (!currentUserIsAdmin()) return toast('Only admins can delete leads');
 
   const lead = state.leads.find(item => item.id === leadId);
   if (!lead) return;
@@ -2436,7 +2436,7 @@ function callPromptForLead(lead) {
 
 function openPreCallModal() {
   const lead = currentLead();
-  if (!lead || !lead.phone || (lead.status === 'sold' && !currentUserIsKiara())) return;
+  if (!lead || !lead.phone || (lead.status === 'sold' && !currentUserIsAdmin())) return;
 
   $('#preCallLeadName').textContent = `${lead.company || 'No company'}${lead.name ? ` · ${lead.name}` : ''}`;
   $('#preCallNotes').textContent = String(lead.notes || '').trim() || 'No notes yet.';
@@ -2508,7 +2508,7 @@ function openPostCallCheckIn() {
 
 $('#startActualCallButton')?.addEventListener('click', () => {
   const lead = currentLead();
-  if (!lead || !lead.phone || (lead.status === 'sold' && !currentUserIsKiara())) return;
+  if (!lead || !lead.phone || (lead.status === 'sold' && !currentUserIsAdmin())) return;
 
   const tel = `tel:${String(lead.phone || '').replace(/[^\d+]/g, '')}`;
   lead.lastCalled = new Date().toISOString();
@@ -2606,7 +2606,7 @@ let pendingLeadDeleteId = '';
 
 $('#leadHistoryList')?.addEventListener('click', event => {
   const button = event.target.closest('[data-delete-history]');
-  if (!button || !currentUserIsKiara()) return;
+  if (!button || !currentUserIsAdmin()) return;
 
   const lead = currentLead();
   const id = button.dataset.deleteHistory || '';
@@ -2928,7 +2928,7 @@ function finalizeSoldAndDraftEmail() {
   toast(`Sold · Sold by ${seller}`);
 
   syncLeadNow(lead).then(() => {
-    if (!currentUserIsKiara()) {
+    if (!currentUserIsAdmin()) {
       lead.phone = '';
       renderLists();
     }
@@ -3029,7 +3029,7 @@ function openNewLeadModal() {
 
 
 function openLeadDetailsEditor(leadId = currentLeadId) {
-  if (!currentUserIsKiara()) return toast('Only Kiara can edit leads');
+  if (!currentUserIsAdmin()) return toast('Only admins can edit leads');
   const lead = state.leads.find(item => item.id === leadId);
   if (!lead) return toast('Lead not found');
 
@@ -3058,7 +3058,7 @@ function openLeadDetailsEditor(leadId = currentLeadId) {
 }
 
 function openEditLeadModal(leadId = currentLeadId) {
-  if (!currentUserIsKiara()) return toast('Only Kiara can edit lead status');
+  if (!currentUserIsAdmin()) return toast('Only admins can edit lead status');
   const lead = state.leads.find(item => item.id === leadId);
   if (!lead) return toast('Lead not found');
 
@@ -3072,7 +3072,7 @@ function openEditLeadModal(leadId = currentLeadId) {
 }
 
 async function setLeadPipelineStatus(leadId, nextStatus) {
-  if (!currentUserIsKiara()) return toast('Only Kiara can edit lead status');
+  if (!currentUserIsAdmin()) return toast('Only admins can edit lead status');
   if (!['new', 'followup', 'sold'].includes(nextStatus)) return;
   if (!supabaseSession) return toast('You must be signed in to change lead status');
 
