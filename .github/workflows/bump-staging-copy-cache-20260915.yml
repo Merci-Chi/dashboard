@@ -1,0 +1,29 @@
+name: Force fresh Staging copy cache
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bump-staging-copy-cache-20260915.yml'
+permissions:
+  contents: write
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump Staging iframe version
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('staging.html?v=copy-count-20260915-2','staging.html?v=copy-count-20260915-3')
+          p.write_text(s)
+          PY
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Force fresh Staging copy cache [skip ci]"
+          git push
