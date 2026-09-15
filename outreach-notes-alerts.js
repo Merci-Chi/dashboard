@@ -5,6 +5,7 @@
   if(!client)return;
 
   let currentLead=null,currentRows=[],activeTab='notes',formKind='note',authorName='';
+  let popupTimer=null;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   const style=document.createElement('style');
@@ -17,7 +18,7 @@
     .na-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.na-action{min-height:40px;padding:0 13px;border:1px solid #1267ae;border-radius:9px;background:#08213c;color:#fff;font-weight:800}.na-action.primary{margin-left:auto;border-color:#238cff;background:linear-gradient(180deg,#35a4ff,#087cf2)}
     .na-list{display:grid;gap:10px}.na-empty{padding:26px 14px;border:1px dashed #153e65;border-radius:11px;color:#8eb4dc;text-align:center}.na-card{display:grid;grid-template-columns:40px 1fr;gap:11px;padding:13px;border:1px solid #153e65;border-radius:12px;background:#05172a}.na-card.alert{border-color:#ff9d5166;background:#2b180d}.na-icon{width:40px;height:40px;display:grid;place-items:center;border:1px solid #1267ae;border-radius:10px;background:#08213c;color:#73bdff;font-size:18px}.na-card.alert .na-icon{border-color:#ff9d5188;background:#4b250e;color:#ffc096}.na-card h4{margin:0}.na-desc{margin:4px 0 0;color:#c9def4}.na-meta{margin-top:7px;color:#8eb4dc;font-size:11px}
     .na-form{display:grid;gap:12px}.na-form label span{display:block;margin-bottom:5px;color:#8eb4dc;font-size:12px;font-weight:800}.na-form input,.na-form textarea,.na-form select{width:100%;border:1px solid #1267ae;border-radius:9px;background:#03101e;color:#fff}.na-form input,.na-form select{height:44px;padding:0 11px}.na-form textarea{min-height:105px;padding:11px;resize:vertical}.na-required{color:#ff8c9b}.na-template{display:flex;align-items:center;gap:8px;padding:11px;border:1px solid #153e65;border-radius:10px;background:#061a30}.na-template input{width:auto;height:auto}.na-form-actions{display:flex;justify-content:flex-end;gap:8px}.na-error{min-height:18px;color:#ff8c9b;font-size:12px}
-    .na-popup{position:fixed;right:18px;top:18px;z-index:100;width:min(360px,calc(100vw - 36px));padding:14px;border:1px solid #ff9d51;border-radius:13px;background:#2b180f;color:#fff;box-shadow:0 18px 46px #0008}.na-popup-head{display:flex;gap:10px;align-items:start}.na-popup i{color:#ffc096;font-size:20px}.na-popup strong{display:block}.na-popup p{margin:4px 0 0;color:#ffd7bb}.na-popup small{display:block;margin-top:7px;color:#d8a987}.na-popup button{position:absolute;right:8px;top:7px;border:0;background:none;color:#ffd7bb}
+    .na-popup{position:fixed;right:18px;top:18px;z-index:100;width:min(360px,calc(100vw - 36px));padding:14px 42px 14px 14px;border:1px solid #ff9d51;border-radius:13px;background:#2b180f;color:#fff;box-shadow:0 18px 46px #0008}.na-popup-head{display:flex;gap:10px;align-items:start}.na-popup i{color:#ffc096;font-size:20px}.na-popup strong{display:block}.na-popup p{margin:4px 0 0;color:#ffd7bb}.na-popup small{display:block;margin-top:7px;color:#d8a987}.na-popup button{position:absolute;right:8px;top:7px;width:30px;height:30px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:#ffd7bb;font-size:17px}.na-popup button:hover{background:#ffffff12;color:#fff}
   `;
   document.head.appendChild(style);
 
@@ -87,8 +88,16 @@
     if(formKind==='alert')showPopup({...payload,created_at:new Date().toISOString()});
   }
 
+  function dismissPopup(){
+    if(popupTimer){clearTimeout(popupTimer);popupTimer=null;}
+    document.querySelector('.na-popup')?.remove();
+  }
+
   function showPopup(r){
-    document.querySelector('.na-popup')?.remove();const el=document.createElement('div');el.className='na-popup';el.innerHTML=`<button aria-label="Close"><i class="bi bi-x-lg"></i></button><div class="na-popup-head"><i class="bi ${esc(r.icon||'bi-bell-fill')}"></i><div><strong>${esc(r.title)}</strong>${r.description?`<p>${esc(r.description)}</p>`:''}<small>${esc(r.author_name||'Team member')}</small></div></div>`;document.body.appendChild(el);el.querySelector('button').onclick=()=>el.remove();setTimeout(()=>el.remove(),10000);
+    dismissPopup();
+    const el=document.createElement('div');el.className='na-popup';el.innerHTML=`<button type="button" aria-label="Close alert"><i class="bi bi-x-lg"></i></button><div class="na-popup-head"><i class="bi ${esc(r.icon||'bi-bell-fill')}"></i><div><strong>${esc(r.title)}</strong>${r.description?`<p>${esc(r.description)}</p>`:''}<small>${esc(r.author_name||'Team member')}</small></div></div>`;document.body.appendChild(el);
+    el.querySelector('button').onclick=dismissPopup;
+    popupTimer=setTimeout(dismissPopup,5000);
   }
 
   async function showLatestAlertForLead(){
@@ -102,5 +111,8 @@
   main.addEventListener('click',e=>{const t=e.target.closest('[data-na-tab]');if(t){activeTab=t.dataset.naTab;render();}});
   main.addEventListener('click',e=>{if(e.target===main)main.hidden=true});form.addEventListener('click',e=>{if(e.target===form)form.hidden=true});
 
-  document.addEventListener('click',e=>{if(e.target.closest('.lead-choice'))setTimeout(showLatestAlertForLead,350);});
+  document.addEventListener('click',e=>{
+    if(e.target.closest('.back-button'))dismissPopup();
+    if(e.target.closest('.lead-choice')){dismissPopup();setTimeout(showLatestAlertForLead,350);}
+  });
 })();
