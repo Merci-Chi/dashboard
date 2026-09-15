@@ -925,7 +925,6 @@ function hasPossibleSpanishTag(lead) {
 }
 
 const AVAILABLE_LEAD_TAGS = [
-  'No Site',
   'Broken Site',
   'Outdated Site',
   'Site Removed',
@@ -946,7 +945,7 @@ const LEAD_TAG_GROUPS = [
     key: 'site',
     title: 'Website',
     description: 'Optional — choose one, switch it, or leave blank',
-    tags: ['No Site', 'Broken Site', 'Outdated Site', 'Site Removed']
+    tags: ['Broken Site', 'Outdated Site', 'Site Removed']
   },
   {
     key: 'contact',
@@ -1127,13 +1126,16 @@ function ensureNoSiteTag(lead) {
   // Keep leadType only as a compatibility/default call-script value.
   // It must never remove or replace another website tag.
   const explicit = normalizeLeadType(lead.leadType);
-  if (LEAD_TYPE_TAGS.has(explicit)) {
+  if (LEAD_TYPE_TAGS.has(explicit) && explicit !== 'No Site') {
     const hasExplicit = lead.tags.some(tag => normalizeLeadType(tag) === explicit);
     if (!hasExplicit) lead.tags.push(explicit);
-  } else {
-    const firstSiteTag = lead.tags.map(normalizeLeadType).find(tag => LEAD_TYPE_TAGS.has(tag)) || '';
+  } else if (!LEAD_TYPE_TAGS.has(explicit)) {
+    const firstSiteTag = lead.tags.map(normalizeLeadType).find(tag => LEAD_TYPE_TAGS.has(tag) && tag !== 'No Site') || '';
     lead.leadType = firstSiteTag;
   }
+
+  // No Site is a lead type/script classification, never a CRM tag.
+  lead.tags = lead.tags.filter(tag => normalizeLeadType(tag) !== 'No Site');
 
   return lead;
 }
