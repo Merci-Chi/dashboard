@@ -10,8 +10,6 @@
     ["outreach", "Outreach"],
     ["staging", "Staging"],
     ["review", "Review"],
-    ["live", "Live"],
-    ["contact", "Contact"],
     ["clients", "Clients"],
     ["requests", "Requests"],
     ["ideas", "Ideas"],
@@ -34,11 +32,11 @@
   const ROLE_DEFAULTS = {
     ADMIN: ALL_VIEWS,
     MOD: [
-      "dashboard", "leads", "staging", "outreach", "live", "ideas", "scripts",
+      "dashboard", "leads", "staging", "outreach", "ideas", "scripts",
       "assets", "seo", "prospects", "onboarding", "data-collection", "payment",
       "site-development", "delivery", "reports",
     ],
-    SALES: ["leads", "outreach"],
+    SALES: ["outreach"],
     BUILDER: ["staging"],
   };
   const ROLE_LABELS = {

@@ -11,8 +11,6 @@
     "outreach",
     "staging",
     "review",
-    "live",
-    "contact",
     "clients",
     "requests",
     "ideas",
@@ -38,8 +36,7 @@
       "leads",
       "staging",
       "outreach",
-      "live",
-      "ideas",
+        "ideas",
       "scripts",
       "assets",
       "seo",
@@ -51,7 +48,7 @@
       "delivery",
       "reports"
     ],
-    SALES: ["leads", "outreach"],
+    SALES: ["outreach"],
     BUILDER: ["staging"]
   });
   const UNAUTHORIZED = ["unauthorized"];
