@@ -6,6 +6,7 @@
   const colorClasses=['blue','purple','orange','red','yellow'];
   const MASTER_TAGS=['Broken Site','Outdated Site','Site Removed','Spanish?','No Phone','Hot Lead','Interested','Call Back','Needs More Info','Skeptical','No Answer','Not Interested','Wrong Number'];
   const MASTER_SOURCES=['Google','Google Maps','Yelp','Facebook','Instagram','Nextdoor','Facebook Marketplace','TikTok','Reddit','Threads','LinkedIn','X / Twitter','OfferUp'];
+  const HIDDEN_CRM_TAGS=new Set(['riverdale','atlanta','admin available','site built']);
   const tagColorGroups={
     blue:new Set(['Broken Site','Outdated Site','Site Removed']),
     purple:new Set(['Spanish?','No Phone']),
@@ -39,7 +40,7 @@
     const all=[...MASTER_TAGS];
     if(typeof leads!=='undefined'&&Array.isArray(leads))for(const lead of leads)if(Array.isArray(lead?.[key]))all.push(...lead[key]);
     if(typeof tags!=='undefined'&&Array.isArray(tags))all.push(...tags);
-    return uniqueSorted(all);
+    return uniqueSorted(all).filter(v=>!HIDDEN_CRM_TAGS.has(norm(v)));
   }
   function selectedList(kind){return kind==='tag'?tags:sources;}
   function isSelected(kind,value){return selectedList(kind).some(x=>norm(x)===norm(value));}
