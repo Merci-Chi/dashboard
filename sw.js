@@ -1,4 +1,4 @@
-const CACHE_NAME = 'steady-dashboard-v1';
+const CACHE_NAME = 'steady-dashboard-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -29,8 +29,12 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+
+  const requestUrl = new URL(event.request.url);
+  const isHtml = event.request.mode === 'navigate' || requestUrl.pathname.endsWith('.html');
+
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, isHtml ? { cache: 'no-store' } : undefined)
       .then(response => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
