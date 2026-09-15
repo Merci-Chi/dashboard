@@ -3,6 +3,7 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 let supabaseSession = null;
 let currentUserName = 'User';
+let currentUserAdmin = false;
 let syncTimer = null;
 let syncInProgress = false;
 let realtimeChannel = null;
@@ -345,7 +346,27 @@ function updateSignedInUserUi() {
 }
 
 function currentUserIsAdmin() {
-  return supabaseSession?.user?.app_metadata?.dashboard_role === 'admin';
+  return currentUserAdmin;
+}
+
+async function refreshCurrentUserAdmin() {
+  currentUserAdmin = false;
+  const userId = supabaseSession?.user?.id;
+  if (!userId) return false;
+
+  const { data, error } = await supabaseClient
+    .from('team_permissions')
+    .select('role,active')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('Could not load Leads admin permission:', error);
+    return false;
+  }
+
+  currentUserAdmin = data?.active !== false && String(data?.role || '').trim().toUpperCase() === 'ADMIN';
+  return currentUserAdmin;
 }
 
 function addLeadHistory(lead, type, actor = currentUserName, at = new Date().toISOString(), details = {}) {
@@ -711,6 +732,7 @@ async function applyParentSupabaseSession(parentSession) {
     throw new Error('Supabase did not create a Leads session.');
   }
 
+  await refreshCurrentUserAdmin();
   updateSignedInUserUi();
   await hydrateFromSupabase();
   subscribeToLeadChanges();
@@ -752,6 +774,7 @@ async function initializeSupabaseSession() {
       return;
     }
 
+    await refreshCurrentUserAdmin();
     updateSignedInUserUi();
 
     try {
@@ -3431,6 +3454,7 @@ supabaseClient.auth.onAuthStateChange(async (_event, nextSession) => {
     return;
   }
 
+  await refreshCurrentUserAdmin();
   updateSignedInUserUi();
 
   if (previousUserId !== nextUserId || !previousUserId) {
