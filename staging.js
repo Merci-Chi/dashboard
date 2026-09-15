@@ -1,6 +1,7 @@
 (() => {
   const listEl=document.getElementById('stagingList'),status=document.getElementById('status'),filePicker=document.getElementById('filePicker'),folderPicker=document.getElementById('folderPicker');
   let db=null,leads=[],projects=[],active=null,activeProject=null,filterMode='all';
+  let bulkFiles=[];
   const MAX=25*1024*1024;
   const fmt=n=>n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(1)} MB`;
   const size=x=>(x?.files||[]).reduce((n,f)=>n+(f.size||0),0);
@@ -15,7 +16,6 @@
   const adminState=lead=>{const p=projectFor(lead),state=String(p?.adminstatus||'').toLowerCase();if(state==='valid')return'ready';if(['missing','redirect','error'].includes(state))return state;return'missing'};
   const needsWebsite=lead=>!websiteReady(lead);
   const needsAdmin=lead=>websiteReady(lead)&&adminState(lead)!=='ready';
-  const inQueue=lead=>needsWebsite(lead)||needsAdmin(lead);
 
   async function load(){
     try{
@@ -144,9 +144,57 @@
     message(`${text.split('\n').length} ${label.toLowerCase()} item${text.includes('\n')?'s':''} copied.`);
   }
 
+  function bulkRelativePath(file){return String(file.webkitRelativePath||file.pipelinePath||file.name||'').replace(/^\/+/, '').replace(/\\/g,'/');}
+  function renderBulkQueue(){
+    const list=document.getElementById('bulkDropList'),summary=document.getElementById('bulkDropSummary'),push=document.getElementById('pushBulkGithub');
+    if(!list||!summary||!push)return;
+    const folders=new Map();
+    for(const file of bulkFiles){const path=bulkRelativePath(file),root=path.split('/')[0]||'unknown';if(!folders.has(root))folders.set(root,[]);folders.get(root).push(file)}
+    const rows=[...folders.entries()];
+    summary.innerHTML=`<strong>${rows.length} folder${rows.length===1?'':'s'} · ${bulkFiles.length} file${bulkFiles.length===1?'':'s'}</strong><span>Local only until pushed</span>`;
+    list.innerHTML=rows.length?rows.map(([name,files])=>`<span><i class="bi bi-folder2-open"></i>${esc(name)}<small>${files.length} file${files.length===1?'':'s'}</small></span>`).join(''):'<em>No folders queued.</em>';
+    push.disabled=!bulkFiles.length;
+  }
+  function queueBulkFiles(files){
+    const incoming=[...files].filter(file=>file.name!=='.DS_Store'&&!bulkRelativePath(file).includes('/node_modules/')&&!bulkRelativePath(file).includes('/.git/'));
+    const byPath=new Map(bulkFiles.map(file=>[bulkRelativePath(file),file]));
+    for(const file of incoming){const path=bulkRelativePath(file);if(path&&path.includes('/'))byPath.set(path,file)}
+    bulkFiles=[...byPath.values()];
+    renderBulkQueue();
+    message(`${incoming.length} file${incoming.length===1?'':'s'} added to local bulk queue.`);
+  }
+  async function pushBulkGithub(){
+    if(!bulkFiles.length)return;
+    const button=document.getElementById('pushBulkGithub');button.disabled=true;button.textContent='Pushing…';message('Publishing all queued folders to GitHub…');
+    try{
+      const form=new FormData();
+      for(const file of bulkFiles){form.append('files',file,file.name);form.append('paths',bulkRelativePath(file))}
+      const {data:sessionData}=await db.auth.getSession();
+      const token=sessionData?.session?.access_token;
+      if(!token)throw Error('Your dashboard session expired. Sign in again.');
+      const response=await fetch('https://glonbvrcudwuzjundrii.supabase.co/functions/v1/publish-viewyoursite-bulk',{method:'POST',headers:{Authorization:`Bearer ${token}`},body:form});
+      const text=await response.text();let data={};try{data=text?JSON.parse(text):{}}catch{data={error:text}}
+      if(!response.ok||data?.error)throw Error(data?.error||`Bulk publish failed (${response.status})`);
+      const count=data.siteCount||new Set(bulkFiles.map(file=>bulkRelativePath(file).split('/')[0])).size;
+      bulkFiles=[];
+      renderBulkQueue();
+      message(`${count} site${count===1?'':'s'} pushed to GitHub in one commit.`);
+    }catch(error){message(error.message||String(error),true)}finally{button.textContent='Push All to GitHub';button.disabled=!bulkFiles.length}
+  }
+
   document.getElementById('copyFullList').onclick=()=>copyQueueList('all','Full List');
   document.getElementById('copyNeedsSite').onclick=()=>copyQueueList('website','Needs Site');
   document.getElementById('copyNeedsAdmin').onclick=()=>copyQueueList('admin','Needs Admin');
+
+  const bulkPanel=document.getElementById('bulkDropPanel'),bulkPicker=document.getElementById('bulkFolderPicker'),bulkZone=document.getElementById('bulkDropZone');
+  document.getElementById('openBulkDrop').onclick=()=>{bulkPanel.hidden=!bulkPanel.hidden;if(!bulkPanel.hidden){renderBulkQueue();bulkPanel.scrollIntoView({behavior:'smooth',block:'start'})}};
+  document.getElementById('chooseBulkFolders').onclick=()=>bulkPicker.click();
+  bulkPicker.onchange=()=>{queueBulkFiles(bulkPicker.files);bulkPicker.value=''};
+  document.getElementById('clearBulkDrop').onclick=()=>{bulkFiles=[];renderBulkQueue();message('Local bulk queue cleared.')};
+  document.getElementById('pushBulkGithub').onclick=pushBulkGithub;
+  bulkZone.ondragover=e=>{e.preventDefault();bulkZone.classList.add('dragging')};
+  bulkZone.ondragleave=()=>bulkZone.classList.remove('dragging');
+  bulkZone.ondrop=async e=>{e.preventDefault();bulkZone.classList.remove('dragging');try{queueBulkFiles(await dropped(e.dataTransfer))}catch(error){message(error.message,true)}};
 
   document.getElementById('stagingFilters').onclick=e=>{const b=e.target.closest('[data-filter]');if(!b)return;filterMode=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x===b));renderList()};
   listEl.onclick=e=>{const b=e.target.closest('[data-lead]');if(b)openLead(b.dataset.lead)};
