@@ -1,0 +1,39 @@
+name: Finalize Outreach admin preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/finalize-outreach-admin-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump Outreach cache and clean temporary workflows
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          old = 'outreach.html?v=no-leadtype-pill-20260914-1'
+          new = 'outreach.html?v=admin-preview-20260915-1'
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif new not in s:
+              raise SystemExit('Outreach iframe cache string not found')
+          p.write_text(s)
+          PY
+          rm -f .github/workflows/patch-outreach-admin-preview.yml
+          rm -f .github/workflows/finalize-outreach-admin-preview.yml
+      - name: Commit finalization
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Load real admin previews in Outreach [skip ci]"
+          git push
