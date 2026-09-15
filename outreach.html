@@ -130,8 +130,8 @@
     function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),1800)}
     function preferred(lead){return clean([lead.preferredcontact,lead.preferreddays,lead.timepreference,lead.specifictime].filter(Boolean).join(' · '))}
     function slug(lead){const raw=clean(lead.company,lead.name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return raw||'site-preview'}
-    function hasOutreachPreview(lead){return lead?.has_site_preview===true}
-    function outreachPreviewUrl(lead){const folder=String(lead?.sitekey||'').trim();return hasOutreachPreview(lead)&&folder?'https://viewyoursite.today/Sites/'+encodeURIComponent(folder)+'/':''}
+    function hasOutreachPreview(lead){return lead?.has_site_preview===true||Boolean(String(lead?.previewurl||lead?.adminurl||'').trim())}
+    function outreachPreviewUrl(lead){const direct=String(lead?.previewurl||'').trim();if(direct)return direct.endsWith('/')?direct:direct+'/';const folder=String(lead?.sitekey||'').trim();return hasOutreachPreview(lead)&&folder?'https://viewyoursite.today/Sites/'+encodeURIComponent(folder)+'/':''}
     function firstName(value){const name=clean(value,'____');return name==='Not provided'?'____':name.split(/\s+/)[0]}
     const normalizeStatus=value=>String(value||'').trim().toLowerCase().replace(/[\s_-]+/g,'');
     function leadTags(lead){return [...(Array.isArray(lead?.tags)?lead.tags:[]),...(Array.isArray(lead?.sources)?lead.sources:[])]}
@@ -193,10 +193,13 @@
       $('#spanishText').innerHTML='No hay problema. <span class="highlight">Un miembro de mi equipo habla español</span>. Puedo pedirle que le llame?';
     }
     function hasAdminSite(lead){
+      if(String(lead?.adminurl||'').trim())return true;
+      if(String(lead?.adminstatus||'').trim().toLowerCase()==='valid')return true;
       const tier=String(lead?.tier||'').toLowerCase();
       const tags=[...(Array.isArray(lead?.tags)?lead.tags:[]),...(Array.isArray(lead?.sources)?lead.sources:[])].join(' ').toLowerCase();
       return tier.includes('30')||tier.includes('admin')||tier.includes('backend')||tags.includes('admin ready')||tags.includes('admin site');
     }
+    function outreachAdminUrl(lead){const direct=String(lead?.adminurl||'').trim();if(direct)return direct.endsWith('/')?direct:direct+'/';const site=outreachPreviewUrl(lead);return site&&hasAdminSite(lead)?site+'admin/':''}
     function historyRows(lead){let rows=[];if(Array.isArray(lead.history))rows=lead.history;else if(lead.history){try{rows=JSON.parse(lead.history)}catch{rows=String(lead.history).split('\n')}}return rows.slice(-8).reverse()}
     function render(){
       $('#content').hidden=!active;if(!active)return;
@@ -218,8 +221,9 @@
       $('#siteUrl').textContent=siteUrl||'Does not have site preview';
       $('#copySite').hidden=!siteUrl;
       $('#copySite').disabled=!siteUrl;
-      const adminReady=Boolean(siteUrl)&&hasAdminSite(active);
-      $('#adminUrl').textContent=adminReady?siteUrl+'admin':'Admin site currently unavailable';
+      const adminPreview=outreachAdminUrl(active);
+      const adminReady=Boolean(adminPreview);
+      $('#adminUrl').textContent=adminReady?adminPreview:'Admin site currently unavailable';
       $('#copyAdmin').hidden=!adminReady;
       $('#copyAdmin').disabled=!adminReady;
     }
@@ -238,7 +242,19 @@
       if(matches.length)$('#leadSelect').selectedIndex=0;
     }
     async function getClient(){for(let i=0;i<30;i++){const p=window.parent!==window?window.parent.supabaseClient:null;if(p){const refreshed=await p.auth.refreshSession();const current=refreshed.data?.session||(await p.auth.getSession()).data?.session;if(current){const user=current.user||{};loggedInName=user.user_metadata?.full_name||user.user_metadata?.display_name||user.user_metadata?.name||String(user.email||'').split('@')[0]||'____';return p}}await new Promise(r=>setTimeout(r,250))}return window.parent!==window&&window.parent.supabaseClient?window.parent.supabaseClient:window.supabase.createClient(URL,KEY)}
-    async function load(){client=await getClient();const crmResult=await client.from('crm').select('*').order('businessrank',{ascending:true,nullsFirst:false}).order('company',{ascending:true});if(crmResult.error)throw crmResult.error;leads=crmResult.data||[];if(!restorePendingCall())showDirectory()}
+    async function load(){
+      client=await getClient();
+      const [crmResult,siteResult]=await Promise.all([
+        client.from('crm').select('*').order('businessrank',{ascending:true,nullsFirst:false}).order('company',{ascending:true}),
+        client.from('sites').select('id,crmid,sitekey,previewurl,adminurl,adminstatus')
+      ]);
+      if(crmResult.error)throw crmResult.error;
+      if(siteResult.error)console.warn('Could not load site/admin preview links',siteResult.error);
+      const sites=siteResult.data||[],byCrm=new Map(),byKey=new Map();
+      sites.forEach(site=>{if(site.crmid)byCrm.set(String(site.crmid),site);if(site.sitekey)byKey.set(String(site.sitekey).trim().toLowerCase(),site)});
+      leads=(crmResult.data||[]).map(lead=>{const key=String(lead.sitekey||'').trim().toLowerCase(),site=byCrm.get(String(lead.id))||(key?byKey.get(key):null);return site?{...lead,sitekey:site.sitekey||lead.sitekey,previewurl:site.previewurl||lead.previewurl||'',adminurl:site.adminurl||lead.adminurl||'',adminstatus:site.adminstatus||lead.adminstatus||''}:lead});
+      if(!restorePendingCall())showDirectory();
+    }
     function setWizardStep(step){document.querySelectorAll('.wizard-page').forEach(page=>page.classList.toggle('active',Number(page.dataset.step)===step));document.querySelectorAll('[data-step-dot]').forEach(dot=>{const n=Number(dot.dataset.stepDot);dot.classList.toggle('active',n===step);dot.classList.toggle('complete',n<step)})}
     function updateCallButton(){const button=$('#callLead');if(!button)return;button.classList.toggle('pending',callPending);button.innerHTML=callPending?'<i class="bi bi-check2-circle"></i>Done calling':'<i class="bi bi-telephone-fill"></i>Call'}
     function shakeBack(){const button=$('#backToList');button.classList.remove('attention-shake');void button.offsetWidth;button.classList.add('attention-shake');button.animate?.([{translate:'0 0'},{translate:'-8px 0'},{translate:'7px 0'},{translate:'-5px 0'},{translate:'3px 0'},{translate:'0 0'}],{duration:480,easing:'ease'})}
