@@ -938,8 +938,7 @@ const AVAILABLE_LEAD_TAGS = [
   'Skeptical',
   'No Answer',
   'Not Interested',
-  'Wrong Number',
-  'Sold'
+  'Wrong Number'
 ];
 
 const LEAD_TAG_GROUPS = [
@@ -966,12 +965,6 @@ const LEAD_TAG_GROUPS = [
     title: 'Call Outcome',
     description: 'Negative or unreachable outcomes',
     tags: ['No Answer', 'Not Interested', 'Wrong Number']
-  },
-  {
-    key: 'conversion',
-    title: 'Conversion',
-    description: 'Completed sales',
-    tags: ['Sold']
   }
 ];
 
@@ -1020,7 +1013,7 @@ function getSourceTagMeta(label) {
 }
 
 const LEAD_TYPE_TAGS = new Set(['Outdated Site', 'No Site', 'Broken Site', 'Site Removed']);
-const FOLLOWUP_TAGS = new Set(['Hot Lead', 'Interested', 'Needs More Info', 'Skeptical', 'Call Back', 'No Answer', 'Wrong Number', 'Not Interested', 'Sold']);
+const FOLLOWUP_TAGS = new Set(['Hot Lead', 'Interested', 'Needs More Info', 'Skeptical', 'Call Back', 'No Answer', 'Wrong Number', 'Not Interested']);
 
 const POPULAR_SOURCE_TAGS = [
   'Google',
@@ -1639,7 +1632,7 @@ function renderCurrentLead() {
 
   $$('[data-call-outcome]').forEach(button => {
     const value = normalizeCallOutcome(button.dataset.callOutcome || '');
-    const selected = value === 'Conversion'
+    const selected = value === 'Sold'
       ? (lead.status === 'sold' || leadHasTag(lead, 'Sold'))
       : selectedCallOutcomes.has(value);
     button.classList.toggle('selected', selected);
@@ -2238,7 +2231,7 @@ function normalizeCallOutcome(value) {
     'Spoke — Follow Up': 'Call Back',
     'Spoke - Follow Up': 'Call Back',
     'Left Voicemail': 'Call Back',
-    'Sold': 'Conversion'
+    'Conversion': 'Sold'
   };
   return map[raw] || raw;
 }
@@ -2249,7 +2242,7 @@ async function setFollowupCallOutcome(value) {
 
   const normalizedValue = normalizeCallOutcome(value);
 
-  if (normalizedValue === 'Conversion') {
+  if (normalizedValue === 'Sold') {
     if (lead.status === 'sold' || leadHasTag(lead, 'Sold')) return;
     beginSoldFlow();
     return;
@@ -2277,7 +2270,7 @@ async function setFollowupCallOutcome(value) {
 
   $$('[data-call-outcome]').forEach(button => {
     const buttonValue = normalizeCallOutcome(button.dataset.callOutcome || '');
-    const selected = buttonValue === 'Conversion'
+    const selected = buttonValue === 'Sold'
       ? (lead.status === 'sold' || leadHasTag(lead, 'Sold'))
       : lead.tags.some(tag => normalizeCallOutcome(tag) === buttonValue);
     button.classList.toggle('selected', selected);
@@ -2602,8 +2595,21 @@ $('#postCallPreviousButton')?.addEventListener('click', () => setPostCallStep(1)
 $('#savePostCallButton')?.addEventListener('click', async () => {
   const button = $('#savePostCallButton');
   button.disabled = true;
+
+  if (postCallTag === 'Sold') {
+    pendingCallLeadId = '';
+    callLaunchAt = 0;
+    closeModal('postCallModal');
+    button.disabled = false;
+    beginSoldFlow();
+    return;
+  }
+
   const lead = await savePostCallCompletion();
-  if (!lead) return;
+  if (!lead) {
+    button.disabled = false;
+    return;
+  }
 
   pendingCallLeadId = '';
   callLaunchAt = 0;
@@ -2611,10 +2617,6 @@ $('#savePostCallButton')?.addEventListener('click', async () => {
   postCallCompletionTimer = setTimeout(async () => {
     closeModal('postCallModal');
     button.disabled = false;
-    if (postCallTag === 'Conversion') {
-      beginSoldFlow();
-      return;
-    }
     await finishLeadAndExit(postCallTag);
   }, 1450);
 });
@@ -2918,6 +2920,52 @@ function soldEmailBody(lead, products, seller) {
   ].join('\n');
 }
 
+async function sendSoldLeadToReview(lead) {
+  if (!lead?.id || !supabaseSession) throw new Error('Lead session is not ready');
+
+  const { data: existingRows, error: lookupError } = await supabaseClient
+    .from('sites')
+    .select('id,stage')
+    .eq('crmid', lead.id)
+    .neq('stage', 'archived')
+    .order('updated', { ascending: false })
+    .limit(1);
+
+  if (lookupError) throw lookupError;
+
+  const existing = existingRows?.[0];
+  if (existing?.id) {
+    const { error } = await supabaseClient
+      .from('sites')
+      .update({ stage: 'review', updated: new Date().toISOString() })
+      .eq('id', existing.id);
+    if (error) throw error;
+    return existing.id;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('sites')
+    .insert({
+      crmid: lead.id,
+      source: 'dashboard',
+      sourceid: `sold:${lead.id}:${Date.now()}`,
+      name: lead.company || lead.name || 'Unnamed lead',
+      stage: 'review',
+      files: [],
+      checks: {},
+      original: {
+        contact_name: lead.name || '',
+        email: lead.email || '',
+        phone: lead.phone || ''
+      }
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data?.id || '';
+}
+
 function finalizeSoldAndDraftEmail() {
   const lead = currentLead();
   if (!lead) return;
@@ -2931,9 +2979,10 @@ function finalizeSoldAndDraftEmail() {
   const seller = activeUserName();
   const phoneForDraft = lead.phone || '';
 
-  lead.tag = 'Sold';
-  lead.tags = Array.isArray(lead.tags) ? lead.tags : [];
-  if (!lead.tags.some(tag => String(tag || '').trim().toLowerCase() === 'sold')) lead.tags.push('Sold');
+  lead.tags = (Array.isArray(lead.tags) ? lead.tags : [])
+    .filter(tag => String(tag || '').trim().toLowerCase() !== 'sold');
+  if (String(lead.tag || '').trim().toLowerCase() === 'sold') lead.tag = '';
+  lead.outcome = 'Sold';
   lead.status = 'sold';
   lead.soldBy = seller;
   lead.soldAt = new Date().toISOString();
@@ -2950,17 +2999,25 @@ function finalizeSoldAndDraftEmail() {
   showScreen('leads');
   toast(`Sold · Sold by ${seller}`);
 
-  syncLeadNow(lead).then(() => {
-    if (!currentUserIsAdmin()) {
-      lead.phone = '';
-      renderLists();
-    }
-    showSyncStatus('Sold lead synced');
-  }).catch(error => {
-    console.error('Could not sync sold lead:', error);
-    queueLeadSync(lead.id);
-    showSyncStatus('Sync failed');
-  });
+  syncLeadNow(lead)
+    .then(() => sendSoldLeadToReview(lead))
+    .then(() => {
+      if (!currentUserIsAdmin()) {
+        lead.phone = '';
+        renderLists();
+      }
+      showSyncStatus('Sold · Sent to Review');
+      toast('Sold · Sent to Review');
+      if (window.parent && window.parent !== window) {
+        window.parent.location.hash = 'review';
+      }
+    })
+    .catch(error => {
+      console.error('Could not finish sold lead:', error);
+      queueLeadSync(lead.id);
+      showSyncStatus('Sold saved, Review move failed');
+      toast('Sold saved, but could not send to Review');
+    });
 
   window.location.href = mailto;
 }
