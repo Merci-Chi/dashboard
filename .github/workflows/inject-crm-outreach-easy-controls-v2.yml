@@ -1,0 +1,43 @@
+name: Apply CRM Outreach easy controls
+on:
+  push:
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch CRM Outreach and cache versions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          crm=Path('crm.html')
+          text=crm.read_text()
+          text=re.sub(r'<script src="crm-easy-controls\.js[^\"]*"></script>\s*','',text)
+          text=text.replace('</body>','<script src="crm-easy-controls.js?v=20260915-2"></script>\n</body>')
+          crm.write_text(text)
+
+          outreach=Path('outreach.html')
+          text=outreach.read_text()
+          text=re.sub(r'<script src="outreach-followup\.js[^\"]*"></script>\s*','',text)
+          text=text.replace('</body>','<script src="outreach-followup.js?v=20260915-2"></script>\n</body>')
+          outreach.write_text(text)
+
+          idx=Path('index.html')
+          text=idx.read_text()
+          text=re.sub(r'crm\.html\?v=[^"\']+', 'crm.html?v=easy-controls-20260915-3', text)
+          text=re.sub(r'outreach\.html\?v=[^"\']+', 'outreach.html?v=followup-calendar-20260915-3', text)
+          idx.write_text(text)
+          PY
+      - name: Commit changes if needed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add crm.html outreach.html index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Apply easier CRM controls and outreach scheduling"
+            git push
+          fi
