@@ -24,18 +24,20 @@ jobs:
           new="const MASTER_SOURCES=['Google','Google Maps','Yelp','Facebook','Instagram','Nextdoor','Facebook Marketplace','TikTok','Reddit','Threads','LinkedIn','X / Twitter','OfferUp'];"
           s=s.replace(old,new)
           pattern=r"  function availableValues\(kind\)\{.*?\n  \}\n  function selectedList"
-          replacement="""  function availableValues(kind){
-    const key=kind==='tag'?'tags':'sources';
-    if(kind==='source'){
-      const currentRecordSources=(typeof sources!=='undefined'&&Array.isArray(sources))?sources:[];
-      return uniqueSorted([...MASTER_SOURCES,...currentRecordSources]);
-    }
-    const all=[...MASTER_TAGS];
-    if(typeof leads!=='undefined'&&Array.isArray(leads))for(const lead of leads)if(Array.isArray(lead?.[key]))all.push(...lead[key]);
-    if(typeof tags!=='undefined'&&Array.isArray(tags))all.push(...tags);
-    return uniqueSorted(all);
-  }
-  function selectedList"""
+          replacement="\n".join([
+              "  function availableValues(kind){",
+              "    const key=kind==='tag'?'tags':'sources';",
+              "    if(kind==='source'){",
+              "      const currentRecordSources=(typeof sources!=='undefined'&&Array.isArray(sources))?sources:[];",
+              "      return uniqueSorted([...MASTER_SOURCES,...currentRecordSources]);",
+              "    }",
+              "    const all=[...MASTER_TAGS];",
+              "    if(typeof leads!=='undefined'&&Array.isArray(leads))for(const lead of leads)if(Array.isArray(lead?.[key]))all.push(...lead[key]);",
+              "    if(typeof tags!=='undefined'&&Array.isArray(tags))all.push(...tags);",
+              "    return uniqueSorted(all);",
+              "  }",
+              "  function selectedList"
+          ])
           s,count=re.subn(pattern,replacement,s,flags=re.S)
           if count != 1:
               raise SystemExit(f'availableValues replacement count was {count}')
