@@ -1,0 +1,53 @@
+name: Fix Leads admin source
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-leads-admin-source.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-leads-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make Leads use team_permissions admin role
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('leads/js.js')
+          s = p.read_text()
+
+          s = s.replace("let currentUserName = 'User';", "let currentUserName = 'User';\nlet currentUserAdmin = false;")
+
+          old = """function currentUserIsAdmin() {\n  return supabaseSession?.user?.app_metadata?.dashboard_role === 'admin';\n}"""
+          new = """function currentUserIsAdmin() {\n  return currentUserAdmin;\n}\n\nasync function refreshCurrentUserAdmin() {\n  currentUserAdmin = false;\n  const userId = supabaseSession?.user?.id;\n  if (!userId) return false;\n\n  const { data, error } = await supabaseClient\n    .from('team_permissions')\n    .select('role,active')\n    .eq('user_id', userId)\n    .maybeSingle();\n\n  if (error) {\n    console.warn('Could not load Leads admin permission:', error);\n    return false;\n  }\n\n  currentUserAdmin = data?.active !== false && String(data?.role || '').trim().toUpperCase() === 'ADMIN';\n  return currentUserAdmin;\n}"""
+          if old not in s:
+              raise SystemExit('Expected currentUserIsAdmin block not found')
+          s = s.replace(old, new)
+
+          s = s.replace("  updateSignedInUserUi();\n  await hydrateFromSupabase();", "  await refreshCurrentUserAdmin();\n  updateSignedInUserUi();\n  await hydrateFromSupabase();")
+          s = s.replace("    updateSignedInUserUi();\n\n    try {", "    await refreshCurrentUserAdmin();\n    updateSignedInUserUi();\n\n    try {")
+          s = s.replace("  updateSignedInUserUi();\n\n  if (previousUserId !== nextUserId || !previousUserId) {", "  await refreshCurrentUserAdmin();\n  updateSignedInUserUi();\n\n  if (previousUserId !== nextUserId || !previousUserId) {")
+
+          p.write_text(s)
+
+          i = Path('leads/index.html')
+          html = i.read_text()
+          html = html.replace('js.js?v=admin-role-20260914-1', 'js.js?v=team-admin-role-20260914-1')
+          i.write_text(html)
+          PY
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed.'
+            exit 0
+          fi
+          git config user.name 'Merci-Chi'
+          git config user.email 'actions@users.noreply.github.com'
+          git add leads/js.js leads/index.html
+          git commit -m 'Use team_permissions for Leads admin access [skip ci]'
+          git push
