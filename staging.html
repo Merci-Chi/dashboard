@@ -34,6 +34,9 @@
     <div class="staging-toolbar">
       <div><h2>Build Queue</h2><span class="status" id="status"></span></div>
       <div class="import-actions">
+        <button class="btn secondary" id="copyFullList" type="button"><i class="bi bi-clipboard"></i> Copy Full List</button>
+        <button class="btn secondary" id="copyNeedsSite" type="button"><i class="bi bi-clipboard"></i> Copy Needs Site</button>
+        <button class="btn secondary" id="copyNeedsAdmin" type="button"><i class="bi bi-clipboard"></i> Copy Needs Admin</button>
         <button class="btn secondary" id="copyJsonTemplate" type="button"><i class="bi bi-clipboard"></i> Copy JSON Template</button>
         <button class="btn secondary" id="openJsonImport" type="button"><i class="bi bi-braces"></i> Paste JSON</button>
         <button class="btn secondary" id="chooseJsonFile" type="button"><i class="bi bi-filetype-json"></i> Import JSON File</button>
@@ -74,6 +77,6 @@
 <input id="jsonFilePicker" type="file" accept="application/json,.json" hidden>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="pipeline.js?v=admin-staging-20260914-1"></script>
-<script src="staging.js?v=admin-staging-20260914-1"></script>
+<script src="staging.js?v=copy-lists-20260915-1"></script>
 </body>
 </html>

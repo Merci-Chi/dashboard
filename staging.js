@@ -154,7 +154,24 @@
     const suffix=skipped.length?` · ${skipped.length} not matched: ${skipped.join(', ')}`:'';message(`${updated} site link${updated===1?'':'s'} imported${suffix}`,Boolean(skipped.length));
   }
 
+  function copyListRows(mode='all'){
+    let rows=leads.filter(inQueue);
+    if(mode==='website')rows=rows.filter(needsWebsite);
+    if(mode==='admin')rows=rows.filter(needsAdmin);
+    const keys=rows.map(lead=>{const p=projectFor(lead);return slug(lead.sitekey||p?.sitekey||lead.company||lead.name)}).filter(Boolean);
+    return [...new Set(keys)].join('\n');
+  }
+  async function copyQueueList(mode,label){
+    const text=copyListRows(mode);
+    if(!text){message(`No ${label.toLowerCase()} items to copy.`,true);return}
+    await navigator.clipboard.writeText(text);
+    message(`${text.split('\n').length} ${label.toLowerCase()} item${text.includes('\n')?'s':''} copied.`);
+  }
+
   const template=JSON.stringify(["example-site","another-site"],null,2);
+  document.getElementById('copyFullList').onclick=()=>copyQueueList('all','Full List');
+  document.getElementById('copyNeedsSite').onclick=()=>copyQueueList('website','Needs Site');
+  document.getElementById('copyNeedsAdmin').onclick=()=>copyQueueList('admin','Needs Admin');
   document.getElementById('copyJsonTemplate').onclick=async()=>{await navigator.clipboard.writeText(template);message('JSON template copied. Replace the example sitekeys and paste it back here.')};
   document.getElementById('openJsonImport').onclick=()=>{const panel=document.getElementById('jsonImportPanel');panel.hidden=false;const box=document.getElementById('jsonImportText');if(!box.value.trim())box.value=template;box.focus()};
   document.getElementById('cancelJsonImport').onclick=()=>document.getElementById('jsonImportPanel').hidden=true;
