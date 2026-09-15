@@ -1,0 +1,30 @@
+name: Force CRM tag source cache refresh
+on:
+  push:
+    paths:
+      - '.github/workflows/bump-crm-tag-source-cache.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump CRM cache versions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('crm.html')
+          s=p.read_text()
+          s=s.replace('crm-easy-controls.js?v=20260915-2','crm-easy-controls.js?v=20260915-3')
+          p.write_text(s)
+          p=Path('index.html')
+          s=p.read_text().replace('crm.html?v=easy-controls-20260915-3','crm.html?v=easy-controls-20260915-4')
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add crm.html index.html
+          git diff --cached --quiet || (git commit -m 'Refresh CRM all tags and sources UI' && git push)
