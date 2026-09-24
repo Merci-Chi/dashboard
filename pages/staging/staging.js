@@ -131,13 +131,15 @@ async function downloadSiteFile(id,path){
 const listEl=document.getElementById('stagingList'),status=document.getElementById('status'),filePicker=document.getElementById('filePicker'),folderPicker=document.getElementById('folderPicker');
   let db=null,leads=[],projects=[],active=null,activeProject=null,filterMode='all';
   let crmConnectQuery='',crmConnectSelectedId='',crmConnectTags=[];
-  let crmNewMode=false,crmNewDraft={company:'',name:'',phone:'',email:''},crmNewTagsOpen=false;
+  let crmNewMode=false,crmNewDraft={company:'',name:'',phone:'',email:''},crmNewTagsOpen=false,crmOtherOpen=false,crmOtherValue='';
   let bulkFiles=[];
   let bulkFolderLinks={};
   let bulkFolderSearch={};
   let bulkFolderTags={};
   let bulkFolderNewMode={};
   let bulkFolderTagsOpen={};
+  let bulkFolderOtherOpen={};
+  let bulkFolderOtherValue={};
   let bulkFolderNewDraft={};
   let bulkConnectionsSaved=false;
   const MAX=25*1024*1024;
@@ -169,15 +171,31 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   const needsWebsite=lead=>!websiteReady(lead);
   const needsAdmin=lead=>websiteReady(lead)&&adminState(lead)!=='ready';
 
+  const MAIN_SOURCE_NAMES=[
+    'Google',
+    'Google Maps',
+    'Facebook',
+    'Instagram',
+    'Nextdoor',
+    'Yelp',
+    'Found online',
+    'LinkedIn',
+    'TikTok',
+    'Booksy',
+    'ViewYourSite'
+  ];
+
   function existingSourceOptions(){
-    const map=new Map();
+    const used=new Map();
     for(const lead of leads){
       for(const source of (Array.isArray(lead?.sources)?lead.sources:[])){
         const value=String(source||'').trim();
-        if(value&&!map.has(value.toLowerCase()))map.set(value.toLowerCase(),value);
+        if(value&&!used.has(value.toLowerCase()))used.set(value.toLowerCase(),value);
       }
     }
-    return [...map.values()].sort((a,b)=>a.localeCompare(b));
+    return MAIN_SOURCE_NAMES
+      .filter(name=>used.has(name.toLowerCase()))
+      .map(name=>used.get(name.toLowerCase())||name);
   }
 
   function mergeSources(existing,selected){
@@ -191,27 +209,32 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
 
   function sourceClass(value){
     const v=String(value||'').toLowerCase();
-    if(v.includes('facebook'))return 'source-facebook';
-    if(v.includes('instagram'))return 'source-instagram';
-    if(v.includes('nextdoor'))return 'source-nextdoor';
-    if(v.includes('google maps'))return 'source-googlemaps';
+    if(v==='facebook')return 'source-facebook';
+    if(v==='instagram')return 'source-instagram';
+    if(v==='nextdoor')return 'source-nextdoor';
+    if(v==='google maps')return 'source-googlemaps';
     if(v==='google')return 'source-google';
-    if(v.includes('yelp'))return 'source-yelp';
-    if(v.includes('linkedin'))return 'source-linkedin';
-    if(v.includes('tiktok'))return 'source-tiktok';
-    if(v.includes('booksy'))return 'source-booksy';
-    if(v.includes('viewyoursite'))return 'source-viewyoursite';
-    if(v.includes('waze'))return 'source-waze';
-    if(v.includes('yahoo'))return 'source-yahoo';
-    if(v.includes('referral'))return 'source-referral';
+    if(v==='yelp')return 'source-yelp';
+    if(v==='linkedin')return 'source-linkedin';
+    if(v==='tiktok')return 'source-tiktok';
+    if(v==='booksy')return 'source-booksy';
+    if(v==='viewyoursite')return 'source-viewyoursite';
+    if(v==='found online')return 'source-foundonline';
     return 'source-other';
   }
 
-  function sourcePickerHTML(selected=[],attrs=''){
+  function sourcePickerHTML(selected=[],attrs='',otherOpen=false,otherValue='',otherAttrs=''){
     const options=existingSourceOptions();
-    if(!options.length)return '<div class="source-tag-empty">No existing CRM sources yet.</div>';
     const chosen=new Set((selected||[]).map(v=>String(v).toLowerCase()));
-    return `<div class="source-tag-picker" ${attrs}>${options.map(source=>`<button class="source-tag-chip ${sourceClass(source)} ${chosen.has(source.toLowerCase())?'selected':''}" type="button" data-source-value="${esc(source)}"><i class="bi ${chosen.has(source.toLowerCase())?'bi-check-circle-fill':'bi-circle'}"></i>${esc(source)}</button>`).join('')}</div>`;
+    const buttons=options.map(source=>`<button class="source-tag-chip ${sourceClass(source)} ${chosen.has(source.toLowerCase())?'selected':''}" type="button" data-source-value="${esc(source)}"><i class="bi ${chosen.has(source.toLowerCase())?'bi-check-circle-fill':'bi-circle'}"></i>${esc(source)}</button>`).join('');
+    return `<div class="source-tag-picker" ${attrs}>
+      ${buttons}
+      <button class="source-tag-chip source-other ${otherOpen?'selected':''}" type="button" data-source-other ${otherAttrs}><i class="bi bi-plus-circle${otherOpen?'-fill':''}"></i>Other</button>
+    </div>
+    ${otherOpen?`<div class="source-other-entry">
+      <input type="text" value="${esc(otherValue||'')}" placeholder="Type source, referral, website, etc." data-source-other-input ${otherAttrs}>
+      <button class="btn secondary source-other-add" type="button" data-source-other-add ${otherAttrs}>Add</button>
+    </div>`:''}`;
   }
 
   function toggleSource(list,source){
@@ -251,7 +274,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   }
 
   function showList(){active=null;activeProject=null;document.getElementById('stagingDirectory').hidden=false;document.getElementById('stagingDetail').hidden=true;renderList();window.scrollTo({top:0,behavior:'smooth'})}
-  function openLead(id){active=leads.find(lead=>String(lead.id)===String(id));if(!active)return;activeProject=projectFor(active);crmConnectSelectedId=String(activeProject?.lead_id||active.id||'');crmConnectQuery='';crmConnectTags=[...(Array.isArray(active.sources)?active.sources:[])];crmNewMode=false;crmNewDraft={company:'',name:'',phone:'',email:''};crmNewTagsOpen=false;document.getElementById('stagingDirectory').hidden=true;document.getElementById('stagingDetail').hidden=false;renderDetail();window.scrollTo({top:0,behavior:'smooth'})}
+  function openLead(id){active=leads.find(lead=>String(lead.id)===String(id));if(!active)return;activeProject=projectFor(active);crmConnectSelectedId=String(activeProject?.lead_id||active.id||'');crmConnectQuery='';crmConnectTags=[...(Array.isArray(active.sources)?active.sources:[])];crmNewMode=false;crmNewDraft={company:'',name:'',phone:'',email:''};crmNewTagsOpen=false;crmOtherOpen=false;crmOtherValue='';document.getElementById('stagingDirectory').hidden=true;document.getElementById('stagingDetail').hidden=false;renderDetail();window.scrollTo({top:0,behavior:'smooth'})}
 
   function currentSiteKey(){return String(activeProject?.sitekey||active?.sitekey||slug(active?.company)||'').trim()}
   function currentPreview(){
@@ -318,7 +341,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
             ${crmNewTagsOpen?`<div class="source-tag-block tag-panel-after-actions">
               <strong>Where was this lead found?</strong>
               <small>Choose from sources already used in the CRM.</small>
-              ${sourcePickerHTML(crmConnectTags,'data-single-tag-picker')}
+              ${sourcePickerHTML(crmConnectTags,'data-single-tag-picker',crmOtherOpen,crmOtherValue,'data-single-other')}
             </div>`:''}
           </div>
         `:`
@@ -343,7 +366,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
           <div class="source-tag-block">
             <strong>Add sources</strong>
             <small>These are the source values already used in Supabase CRM. Selected sources will be added to the CRM record when you connect it.</small>
-            ${sourcePickerHTML(crmConnectTags,'data-single-tag-picker')}
+            ${sourcePickerHTML(crmConnectTags,'data-single-tag-picker',crmOtherOpen,crmOtherValue,'data-single-other')}
           </div>
 
           <div class="crm-connect-actions">
@@ -715,7 +738,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
             ${bulkFolderTagsOpen[folder]?`<div class="source-tag-block tag-panel-after-actions">
               <strong>Where was this lead found?</strong>
               <small>Choose from sources already used in the CRM.</small>
-              ${sourcePickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`)}
+              ${sourcePickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`,Boolean(bulkFolderOtherOpen[folder]),bulkFolderOtherValue[folder]||'',`data-folder-other="${esc(folder)}"`)}
             </div>`:''}
           </div>
         `:`
@@ -724,7 +747,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
           <div class="source-tag-block">
             <strong>Add sources</strong>
             <small>Selected sources will be added to the CRM record when the connection is saved.</small>
-            ${sourcePickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`)}
+            ${sourcePickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`,Boolean(bulkFolderOtherOpen[folder]),bulkFolderOtherValue[folder]||'',`data-folder-other="${esc(folder)}"`)}
           </div>
         `}
       </section>`;
@@ -754,6 +777,8 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     bulkFolderTags[folder]=[...(Array.isArray(data.sources)?data.sources:[])];
     bulkFolderNewMode[folder]=false;
     bulkFolderTagsOpen[folder]=false;
+    bulkFolderOtherOpen[folder]=false;
+    bulkFolderOtherValue[folder]='';
     bulkConnectionsSaved=false;
     renderBulkConnectModal();
     renderBulkQueue();
@@ -844,7 +869,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       if(!response.ok||data?.error)throw Error(data?.error||`Bulk publish failed (${response.status})`);
 
       const count=data.siteCount||folders.length;
-      bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderTagsOpen={};bulkFolderNewDraft={};bulkConnectionsSaved=false;
+      bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderTagsOpen={};bulkFolderOtherOpen={};bulkFolderOtherValue={};bulkFolderNewDraft={};bulkConnectionsSaved=false;
       renderBulkQueue();
       renderList();
       message(`${count} site${count===1?'':'s'} pushed to GitHub successfully.`);
@@ -862,7 +887,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   document.getElementById('openBulkDrop').onclick=()=>{bulkPanel.hidden=!bulkPanel.hidden;if(!bulkPanel.hidden){renderBulkQueue();bulkPanel.scrollIntoView({behavior:'smooth',block:'start'})}};
   document.getElementById('chooseBulkFolders').onclick=()=>bulkPicker.click();
   bulkPicker.onchange=()=>{queueBulkFiles(bulkPicker.files);bulkPicker.value=''};
-  document.getElementById('clearBulkDrop').onclick=()=>{bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderTagsOpen={};bulkFolderNewDraft={};bulkConnectionsSaved=false;renderBulkQueue();message('Local bulk queue cleared.')};
+  document.getElementById('clearBulkDrop').onclick=()=>{bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderTagsOpen={};bulkFolderOtherOpen={};bulkFolderOtherValue={};bulkFolderNewDraft={};bulkConnectionsSaved=false;renderBulkQueue();message('Local bulk queue cleared.')};
   document.getElementById('pushBulkGithub').onclick=()=>{const action=document.getElementById('pushBulkGithub');action.dataset.mode==='push'?pushBulkGithub():openBulkConnect()};
   bulkZone.ondragover=e=>{e.preventDefault();bulkZone.classList.add('dragging')};
   bulkZone.ondragleave=()=>bulkZone.classList.remove('dragging');
@@ -900,12 +925,34 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       bulkFolderNewDraft[folder]=bulkFolderNewDraft[folder]||{company:folder.replace(/-/g,' '),name:'',phone:'',email:''};
       if(!bulkFolderTags[folder])bulkFolderTags[folder]=[];
       if(!(folder in bulkFolderTagsOpen))bulkFolderTagsOpen[folder]=false;
+    bulkFolderOtherOpen[folder]=false;
+    bulkFolderOtherValue[folder]='';
+      if(!(folder in bulkFolderOtherOpen))bulkFolderOtherOpen[folder]=false;
+      if(!(folder in bulkFolderOtherValue))bulkFolderOtherValue[folder]='';
       renderBulkConnectModal();return
     }
     const toggleFolderTags=e.target.closest('[data-toggle-folder-tags]');
     if(toggleFolderTags){
       const folder=toggleFolderTags.dataset.toggleFolderTags;
       bulkFolderTagsOpen[folder]=!bulkFolderTagsOpen[folder];
+      renderBulkConnectModal();return
+    }
+    const otherToggle=e.target.closest('[data-source-other][data-folder-other]');
+    if(otherToggle){
+      const folder=otherToggle.dataset.folderOther;
+      bulkFolderOtherOpen[folder]=!bulkFolderOtherOpen[folder];
+      renderBulkConnectModal();return
+    }
+    const otherAdd=e.target.closest('[data-source-other-add][data-folder-other]');
+    if(otherAdd){
+      const folder=otherAdd.dataset.folderOther;
+      const value=String(bulkFolderOtherValue[folder]||'').trim();
+      if(value){
+        bulkFolderTags[folder]=bulkFolderTags[folder]||[];
+        toggleSource(bulkFolderTags[folder],value);
+        bulkFolderOtherValue[folder]='';
+        bulkFolderOtherOpen[folder]=false;
+      }
       renderBulkConnectModal();return
     }
     const tag=e.target.closest('[data-folder-tag-picker] [data-source-value]');
@@ -938,6 +985,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   document.getElementById('uploadWorkspace').oninput=e=>{
     const field=e.target.closest('[data-new-crm-field]');
     if(field){crmNewDraft[field.dataset.newCrmField]=field.value;return}
+    if(e.target.hasAttribute('data-source-other-input')&&e.target.hasAttribute('data-single-other')){crmOtherValue=e.target.value;return}
     if(e.target?.id!=='crmConnectSearch')return;
     crmConnectQuery=e.target.value;
     const results=document.getElementById('crmConnectResults');
@@ -949,10 +997,16 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     }).join(''):'<div class="crm-connect-empty">No CRM records match this search.</div>';
   };
   document.getElementById('uploadWorkspace').onclick=async e=>{const b=e.target.closest('button');if(!b)return;try{
-    if(b.hasAttribute('data-existing-crm')){crmNewMode=false;crmNewTagsOpen=false;renderDetail();return}
-    if(b.hasAttribute('data-new-crm')){crmNewMode=true;crmConnectSelectedId='';crmConnectTags=[];crmNewTagsOpen=false;renderDetail();return}
+    if(b.hasAttribute('data-existing-crm')){crmNewMode=false;crmNewTagsOpen=false;crmOtherOpen=false;crmOtherValue='';renderDetail();return}
+    if(b.hasAttribute('data-new-crm')){crmNewMode=true;crmConnectSelectedId='';crmConnectTags=[];crmNewTagsOpen=false;crmOtherOpen=false;crmOtherValue='';renderDetail();return}
     if(b.hasAttribute('data-toggle-new-crm-tags')){crmNewTagsOpen=!crmNewTagsOpen;renderDetail();return}
-    if(b.closest('[data-single-tag-picker]')&&b.hasAttribute('data-tag-value')){toggleSource(crmConnectTags,b.dataset.sourceValue);renderDetail();return}
+    if(b.closest('[data-single-tag-picker]')&&b.hasAttribute('data-source-value')){toggleSource(crmConnectTags,b.dataset.sourceValue);renderDetail();return}
+    if(b.hasAttribute('data-source-other')&&b.hasAttribute('data-single-other')){crmOtherOpen=!crmOtherOpen;renderDetail();return}
+    if(b.hasAttribute('data-source-other-add')&&b.hasAttribute('data-single-other')){
+      const value=String(crmOtherValue||'').trim();
+      if(value){toggleSource(crmConnectTags,value);crmOtherValue='';crmOtherOpen=false}
+      renderDetail();return
+    }
     if(b.hasAttribute('data-crm-select')){
       crmConnectSelectedId=b.dataset.crmSelect;
       const selectedLead=leads.find(lead=>String(lead.id)===String(crmConnectSelectedId));

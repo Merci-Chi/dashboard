@@ -463,3 +463,14 @@ h1 {
 .source-tag-chip.source-referral{border-color:#fdb022;background:#fdb0221e;color:#ffd778}
 .source-tag-chip.source-other{border-color:#5b718a;background:#5b718a1f;color:#b8c8d8}
 .source-tag-chip.selected{box-shadow:0 0 0 2px rgba(255,255,255,.12) inset,0 0 0 1px currentColor;font-weight:900}
+
+
+/* Curated CRM source picker */
+.source-tag-chip.source-foundonline{border-color:#64748b;background:#172033;color:#d9e2ef}
+.source-tag-chip.source-other{border-color:#7c5cff;background:#251c45;color:#d9ceff}
+.source-tag-chip.source-other.selected{border-color:#9c84ff;background:#382b66;color:#fff}
+.source-other-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:9px}
+.source-other-entry input{min-height:40px;padding:0 10px;border:1px solid #27557f;border-radius:9px;background:#020d18;color:#fff;outline:0}
+.source-other-entry input:focus{border-color:#73bdff}
+.source-other-add{min-width:72px}
+@media(max-width:720px){.source-other-entry{grid-template-columns:1fr}.source-other-add{width:100%}}
