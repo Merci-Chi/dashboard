@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Website Requests</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="requests.css">
+
+</head>
+<body>
+  <main class="page">
+    <header class="head"><div><div class="eyebrow">Client support</div><h1>Website Requests</h1><p>Bug reports and website changes submitted from connected client admins.</p></div><button class="refresh" id="refresh"><i class="bi bi-arrow-clockwise"></i> Refresh</button></header>
+    <section class="metrics"><article class="metric"><span>All requests</span><strong id="total">0</strong></article><article class="metric"><span>New</span><strong id="newCount">0</strong></article><article class="metric"><span>In progress</span><strong id="progressCount">0</strong></article><article class="metric"><span>Completed</span><strong id="doneCount">0</strong></article></section>
+    <section class="toolbar"><input id="search" type="search" placeholder="Search requests…"><select id="statusFilter"><option value="">All statuses</option><option value="new">New</option><option value="in_progress">In progress</option><option value="completed">Completed</option><option value="closed">Closed</option></select><select id="typeFilter"><option value="">All types</option><option value="bug">Bugs</option><option value="request">Requests</option></select><select id="priorityFilter"><option value="">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></section>
+    <section class="list" id="list"><div class="empty card">No requests yet.</div></section>
+  </main>
+    <script src="requests.js"></script>
+</body>
+</html>

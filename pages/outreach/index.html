@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#01050b">
+  <title>Outreach | Steady Hands Operations</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="outreach.css">
+
+</head>
+<body>
+  <main class="main">
+    <section class="directory" id="leadDirectory">
+      <header class="top">
+        <div class="title"><span>Sales Pipeline</span><h1>Select a Lead</h1></div>
+        <button class="add" id="refreshLeads" type="button"><i class="bi bi-arrow-clockwise"></i>Refresh</button>
+      </header>
+      <section class="card directory-panel">
+        <div class="directory-head">
+          <div><h2>Outreach Leads</h2><p>Choose a category, then select a lead to open the outreach workspace.</p></div>
+          <label class="directory-search"><i class="bi bi-search"></i><input id="directorySearch" type="search" placeholder="Search leads…" autocomplete="off"></label>
+        </div>
+        <div class="category-tabs" role="tablist" aria-label="Lead categories">
+          <button class="category-button active" type="button" data-category="uncalled" role="tab" aria-selected="true">Leads Not Called <span class="category-count" data-count="uncalled">0</span></button>
+          <button class="category-button" type="button" data-category="followups" role="tab" aria-selected="false">Follow Ups <span class="category-count" data-count="followups">0</span></button>
+          <button class="category-button" type="button" data-category="notinterested" role="tab" aria-selected="false">Not Interested <span class="category-count" data-count="notinterested">0</span></button>
+        </div>
+        <div class="site-filter-tabs" role="tablist" aria-label="Site preview filter">
+          <button class="site-filter-button active" type="button" data-site-filter="has-site" role="tab" aria-selected="true"><i class="bi bi-link-45deg"></i>Has Site Preview</button>
+          <button class="site-filter-button" type="button" data-site-filter="no-site" role="tab" aria-selected="false"><i class="bi bi-link-45deg"></i>Does Not Have Site Preview</button>
+        </div>
+        <div class="directory-status" id="directoryStatus" role="status">Loading leads…</div>
+        <div class="lead-list" id="leadList"></div>
+      </section>
+    </section>
+    <header class="top" id="detailTop" hidden>
+      <div class="detail-heading">
+        <button class="back-button" id="backToList" type="button" aria-label="Back to outreach leads"><i class="bi bi-arrow-left"></i></button>
+        <div class="title"><span>Sales Pipeline</span><h1>Outreach</h1></div>
+      </div>
+      <div class="top-actions"><button class="add call" id="callLead" type="button"><i class="bi bi-telephone-fill"></i>Call</button></div>
+    </header>
+    <div id="content" hidden>
+      <section class="card lead">
+        <div class="lead-title"><div class="lead-icon"><i class="bi bi-buildings"></i></div><div><h2 id="company"></h2><p id="category"></p></div></div>
+        <div class="facts">
+          <div class="fact"><i class="bi bi-person"></i><div><small>Decision Maker / Owner</small><strong id="owner"></strong></div></div>
+          <div class="fact"><i class="bi bi-telephone"></i><div><small>Phone</small><strong id="phone"></strong></div></div>
+          <div class="fact"><i class="bi bi-envelope"></i><div><small>Email</small><strong id="email"></strong></div></div>
+          <div class="fact"><i class="bi bi-clock"></i><div><small>Timezone</small><strong id="timezone"></strong></div></div>
+          <div class="fact"><i class="bi bi-calendar3"></i><div><small>Preferred Contact Times</small><strong id="preferred"></strong></div></div>
+        </div>
+        <div class="tags-row"><div class="tags" id="tags"></div><button class="edit-tags" id="editTags" type="button"><i class="bi bi-tags"></i>Edit tags</button></div>
+      </section>
+      <section class="workspace">
+        <article class="card section">
+          <header class="section-head"><div class="head-icon"><i class="bi bi-file-earmark-text"></i></div><div><h3>Transcripts</h3><p>Choose a template and copy the script.</p></div></header>
+          <div class="tabs"><button class="tab active" data-target="no-site">No Site</button><button class="tab" data-target="outdated">Outdated Site</button><button class="tab" data-target="broken">Broken Site</button><button class="tab" data-target="spanish">Spanish</button></div>
+          <div class="scripts">
+            <div class="script active" id="no-site"><div class="script-label"><i class="bi bi-globe2"></i>No Site</div><p id="noSiteText"></p><button class="copy" data-copy-id="noSiteText" aria-label="Copy no site transcript"><i class="bi bi-copy"></i></button></div>
+            <div class="script" id="outdated"><div class="script-label"><i class="bi bi-calendar3"></i>Outdated Site</div><p id="outdatedText"></p><button class="copy" data-copy-id="outdatedText" aria-label="Copy outdated site transcript"><i class="bi bi-copy"></i></button></div>
+            <div class="script" id="broken"><div class="script-label"><i class="bi bi-link-45deg"></i>Broken Site</div><p id="brokenText"></p><button class="copy" data-copy-id="brokenText" aria-label="Copy broken site transcript"><i class="bi bi-copy"></i></button></div>
+            <div class="script" id="spanish"><div class="script-label"><i class="bi bi-chat-dots-fill"></i>Spanish</div><p id="spanishText"></p><button class="copy" data-copy-id="spanishText" aria-label="Copy Spanish transcript"><i class="bi bi-copy"></i></button></div>
+          </div>
+        </article>
+        <div class="stack">
+          <article class="card section"><header class="section-head"><div class="head-icon"><i class="bi bi-tag"></i></div><div><h3>Pricing</h3><p>Simple, transparent pricing.</p></div></header><div class="prices"><div class="price"><strong>$100 — Website</strong><span>One-time price to build the site.</span></div><div class="price"><strong>$20/month — Standard Hosting</strong><span>Keeps the website online with standard hosting.</span></div><div class="price"><strong>$30/month — Website + Backend</strong><span>Includes hosting and an admin site to manage the website.</span></div></div></article>
+          <article class="card section notes"><header class="section-head"><div class="head-icon"><i class="bi bi-clipboard2"></i></div><div><h3>Notes / History</h3><p>Add notes and view recent activity.</p></div></header><textarea id="notes" placeholder="Add a note…"></textarea><span class="save-state" id="saveState"></span><div class="history" id="history"></div></article>
+        </div>
+      </section>
+      <section class="card preview">
+        <header class="section-head"><div class="head-icon"><i class="bi bi-send"></i></div><div><h3>Send Preview</h3><p>Send the website preview and pricing.</p></div></header>
+        <div class="preview-body"><div class="links"><div class="link-row"><label>Site Preview</label><div class="link-value" id="siteUrl"></div><button class="copy copy-text" id="copySite" data-copy-id="siteUrl">Copy</button></div><div class="link-row"><label>Admin Preview</label><div class="link-value" id="adminUrl"></div><button class="copy copy-text" id="copyAdmin" data-copy-id="adminUrl">Copy</button></div></div><div><div class="preview-message" id="previewMessage">Hi, this is your site preview. The website has a $100 development fee and standard hosting is $20/month. We also made an admin site for only $10/month more, making it $30/month total.</div><div class="preview-actions"><button class="btn" data-copy-id="previewMessage"><i class="bi bi-copy"></i> Copy Message</button><button class="btn primary" id="openMessages"><i class="bi bi-chat-dots"></i> Open Messages</button></div></div></div>
+      </section>
+    </div>
+  </main>
+  <div class="modal" id="tagEditorModal" hidden>
+    <section class="card tag-editor" role="dialog" aria-modal="true" aria-labelledby="tagEditorTitle">
+      <header class="tag-editor-head"><div><span class="call-kicker">LEAD TAGS</span><h2 id="tagEditorTitle">Edit tags</h2><p>Select or deselect as many tags as you need.</p></div><button class="close" id="closeTagEditor" type="button" aria-label="Close tag editor"><i class="bi bi-x-lg"></i></button></header>
+      <div class="tag-groups" id="tagGroups"></div>
+      <div class="tag-editor-actions"><button class="wizard-button" id="cancelTagEditor" type="button">Cancel</button><button class="wizard-button primary" id="saveTags" type="button">Save tags</button></div>
+    </section>
+  </div>
+  <div class="modal" id="callCompleteModal" hidden>
+    <section class="card call-confirm" role="dialog" aria-modal="true" aria-labelledby="callCompleteTitle">
+      <span class="call-kicker">CALL COMPLETER</span><h2 id="callCompleteTitle">Call Complete?</h2><p>Complete or cancel this call before going back.</p>
+      <div class="call-confirm-actions"><button class="round-choice no" id="completeCallNo" type="button" aria-label="Complete as unsuccessful call"><i class="bi bi-x-lg"></i></button><button class="round-choice yes" id="completeCallYes" type="button" aria-label="Complete call with all statuses"><i class="bi bi-check-lg"></i></button></div>
+      <button class="did-not-call" id="didNotCall" type="button"><i class="bi bi-telephone-x"></i> Did not call</button>
+    </section>
+  </div>
+  <div class="modal" id="callWizardModal" hidden>
+    <section class="card call-wizard" role="dialog" aria-modal="true" aria-labelledby="callWizardTitle">
+      <span class="call-kicker">CALL COMPLETER</span><h2 id="callWizardTitle">Complete your call</h2>
+      <div class="wizard-progress"><span class="active" data-step-dot="1">1</span><i></i><span data-step-dot="2">2</span><i></i><span data-step-dot="3"><i class="bi bi-check-lg"></i></span></div>
+      <div class="wizard-page active" data-step="1"><span class="step-label">STEP 1 OF 2</span><h3 id="outcomeHeading">Choose one or more call statuses</h3><div class="outcome-grid"><button class="outcome" data-outcome="Interested">Interested</button><button class="outcome" data-outcome="Call Back">Call Back</button><button class="outcome" data-outcome="Needs More Info">Needs More Info</button><button class="outcome" data-outcome="Skeptical">Skeptical</button><button class="outcome" data-outcome="No Answer" data-negative-outcome>No Answer</button><button class="outcome" data-outcome="Left Voicemail" data-negative-outcome>Left Voicemail</button><button class="outcome danger" data-outcome="Not Interested" data-negative-outcome>Not Interested</button><button class="outcome danger" data-outcome="Wrong Number" data-negative-outcome>Wrong Number</button><button class="outcome sold" data-outcome="Conversion"><i class="bi bi-trophy"></i> Conversion</button></div><div class="wizard-actions"><button class="wizard-button primary" id="outcomeNext" type="button" disabled>Next <i class="bi bi-arrow-right"></i></button></div></div>
+      <div class="wizard-page" data-step="2"><span class="step-label">STEP 2 OF 2</span><h3>Add call notes</h3><textarea class="wizard-notes" id="callNotes" placeholder="What happened on the call? Add anything useful for the next follow-up."></textarea><div class="wizard-actions"><button class="wizard-button" id="outcomeBack" type="button"><i class="bi bi-arrow-left"></i> Back</button><button class="wizard-button primary" id="finishCall" type="button">Complete Call</button></div></div>
+      <div class="wizard-page wizard-success" data-step="3"><div class="success-check"><i class="bi bi-check-lg"></i></div><h3>Call completed!</h3><p id="callSuccessMessage">Saved to Follow Ups</p></div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="outreach.js"></script>
+</body>
+</html>
