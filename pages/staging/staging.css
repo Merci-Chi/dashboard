@@ -442,3 +442,6 @@ h1 {
 .new-crm-grid input{width:100%;min-height:41px;padding:0 10px;border:1px solid #17436f;border-radius:9px;background:#020d18;color:#fff;outline:0}
 .new-crm-grid input:focus{border-color:#73bdff}
 @media(max-width:720px){.new-crm-grid{grid-template-columns:1fr}.crm-connect-switch{display:grid;grid-template-columns:1fr 1fr}}
+
+.new-crm-actions{align-items:center}.new-crm-actions .tags-toggle-btn{min-width:92px}.new-crm-actions .tags-toggle-btn.active-choice{border-color:#73bdff;background:#0a3155;color:#fff}.tag-panel-after-actions{margin-top:10px}
+@media(max-width:720px){.new-crm-actions{display:grid;grid-template-columns:minmax(0,1fr) auto}.new-crm-actions .tags-toggle-btn{min-width:88px}}

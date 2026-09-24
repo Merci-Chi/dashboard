@@ -131,12 +131,13 @@ async function downloadSiteFile(id,path){
 const listEl=document.getElementById('stagingList'),status=document.getElementById('status'),filePicker=document.getElementById('filePicker'),folderPicker=document.getElementById('folderPicker');
   let db=null,leads=[],projects=[],active=null,activeProject=null,filterMode='all';
   let crmConnectQuery='',crmConnectSelectedId='',crmConnectTags=[];
-  let crmNewMode=false,crmNewDraft={company:'',name:'',phone:'',email:''};
+  let crmNewMode=false,crmNewDraft={company:'',name:'',phone:'',email:''},crmNewTagsOpen=false;
   let bulkFiles=[];
   let bulkFolderLinks={};
   let bulkFolderSearch={};
   let bulkFolderTags={};
   let bulkFolderNewMode={};
+  let bulkFolderTagsOpen={};
   let bulkFolderNewDraft={};
   let bulkConnectionsSaved=false;
   const MAX=25*1024*1024;
@@ -232,7 +233,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   }
 
   function showList(){active=null;activeProject=null;document.getElementById('stagingDirectory').hidden=false;document.getElementById('stagingDetail').hidden=true;renderList();window.scrollTo({top:0,behavior:'smooth'})}
-  function openLead(id){active=leads.find(lead=>String(lead.id)===String(id));if(!active)return;activeProject=projectFor(active);crmConnectSelectedId=String(activeProject?.lead_id||active.id||'');crmConnectQuery='';crmConnectTags=[...(Array.isArray(active.tags)?active.tags:[])];crmNewMode=false;crmNewDraft={company:'',name:'',phone:'',email:''};document.getElementById('stagingDirectory').hidden=true;document.getElementById('stagingDetail').hidden=false;renderDetail();window.scrollTo({top:0,behavior:'smooth'})}
+  function openLead(id){active=leads.find(lead=>String(lead.id)===String(id));if(!active)return;activeProject=projectFor(active);crmConnectSelectedId=String(activeProject?.lead_id||active.id||'');crmConnectQuery='';crmConnectTags=[...(Array.isArray(active.tags)?active.tags:[])];crmNewMode=false;crmNewDraft={company:'',name:'',phone:'',email:''};crmNewTagsOpen=false;document.getElementById('stagingDirectory').hidden=true;document.getElementById('stagingDetail').hidden=false;renderDetail();window.scrollTo({top:0,behavior:'smooth'})}
 
   function currentSiteKey(){return String(activeProject?.sitekey||active?.sitekey||slug(active?.company)||'').trim()}
   function currentPreview(){
@@ -292,14 +293,15 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
               <label><span>Phone</span><input data-new-crm-field="phone" value="${esc(crmNewDraft.phone||'')}" placeholder="Phone number"></label>
               <label><span>Email</span><input data-new-crm-field="email" value="${esc(crmNewDraft.email||'')}" placeholder="Email"></label>
             </div>
-            <div class="source-tag-block">
+            <div class="crm-connect-actions new-crm-actions">
+              <button class="btn" type="button" data-create-connect-crm><i class="bi bi-person-plus-fill"></i> Create CRM & Connect</button>
+              <button class="btn secondary tags-toggle-btn ${crmNewTagsOpen?'active-choice':''}" type="button" data-toggle-new-crm-tags><i class="bi bi-tags-fill"></i> Tags</button>
+            </div>
+            ${crmNewTagsOpen?`<div class="source-tag-block tag-panel-after-actions">
               <strong>Where was this lead found?</strong>
               <small>Choose from tags already used in the CRM.</small>
               ${tagPickerHTML(crmConnectTags,'data-single-tag-picker')}
-            </div>
-            <div class="crm-connect-actions">
-              <button class="btn" type="button" data-create-connect-crm><i class="bi bi-person-plus-fill"></i> Create CRM & Connect</button>
-            </div>
+            </div>`:''}
           </div>
         `:`
           <label class="crm-connect-search">
@@ -688,14 +690,15 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
               <label><span>Phone</span><input data-folder-new-field="phone" data-folder-new-name="${esc(folder)}" value="${esc(draft.phone||'')}" placeholder="Phone number"></label>
               <label><span>Email</span><input data-folder-new-field="email" data-folder-new-name="${esc(folder)}" value="${esc(draft.email||'')}" placeholder="Email"></label>
             </div>
-            <div class="source-tag-block">
+            <div class="crm-connect-actions new-crm-actions">
+              <button class="btn" type="button" data-create-folder-crm="${esc(folder)}"><i class="bi bi-person-plus-fill"></i> Add New CRM</button>
+              <button class="btn secondary tags-toggle-btn ${bulkFolderTagsOpen[folder]?'active-choice':''}" type="button" data-toggle-folder-tags="${esc(folder)}"><i class="bi bi-tags-fill"></i> Tags</button>
+            </div>
+            ${bulkFolderTagsOpen[folder]?`<div class="source-tag-block tag-panel-after-actions">
               <strong>Where was this lead found?</strong>
               <small>Choose from tags already used in the CRM.</small>
               ${tagPickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`)}
-            </div>
-            <div class="crm-connect-actions">
-              <button class="btn" type="button" data-create-folder-crm="${esc(folder)}"><i class="bi bi-person-plus-fill"></i> Add New CRM</button>
-            </div>
+            </div>`:''}
           </div>
         `:`
           <label class="folder-crm-search"><i class="bi bi-search"></i><input type="search" data-folder-search="${esc(folder)}" value="${esc(bulkFolderSearch[folder]||'')}" placeholder="Search CRM by business, name, phone, or email…"></label>
@@ -732,6 +735,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     bulkFolderLinks[folder]=data.id;
     bulkFolderTags[folder]=[...(Array.isArray(data.tags)?data.tags:[])];
     bulkFolderNewMode[folder]=false;
+    bulkFolderTagsOpen[folder]=false;
     bulkConnectionsSaved=false;
     renderBulkConnectModal();
     renderBulkQueue();
@@ -822,7 +826,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       if(!response.ok||data?.error)throw Error(data?.error||`Bulk publish failed (${response.status})`);
 
       const count=data.siteCount||folders.length;
-      bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderNewDraft={};bulkConnectionsSaved=false;
+      bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderTagsOpen={};bulkFolderNewDraft={};bulkConnectionsSaved=false;
       renderBulkQueue();
       renderList();
       message(`${count} site${count===1?'':'s'} pushed to GitHub successfully.`);
@@ -840,7 +844,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   document.getElementById('openBulkDrop').onclick=()=>{bulkPanel.hidden=!bulkPanel.hidden;if(!bulkPanel.hidden){renderBulkQueue();bulkPanel.scrollIntoView({behavior:'smooth',block:'start'})}};
   document.getElementById('chooseBulkFolders').onclick=()=>bulkPicker.click();
   bulkPicker.onchange=()=>{queueBulkFiles(bulkPicker.files);bulkPicker.value=''};
-  document.getElementById('clearBulkDrop').onclick=()=>{bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderNewDraft={};bulkConnectionsSaved=false;renderBulkQueue();message('Local bulk queue cleared.')};
+  document.getElementById('clearBulkDrop').onclick=()=>{bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkFolderTags={};bulkFolderNewMode={};bulkFolderTagsOpen={};bulkFolderNewDraft={};bulkConnectionsSaved=false;renderBulkQueue();message('Local bulk queue cleared.')};
   document.getElementById('pushBulkGithub').onclick=()=>{const action=document.getElementById('pushBulkGithub');action.dataset.mode==='push'?pushBulkGithub():openBulkConnect()};
   bulkZone.ondragover=e=>{e.preventDefault();bulkZone.classList.add('dragging')};
   bulkZone.ondragleave=()=>bulkZone.classList.remove('dragging');
@@ -869,7 +873,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   };
   document.getElementById('bulkConnectList').onclick=async e=>{
     const existing=e.target.closest('[data-folder-existing]');
-    if(existing){bulkFolderNewMode[existing.dataset.folderExisting]=false;bulkConnectionsSaved=false;renderBulkConnectModal();return}
+    if(existing){bulkFolderNewMode[existing.dataset.folderExisting]=false;bulkFolderTagsOpen[existing.dataset.folderExisting]=false;bulkConnectionsSaved=false;renderBulkConnectModal();return}
     const newer=e.target.closest('[data-folder-new]');
     if(newer){
       const folder=newer.dataset.folderNew;
@@ -877,6 +881,13 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       bulkConnectionsSaved=false;
       bulkFolderNewDraft[folder]=bulkFolderNewDraft[folder]||{company:folder.replace(/-/g,' '),name:'',phone:'',email:''};
       if(!bulkFolderTags[folder])bulkFolderTags[folder]=[];
+      if(!(folder in bulkFolderTagsOpen))bulkFolderTagsOpen[folder]=false;
+      renderBulkConnectModal();return
+    }
+    const toggleFolderTags=e.target.closest('[data-toggle-folder-tags]');
+    if(toggleFolderTags){
+      const folder=toggleFolderTags.dataset.toggleFolderTags;
+      bulkFolderTagsOpen[folder]=!bulkFolderTagsOpen[folder];
       renderBulkConnectModal();return
     }
     const tag=e.target.closest('[data-folder-tag-picker] [data-tag-value]');
@@ -920,8 +931,9 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     }).join(''):'<div class="crm-connect-empty">No CRM records match this search.</div>';
   };
   document.getElementById('uploadWorkspace').onclick=async e=>{const b=e.target.closest('button');if(!b)return;try{
-    if(b.hasAttribute('data-existing-crm')){crmNewMode=false;renderDetail();return}
-    if(b.hasAttribute('data-new-crm')){crmNewMode=true;crmConnectSelectedId='';crmConnectTags=[];renderDetail();return}
+    if(b.hasAttribute('data-existing-crm')){crmNewMode=false;crmNewTagsOpen=false;renderDetail();return}
+    if(b.hasAttribute('data-new-crm')){crmNewMode=true;crmConnectSelectedId='';crmConnectTags=[];crmNewTagsOpen=false;renderDetail();return}
+    if(b.hasAttribute('data-toggle-new-crm-tags')){crmNewTagsOpen=!crmNewTagsOpen;renderDetail();return}
     if(b.closest('[data-single-tag-picker]')&&b.hasAttribute('data-tag-value')){toggleTag(crmConnectTags,b.dataset.tagValue);renderDetail();return}
     if(b.hasAttribute('data-crm-select')){
       crmConnectSelectedId=b.dataset.crmSelect;
