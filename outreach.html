@@ -130,8 +130,21 @@
     function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),1800)}
     function preferred(lead){return clean([lead.preferredcontact,lead.preferreddays,lead.timepreference,lead.specifictime].filter(Boolean).join(' · '))}
     function slug(lead){const raw=clean(lead.company,lead.name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return raw||'site-preview'}
-    function hasOutreachPreview(lead){return lead?.has_site_preview===true||Boolean(String(lead?.previewurl||lead?.adminurl||'').trim())}
-    function outreachPreviewUrl(lead){const direct=String(lead?.previewurl||'').trim();if(direct)return direct.endsWith('/')?direct:direct+'/';const folder=String(lead?.sitekey||'').trim();return hasOutreachPreview(lead)&&folder?'https://viewyoursite.today/Sites/'+encodeURIComponent(folder)+'/':''}
+    function hasOutreachPreview(lead){
+      return lead?.has_site_preview === true;
+    }
+    function outreachPreviewUrl(lead){
+      if (!hasOutreachPreview(lead)) return '';
+
+      const direct = String(lead?.previewurl || '').trim();
+      if (direct) return direct.endsWith('/') ? direct : direct + '/';
+
+      const folder = String(lead?.sitekey || '').trim();
+
+      return folder
+        ? 'https://viewyoursite.today/Sites/' + encodeURIComponent(folder) + '/'
+        : '';
+    }
     function firstName(value){const name=clean(value,'____');return name==='Not provided'?'____':name.split(/\s+/)[0]}
     const normalizeStatus=value=>String(value||'').trim().toLowerCase().replace(/[\s_-]+/g,'');
     function leadTags(lead){return [...(Array.isArray(lead?.tags)?lead.tags:[]),...(Array.isArray(lead?.sources)?lead.sources:[])]}
