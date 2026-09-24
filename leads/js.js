@@ -74,6 +74,7 @@ function supabaseRowToLead(row, status = 'new') {
     email: row.email || '',
     site: row.website || '',
     previewUrl: row.previewurl || '',
+    hasSitePreview: row.has_site_preview === true,
     tier: row.tier || '',
     timezone: row.timezone || '',
     age: row.siteage || '',
@@ -225,15 +226,7 @@ function crmStatus(row = {}) {
 }
 
 function hasViewYourSitePreview(lead) {
-  const raw = String(lead?.previewUrl || '').trim();
-  if (!raw) return false;
-  try {
-    const parsed = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`);
-    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-    return host === 'viewyoursite.today' || host.endsWith('.viewyoursite.today');
-  } catch (_) {
-    return false;
-  }
+  return lead?.hasSitePreview === true;
 }
 
 function leadDirectoryCategory(lead) {
