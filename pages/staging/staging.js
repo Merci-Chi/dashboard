@@ -134,6 +134,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   let bulkFiles=[];
   let bulkFolderLinks={};
   let bulkFolderSearch={};
+  let bulkConnectionsSaved=false;
   const MAX=25*1024*1024;
   const fmt=n=>n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(1)} MB`;
   const size=x=>(x?.files||[]).reduce((n,f)=>n+(f.size||0),0);
@@ -532,15 +533,18 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   }
 
   function renderBulkQueue(){
-    const list=document.getElementById('bulkDropList'),summary=document.getElementById('bulkDropSummary'),push=document.getElementById('pushBulkGithub');
-    if(!list||!summary||!push)return;
+    const list=document.getElementById('bulkDropList'),summary=document.getElementById('bulkDropSummary'),action=document.getElementById('pushBulkGithub');
+    if(!list||!summary||!action)return;
     const rows=[...bulkFolders().entries()];
-    summary.innerHTML=`<strong>${rows.length} folder${rows.length===1?'':'s'} · ${bulkFiles.length} file${bulkFiles.length===1?'':'s'}</strong><span>Connect to CRM before push</span>`;
+    const allLinked=rows.length>0&&rows.every(([name])=>Boolean(bulkFolderLinks[name]));
+    summary.innerHTML=`<strong>${rows.length} folder${rows.length===1?'':'s'} · ${bulkFiles.length} file${bulkFiles.length===1?'':'s'}</strong><span>${bulkConnectionsSaved&&allLinked?'CRM connected · ready for GitHub':'CRM connection required first'}</span>`;
     list.innerHTML=rows.length?rows.map(([name,files])=>{
       const lead=leads.find(item=>String(item.id)===String(bulkFolderLinks[name]));
       return `<span><i class="bi bi-folder2-open"></i>${esc(name)}<small>${lead?`CRM: ${esc(lead.company||lead.name||'Connected')}`:`${files.length} file${files.length===1?'':'s'} · CRM not connected`}</small></span>`;
     }).join(''):'<em>No folders queued.</em>';
-    push.disabled=!bulkFiles.length;
+    action.disabled=!bulkFiles.length;
+    action.textContent=bulkConnectionsSaved&&allLinked?'Push All to GitHub':'Add to CRM';
+    action.dataset.mode=bulkConnectionsSaved&&allLinked?'push':'crm';
   }
 
   function queueBulkFiles(files){
@@ -548,6 +552,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     const byPath=new Map(bulkFiles.map(file=>[bulkRelativePath(file),file]));
     for(const file of incoming){const path=bulkRelativePath(file);if(path&&path.includes('/'))byPath.set(path,file)}
     bulkFiles=[...byPath.values()];
+    bulkConnectionsSaved=false;
     const liveFolders=new Set([...bulkFolders().keys()]);
     Object.keys(bulkFolderLinks).forEach(name=>{if(!liveFolders.has(name))delete bulkFolderLinks[name]});
     Object.keys(bulkFolderSearch).forEach(name=>{if(!liveFolders.has(name))delete bulkFolderSearch[name]});
@@ -560,21 +565,57 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     return leads.filter(lead=>!q||[lead.company,lead.name,lead.phone,lead.email].some(value=>String(value||'').toLowerCase().includes(q))).slice(0,25);
   }
 
+  const humanizeFolder=folder=>String(folder||'').replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).trim();
+
+  async function addBulkCrmRecord(folder,card){
+    const company=String(card.querySelector('[data-new-company]')?.value||humanizeFolder(folder)).trim();
+    const name=String(card.querySelector('[data-new-name]')?.value||'').trim();
+    const phone=String(card.querySelector('[data-new-phone]')?.value||'').trim();
+    const email=String(card.querySelector('[data-new-email]')?.value||'').trim();
+    if(!company)throw Error('Business/company name is required.');
+
+    const row={company,name,phone,email,created:new Date().toISOString(),updated:new Date().toISOString()};
+    let result=await db.from('crm').insert(row).select().single();
+    if(result.error){
+      // Some CRM schemas use created_at/updated_at instead of created/updated.
+      const fallback={company,name,phone,email,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+      result=await db.from('crm').insert(fallback).select().single();
+    }
+    if(result.error)throw result.error;
+
+    leads.push(result.data);
+    leads.sort((a,b)=>String(a.company||'').localeCompare(String(b.company||'')));
+    bulkFolderLinks[folder]=result.data.id;
+    bulkFolderSearch[folder]='';
+    bulkConnectionsSaved=false;
+    return result.data;
+  }
+
   function renderBulkConnectModal(){
     const list=document.getElementById('bulkConnectList'),status=document.getElementById('bulkConnectStatus'),confirm=document.getElementById('confirmBulkPush');
     const folders=[...bulkFolders().entries()];
     list.innerHTML=folders.map(([folder,files])=>{
       const selectedId=bulkFolderLinks[folder]||'',selected=leads.find(lead=>String(lead.id)===String(selectedId)),matches=bulkLeadMatches(folder);
-      return `<section class="folder-connect-card">
-        <div class="folder-connect-head"><div><strong>${esc(folder)}</strong><small>${files.length} file${files.length===1?'':'s'} · https://viewyoursite.today/Sites/${esc(folder)}/</small></div><span class="folder-connect-state ${selected?'connected':''}">${selected?'Connected':'Choose CRM'}</span></div>
+      return `<section class="folder-connect-card" data-folder-card="${esc(folder)}">
+        <div class="folder-connect-head"><div><strong>${esc(folder)}</strong><small>${files.length} file${files.length===1?'':'s'} · https://viewyoursite.today/Sites/${esc(folder)}/</small></div><span class="folder-connect-state ${selected?'connected':''}">${selected?'Connected':'Needs CRM'}</span></div>
         <label class="folder-crm-search"><i class="bi bi-search"></i><input type="search" data-folder-search="${esc(folder)}" value="${esc(bulkFolderSearch[folder]||'')}" placeholder="Search CRM by business, name, phone, or email…"></label>
         <div class="folder-crm-results">${matches.length?matches.map(lead=>{const chosen=String(lead.id)===String(selectedId);return `<button class="folder-crm-option ${chosen?'selected':''}" type="button" data-folder="${esc(folder)}" data-folder-crm="${esc(lead.id)}"><span><strong>${esc(lead.company||'Unnamed business')}</strong><small>${esc([lead.name,lead.phone,lead.email].filter(Boolean).join(' · ')||'No contact information')}</small></span><i class="bi ${chosen?'bi-check-circle-fill':'bi-circle'}"></i></button>`}).join(''):'<div class="crm-connect-empty">No CRM records match this search.</div>'}</div>
+        ${selected?'':`<details class="new-crm-record" ${matches.length?'':'open'}>
+          <summary><i class="bi bi-person-plus-fill"></i> Add New CRM Record</summary>
+          <div class="new-crm-grid">
+            <label><span>Business / Company *</span><input data-new-company value="${esc(humanizeFolder(folder))}"></label>
+            <label><span>Contact Name</span><input data-new-name></label>
+            <label><span>Phone</span><input data-new-phone inputmode="tel"></label>
+            <label><span>Email</span><input data-new-email type="email"></label>
+          </div>
+          <button class="btn secondary add-new-crm-btn" type="button" data-add-new-crm="${esc(folder)}"><i class="bi bi-plus-lg"></i> Add to CRM</button>
+        </details>`}
       </section>`;
     }).join('');
     const missing=folders.filter(([folder])=>!bulkFolderLinks[folder]);
     confirm.disabled=!folders.length||missing.length>0;
     status.className='status';
-    status.textContent=missing.length?`Connect ${missing.length} folder${missing.length===1?'':'s'} before pushing.`:'All folders are connected and ready to push.';
+    status.textContent=missing.length?`Connect or add ${missing.length} folder${missing.length===1?'':'s'} to CRM.`:'All folders have a CRM record. Save these connections to continue.';
   }
 
   function openBulkConnect(){if(!bulkFiles.length)return;document.getElementById('bulkConnectModal').hidden=false;document.body.style.overflow='hidden';renderBulkConnectModal()}
@@ -604,20 +645,43 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     Object.assign(lead,{sitekey:folder,previewurl:preview});
   }
 
-  async function pushBulkGithub(){
+  async function saveBulkCrmConnections(){
     if(!bulkFiles.length)return;
     const folders=[...bulkFolders().keys()];
     const missing=folders.filter(folder=>!bulkFolderLinks[folder]);
     if(missing.length){openBulkConnect();return}
 
     const button=document.getElementById('confirmBulkPush'),status=document.getElementById('bulkConnectStatus');
-    button.disabled=true;button.textContent='Saving & Pushing…';status.className='status';status.textContent='Saving CRM connections…';
+    button.disabled=true;button.textContent='Saving CRM…';status.className='status';status.textContent='Saving CRM connections…';
 
     try{
       for(const folder of folders)await saveBulkConnection(folder,bulkFolderLinks[folder]);
+      bulkConnectionsSaved=true;
+      status.className='status success';
+      status.textContent='CRM connections saved. You can now push these folders to GitHub.';
+      renderBulkQueue();renderList();
+      setTimeout(()=>{closeBulkConnect();message('CRM connections saved. Next step: Push All to GitHub.')},550);
+    }catch(error){
+      status.className='status error';
+      status.textContent=`Unsuccessful: ${error.message||error}`;
+      message(`Unsuccessful: ${error.message||error}`,true);
+    }finally{
+      button.textContent='Save CRM Connections';
+      button.disabled=false;
+    }
+  }
 
-      status.textContent='CRM connections saved. Pushing folders to GitHub…';
+  async function pushBulkGithub(){
+    if(!bulkFiles.length)return;
+    const folders=[...bulkFolders().keys()];
+    const missing=folders.filter(folder=>!bulkFolderLinks[folder]);
+    if(missing.length||!bulkConnectionsSaved){openBulkConnect();return}
 
+    const action=document.getElementById('pushBulkGithub');
+    action.disabled=true;action.textContent='Pushing to GitHub…';
+    message('CRM connected. Pushing folders to GitHub…');
+
+    try{
       const form=new FormData();
       for(const file of bulkFiles){form.append('files',file,file.name);form.append('paths',bulkRelativePath(file))}
       const {data:sessionData}=await db.auth.getSession();
@@ -629,19 +693,12 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       if(!response.ok||data?.error)throw Error(data?.error||`Bulk publish failed (${response.status})`);
 
       const count=data.siteCount||folders.length;
-      status.className='status success';
-      status.textContent=`Success: ${count} site${count===1?'':'s'} connected to CRM and pushed to GitHub.`;
-
-      bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};
+      bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkConnectionsSaved=false;
       renderBulkQueue();renderList();
-      setTimeout(()=>{closeBulkConnect();message(`${count} site${count===1?'':'s'} connected and pushed successfully.`)},900);
+      message(`${count} site${count===1?'':'s'} pushed to GitHub successfully.`);
     }catch(error){
-      status.className='status error';
-      status.textContent=`Unsuccessful: ${error.message||error}`;
-      message(`Unsuccessful: ${error.message||error}`,true);
-    }finally{
-      button.textContent='Save Connections & Push';
-      button.disabled=false;
+      message(`GitHub push unsuccessful: ${error.message||error}`,true);
+      renderBulkQueue();
     }
   }
 
@@ -653,15 +710,15 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   document.getElementById('openBulkDrop').onclick=()=>{bulkPanel.hidden=!bulkPanel.hidden;if(!bulkPanel.hidden){renderBulkQueue();bulkPanel.scrollIntoView({behavior:'smooth',block:'start'})}};
   document.getElementById('chooseBulkFolders').onclick=()=>bulkPicker.click();
   bulkPicker.onchange=()=>{queueBulkFiles(bulkPicker.files);bulkPicker.value=''};
-  document.getElementById('clearBulkDrop').onclick=()=>{bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};renderBulkQueue();message('Local bulk queue cleared.')};
-  document.getElementById('pushBulkGithub').onclick=openBulkConnect;
+  document.getElementById('clearBulkDrop').onclick=()=>{bulkFiles=[];bulkFolderLinks={};bulkFolderSearch={};bulkConnectionsSaved=false;renderBulkQueue();message('Local bulk queue cleared.')};
+  document.getElementById('pushBulkGithub').onclick=()=>{const action=document.getElementById('pushBulkGithub');action.dataset.mode==='push'?pushBulkGithub():openBulkConnect()};
   bulkZone.ondragover=e=>{e.preventDefault();bulkZone.classList.add('dragging')};
   bulkZone.ondragleave=()=>bulkZone.classList.remove('dragging');
   bulkZone.ondrop=async e=>{e.preventDefault();bulkZone.classList.remove('dragging');try{queueBulkFiles(await dropped(e.dataTransfer))}catch(error){message(error.message,true)}};
 
   document.getElementById('closeBulkConnect').onclick=closeBulkConnect;
   document.getElementById('cancelBulkConnect').onclick=closeBulkConnect;
-  document.getElementById('confirmBulkPush').onclick=pushBulkGithub;
+  document.getElementById('confirmBulkPush').onclick=saveBulkCrmConnections;
   document.getElementById('bulkConnectModal').onclick=e=>{if(e.target.id==='bulkConnectModal')closeBulkConnect()};
   document.getElementById('bulkConnectList').oninput=e=>{
     const input=e.target.closest('[data-folder-search]');if(!input)return;
@@ -670,9 +727,24 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     const next=document.querySelector(`[data-folder-search="${CSS.escape(input.dataset.folderSearch)}"]`);
     if(next){next.focus();next.setSelectionRange(next.value.length,next.value.length)}
   };
-  document.getElementById('bulkConnectList').onclick=e=>{
+  document.getElementById('bulkConnectList').onclick=async e=>{
+    const addButton=e.target.closest('[data-add-new-crm]');
+    if(addButton){
+      const folder=addButton.dataset.addNewCrm,card=addButton.closest('[data-folder-card]');
+      addButton.disabled=true;addButton.textContent='Adding…';
+      try{
+        const lead=await addBulkCrmRecord(folder,card);
+        message(`${lead.company||folder} added to CRM.`);
+        renderBulkConnectModal();renderBulkQueue();
+      }catch(error){
+        message(`Could not add CRM record: ${error.message||error}`,true);
+        addButton.disabled=false;addButton.textContent='Add to CRM';
+      }
+      return;
+    }
     const button=e.target.closest('[data-folder-crm]');if(!button)return;
     bulkFolderLinks[button.dataset.folder]=button.dataset.folderCrm;
+    bulkConnectionsSaved=false;
     renderBulkConnectModal();renderBulkQueue();
   };
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('bulkConnectModal').hidden)closeBulkConnect()});

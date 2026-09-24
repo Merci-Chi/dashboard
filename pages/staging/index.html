@@ -31,8 +31,8 @@
     </div>
 
     <section class="import-panel" id="bulkDropPanel" hidden>
-      <h3>Bulk Drop to GitHub</h3>
-      <p>Drop multiple site folders here. They stay only in this browser until you push them to GitHub.</p>
+      <h3>Bulk Drop</h3>
+      <p>Drop multiple site folders here. First connect or add each business to CRM. After every folder is connected, you can push them to GitHub.</p>
       <div class="drop-zone bulk-drop-zone" id="bulkDropZone">
         <i class="bi bi-folder-plus"></i>
         <strong>Drop site folders here</strong>
@@ -43,7 +43,7 @@
       <div id="bulkDropList" class="file-list"><em>No folders queued.</em></div>
       <div class="import-row">
         <button class="btn secondary" id="clearBulkDrop" type="button">Clear Local Queue</button>
-        <button class="btn" id="pushBulkGithub" type="button" disabled>Push All to GitHub</button>
+        <button class="btn" id="pushBulkGithub" type="button" disabled>Add to CRM</button>
       </div>
     </section>
 
@@ -65,9 +65,9 @@
   <section class="bulk-connect-dialog" role="dialog" aria-modal="true" aria-labelledby="bulkConnectTitle">
     <div class="bulk-connect-titlebar">
       <div>
-        <span class="kicker">BEFORE GITHUB</span>
+        <span class="kicker">STEP 1 · CRM</span>
         <h2 id="bulkConnectTitle">Connect folders to CRM</h2>
-        <p>Every folder must be connected to an existing CRM record before it can be pushed.</p>
+        <p>Connect each folder to an existing CRM record. If the business is not in CRM yet, add a new record here first.</p>
       </div>
       <button class="bulk-connect-close" id="closeBulkConnect" type="button" aria-label="Close"><i class="bi bi-x-lg"></i></button>
     </div>
@@ -76,7 +76,7 @@
       <span class="status" id="bulkConnectStatus"></span>
       <div>
         <button class="btn secondary" id="cancelBulkConnect" type="button">Cancel</button>
-        <button class="btn" id="confirmBulkPush" type="button" disabled>Save Connections & Push</button>
+        <button class="btn" id="confirmBulkPush" type="button" disabled>Save CRM Connections</button>
       </div>
     </div>
   </section>
