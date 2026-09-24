@@ -445,3 +445,21 @@ h1 {
 
 .new-crm-actions{align-items:center}.new-crm-actions .tags-toggle-btn{min-width:92px}.new-crm-actions .tags-toggle-btn.active-choice{border-color:#73bdff;background:#0a3155;color:#fff}.tag-panel-after-actions{margin-top:10px}
 @media(max-width:720px){.new-crm-actions{display:grid;grid-template-columns:minmax(0,1fr) auto}.new-crm-actions .tags-toggle-btn{min-width:88px}}
+
+/* CRM source chips — values come from crm.sources in Supabase */
+.source-tag-chip{transition:.15s;border-width:1px;font-weight:850}
+.source-tag-chip i{font-size:12px}
+.source-tag-chip.source-facebook{border-color:#1877f2;background:#1877f222;color:#8fbdff}
+.source-tag-chip.source-instagram{border-color:#d62976;background:#d6297624;color:#ff9ac4}
+.source-tag-chip.source-nextdoor{border-color:#8ed500;background:#8ed5001e;color:#c9ff68}
+.source-tag-chip.source-googlemaps,.source-tag-chip.source-google{border-color:#4285f4;background:#4285f422;color:#9ec2ff}
+.source-tag-chip.source-yelp{border-color:#d32323;background:#d3232322;color:#ff9999}
+.source-tag-chip.source-linkedin{border-color:#0a66c2;background:#0a66c222;color:#8ec7ff}
+.source-tag-chip.source-tiktok{border-color:#69c9d0;background:#69c9d01b;color:#b8f8fb}
+.source-tag-chip.source-booksy{border-color:#8a5cff;background:#8a5cff22;color:#c8b7ff}
+.source-tag-chip.source-viewyoursite{border-color:#2f92ff;background:#2f92ff20;color:#9dceff}
+.source-tag-chip.source-waze{border-color:#33ccff;background:#33ccff1d;color:#a8edff}
+.source-tag-chip.source-yahoo{border-color:#720e9e;background:#720e9e2c;color:#d99cff}
+.source-tag-chip.source-referral{border-color:#fdb022;background:#fdb0221e;color:#ffd778}
+.source-tag-chip.source-other{border-color:#5b718a;background:#5b718a1f;color:#b8c8d8}
+.source-tag-chip.selected{box-shadow:0 0 0 2px rgba(255,255,255,.12) inset,0 0 0 1px currentColor;font-weight:900}

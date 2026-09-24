@@ -169,35 +169,53 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   const needsWebsite=lead=>!websiteReady(lead);
   const needsAdmin=lead=>websiteReady(lead)&&adminState(lead)!=='ready';
 
-  function existingTagOptions(){
+  function existingSourceOptions(){
     const map=new Map();
     for(const lead of leads){
-      for(const tag of (Array.isArray(lead?.tags)?lead.tags:[])){
-        const value=String(tag||'').trim();
+      for(const source of (Array.isArray(lead?.sources)?lead.sources:[])){
+        const value=String(source||'').trim();
         if(value&&!map.has(value.toLowerCase()))map.set(value.toLowerCase(),value);
       }
     }
     return [...map.values()].sort((a,b)=>a.localeCompare(b));
   }
 
-  function mergeTags(existing,selected){
+  function mergeSources(existing,selected){
     const out=[],seen=new Set();
     for(const value of [...(Array.isArray(existing)?existing:[]),...(Array.isArray(selected)?selected:[])]){
-      const tag=String(value||'').trim(),key=tag.toLowerCase();
-      if(tag&&!seen.has(key)){seen.add(key);out.push(tag)}
+      const source=String(value||'').trim(),key=source.toLowerCase();
+      if(source&&!seen.has(key)){seen.add(key);out.push(source)}
     }
     return out;
   }
 
-  function tagPickerHTML(selected=[],attrs=''){
-    const options=existingTagOptions();
-    if(!options.length)return '<div class="source-tag-empty">No existing CRM tags yet.</div>';
-    const chosen=new Set((selected||[]).map(v=>String(v).toLowerCase()));
-    return `<div class="source-tag-picker" ${attrs}>${options.map(tag=>`<button class="source-tag-chip ${chosen.has(tag.toLowerCase())?'selected':''}" type="button" data-tag-value="${esc(tag)}"><i class="bi ${chosen.has(tag.toLowerCase())?'bi-check-circle-fill':'bi-circle'}"></i>${esc(tag)}</button>`).join('')}</div>`;
+  function sourceClass(value){
+    const v=String(value||'').toLowerCase();
+    if(v.includes('facebook'))return 'source-facebook';
+    if(v.includes('instagram'))return 'source-instagram';
+    if(v.includes('nextdoor'))return 'source-nextdoor';
+    if(v.includes('google maps'))return 'source-googlemaps';
+    if(v==='google')return 'source-google';
+    if(v.includes('yelp'))return 'source-yelp';
+    if(v.includes('linkedin'))return 'source-linkedin';
+    if(v.includes('tiktok'))return 'source-tiktok';
+    if(v.includes('booksy'))return 'source-booksy';
+    if(v.includes('viewyoursite'))return 'source-viewyoursite';
+    if(v.includes('waze'))return 'source-waze';
+    if(v.includes('yahoo'))return 'source-yahoo';
+    if(v.includes('referral'))return 'source-referral';
+    return 'source-other';
   }
 
-  function toggleTag(list,tag){
-    const value=String(tag||'').trim();
+  function sourcePickerHTML(selected=[],attrs=''){
+    const options=existingSourceOptions();
+    if(!options.length)return '<div class="source-tag-empty">No existing CRM sources yet.</div>';
+    const chosen=new Set((selected||[]).map(v=>String(v).toLowerCase()));
+    return `<div class="source-tag-picker" ${attrs}>${options.map(source=>`<button class="source-tag-chip ${sourceClass(source)} ${chosen.has(source.toLowerCase())?'selected':''}" type="button" data-source-value="${esc(source)}"><i class="bi ${chosen.has(source.toLowerCase())?'bi-check-circle-fill':'bi-circle'}"></i>${esc(source)}</button>`).join('')}</div>`;
+  }
+
+  function toggleSource(list,source){
+    const value=String(source||'').trim();
     if(!value)return list;
     const index=list.findIndex(item=>String(item).toLowerCase()===value.toLowerCase());
     if(index>=0)list.splice(index,1);else list.push(value);
@@ -233,7 +251,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
   }
 
   function showList(){active=null;activeProject=null;document.getElementById('stagingDirectory').hidden=false;document.getElementById('stagingDetail').hidden=true;renderList();window.scrollTo({top:0,behavior:'smooth'})}
-  function openLead(id){active=leads.find(lead=>String(lead.id)===String(id));if(!active)return;activeProject=projectFor(active);crmConnectSelectedId=String(activeProject?.lead_id||active.id||'');crmConnectQuery='';crmConnectTags=[...(Array.isArray(active.tags)?active.tags:[])];crmNewMode=false;crmNewDraft={company:'',name:'',phone:'',email:''};crmNewTagsOpen=false;document.getElementById('stagingDirectory').hidden=true;document.getElementById('stagingDetail').hidden=false;renderDetail();window.scrollTo({top:0,behavior:'smooth'})}
+  function openLead(id){active=leads.find(lead=>String(lead.id)===String(id));if(!active)return;activeProject=projectFor(active);crmConnectSelectedId=String(activeProject?.lead_id||active.id||'');crmConnectQuery='';crmConnectTags=[...(Array.isArray(active.sources)?active.sources:[])];crmNewMode=false;crmNewDraft={company:'',name:'',phone:'',email:''};crmNewTagsOpen=false;document.getElementById('stagingDirectory').hidden=true;document.getElementById('stagingDetail').hidden=false;renderDetail();window.scrollTo({top:0,behavior:'smooth'})}
 
   function currentSiteKey(){return String(activeProject?.sitekey||active?.sitekey||slug(active?.company)||'').trim()}
   function currentPreview(){
@@ -299,8 +317,8 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
             </div>
             ${crmNewTagsOpen?`<div class="source-tag-block tag-panel-after-actions">
               <strong>Where was this lead found?</strong>
-              <small>Choose from tags already used in the CRM.</small>
-              ${tagPickerHTML(crmConnectTags,'data-single-tag-picker')}
+              <small>Choose from sources already used in the CRM.</small>
+              ${sourcePickerHTML(crmConnectTags,'data-single-tag-picker')}
             </div>`:''}
           </div>
         `:`
@@ -323,9 +341,9 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
           </div>
 
           <div class="source-tag-block">
-            <strong>Add source tags</strong>
-            <small>These are existing CRM tags. Selected tags will be added to the CRM record when you connect it.</small>
-            ${tagPickerHTML(crmConnectTags,'data-single-tag-picker')}
+            <strong>Add sources</strong>
+            <small>These are the source values already used in Supabase CRM. Selected sources will be added to the CRM record when you connect it.</small>
+            ${sourcePickerHTML(crmConnectTags,'data-single-tag-picker')}
           </div>
 
           <div class="crm-connect-actions">
@@ -348,7 +366,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       name:String(crmNewDraft.name||'').trim(),
       phone:String(crmNewDraft.phone||'').trim(),
       email:String(crmNewDraft.email||'').trim(),
-      tags:mergeTags([],crmConnectTags),
+      sources:mergeSources([],crmConnectTags),
       updated:now
     };
     const {data,error}=await db.from('crm').insert(payload).select().single();
@@ -435,17 +453,17 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       adminurl:admin
     });
 
-    const mergedTags=mergeTags(target.tags,crmConnectTags);
+    const mergedSources=mergeSources(target.sources,crmConnectTags);
     const {error:crmError}=await db.from('crm').update({
       sitekey:key,
       previewurl:preview,
-      tags:mergedTags,
+      sources:mergedSources,
       updated:new Date().toISOString()
     }).eq('id',target.id);
     if(crmError)throw crmError;
 
     Object.assign(project,{lead_id:target.id,crmid:target.id,sitekey:key,previewurl:preview,adminurl:admin});
-    Object.assign(target,{sitekey:key,previewurl:preview,tags:mergedTags});
+    Object.assign(target,{sitekey:key,previewurl:preview,sources:mergedSources});
 
     if(connectionStatus){
       connectionStatus.className='connection-status working';
@@ -673,7 +691,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       const selectedId=bulkFolderLinks[folder]||'',selected=leads.find(lead=>String(lead.id)===String(selectedId)),matches=bulkLeadMatches(folder);
       const newMode=Boolean(bulkFolderNewMode[folder]);
       const draft=bulkFolderNewDraft[folder]||{company:folder.replace(/-/g,' '),name:'',phone:'',email:''};
-      const selectedTags=bulkFolderTags[folder]||(selected&&Array.isArray(selected.tags)?[...selected.tags]:[]);
+      const selectedTags=bulkFolderTags[folder]||(selected&&Array.isArray(selected.sources)?[...selected.sources]:[]);
       return `<section class="folder-connect-card">
         <div class="folder-connect-head"><div><strong>${esc(folder)}</strong><small>${files.length} file${files.length===1?'':'s'} · https://viewyoursite.today/Sites/${esc(folder)}/</small></div><span class="folder-connect-state ${selected?'connected':''}">${selected?'Connected':newMode?'New CRM':'Choose CRM'}</span></div>
 
@@ -696,17 +714,17 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
             </div>
             ${bulkFolderTagsOpen[folder]?`<div class="source-tag-block tag-panel-after-actions">
               <strong>Where was this lead found?</strong>
-              <small>Choose from tags already used in the CRM.</small>
-              ${tagPickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`)}
+              <small>Choose from sources already used in the CRM.</small>
+              ${sourcePickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`)}
             </div>`:''}
           </div>
         `:`
           <label class="folder-crm-search"><i class="bi bi-search"></i><input type="search" data-folder-search="${esc(folder)}" value="${esc(bulkFolderSearch[folder]||'')}" placeholder="Search CRM by business, name, phone, or email…"></label>
           <div class="folder-crm-results">${matches.length?matches.map(lead=>{const chosen=String(lead.id)===String(selectedId);return `<button class="folder-crm-option ${chosen?'selected':''}" type="button" data-folder="${esc(folder)}" data-folder-crm="${esc(lead.id)}"><span><strong>${esc(lead.company||'Unnamed business')}</strong><small>${esc([lead.name,lead.phone,lead.email].filter(Boolean).join(' · ')||'No contact information')}</small></span><i class="bi ${chosen?'bi-check-circle-fill':'bi-circle'}"></i></button>`}).join(''):'<div class="crm-connect-empty">No CRM records match this search.</div>'}</div>
           <div class="source-tag-block">
-            <strong>Add source tags</strong>
-            <small>Selected tags will be added to the CRM record when the connection is saved.</small>
-            ${tagPickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`)}
+            <strong>Add sources</strong>
+            <small>Selected sources will be added to the CRM record when the connection is saved.</small>
+            ${sourcePickerHTML(selectedTags,`data-folder-tag-picker="${esc(folder)}"`)}
           </div>
         `}
       </section>`;
@@ -721,19 +739,19 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     const draft=bulkFolderNewDraft[folder]||{};
     const company=String(draft.company||'').trim();
     if(!company)throw Error(`Business name is required for ${folder}.`);
-    const tags=mergeTags([],bulkFolderTags[folder]||[]);
+    const sources=mergeSources([],bulkFolderTags[folder]||[]);
     const {data,error}=await db.from('crm').insert({
       company,
       name:String(draft.name||'').trim(),
       phone:String(draft.phone||'').trim(),
       email:String(draft.email||'').trim(),
-      tags,
+      sources,
       updated:new Date().toISOString()
     }).select().single();
     if(error)throw error;
     leads.push(data);
     bulkFolderLinks[folder]=data.id;
-    bulkFolderTags[folder]=[...(Array.isArray(data.tags)?data.tags:[])];
+    bulkFolderTags[folder]=[...(Array.isArray(data.sources)?data.sources:[])];
     bulkFolderNewMode[folder]=false;
     bulkFolderTagsOpen[folder]=false;
     bulkConnectionsSaved=false;
@@ -763,10 +781,10 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       projects.push(project);
     }
 
-    const mergedTags=mergeTags(lead.tags,bulkFolderTags[folder]||[]);
-    const {error}=await db.from('crm').update({sitekey:folder,previewurl:preview,tags:mergedTags,updated:new Date().toISOString()}).eq('id',lead.id);
+    const mergedSources=mergeSources(lead.sources,bulkFolderTags[folder]||[]);
+    const {error}=await db.from('crm').update({sitekey:folder,previewurl:preview,sources:mergedSources,updated:new Date().toISOString()}).eq('id',lead.id);
     if(error)throw error;
-    Object.assign(lead,{sitekey:folder,previewurl:preview,tags:mergedTags});
+    Object.assign(lead,{sitekey:folder,previewurl:preview,sources:mergedSources});
   }
 
   async function saveBulkCrmConnections(){
@@ -779,7 +797,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     button.disabled=true;
     button.textContent='Saving CRM…';
     status.className='status';
-    status.textContent='Saving CRM connections and source tags…';
+    status.textContent='Saving CRM connections and sources…';
 
     try{
       for(const folder of folders)await saveBulkConnection(folder,bulkFolderLinks[folder]);
@@ -890,11 +908,11 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
       bulkFolderTagsOpen[folder]=!bulkFolderTagsOpen[folder];
       renderBulkConnectModal();return
     }
-    const tag=e.target.closest('[data-folder-tag-picker] [data-tag-value]');
+    const tag=e.target.closest('[data-folder-tag-picker] [data-source-value]');
     if(tag){
       const picker=tag.closest('[data-folder-tag-picker]'),folder=picker.dataset.folderTagPicker;
       bulkFolderTags[folder]=bulkFolderTags[folder]||[];
-      toggleTag(bulkFolderTags[folder],tag.dataset.tagValue);
+      toggleSource(bulkFolderTags[folder],tag.dataset.sourceValue);
       bulkConnectionsSaved=false;
       renderBulkConnectModal();return
     }
@@ -908,7 +926,7 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     bulkFolderLinks[button.dataset.folder]=button.dataset.folderCrm;
     bulkConnectionsSaved=false;
     const lead=leads.find(item=>String(item.id)===String(button.dataset.folderCrm));
-    bulkFolderTags[button.dataset.folder]=[...(Array.isArray(lead?.tags)?lead.tags:[])];
+    bulkFolderTags[button.dataset.folder]=[...(Array.isArray(lead?.sources)?lead.sources:[])];
     renderBulkConnectModal();renderBulkQueue();
   };
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('bulkConnectModal').hidden)closeBulkConnect()});
@@ -934,11 +952,11 @@ const listEl=document.getElementById('stagingList'),status=document.getElementBy
     if(b.hasAttribute('data-existing-crm')){crmNewMode=false;crmNewTagsOpen=false;renderDetail();return}
     if(b.hasAttribute('data-new-crm')){crmNewMode=true;crmConnectSelectedId='';crmConnectTags=[];crmNewTagsOpen=false;renderDetail();return}
     if(b.hasAttribute('data-toggle-new-crm-tags')){crmNewTagsOpen=!crmNewTagsOpen;renderDetail();return}
-    if(b.closest('[data-single-tag-picker]')&&b.hasAttribute('data-tag-value')){toggleTag(crmConnectTags,b.dataset.tagValue);renderDetail();return}
+    if(b.closest('[data-single-tag-picker]')&&b.hasAttribute('data-tag-value')){toggleSource(crmConnectTags,b.dataset.sourceValue);renderDetail();return}
     if(b.hasAttribute('data-crm-select')){
       crmConnectSelectedId=b.dataset.crmSelect;
       const selectedLead=leads.find(lead=>String(lead.id)===String(crmConnectSelectedId));
-      crmConnectTags=[...(Array.isArray(selectedLead?.tags)?selectedLead.tags:[])];
+      crmConnectTags=[...(Array.isArray(selectedLead?.sources)?selectedLead.sources:[])];
       renderDetail();
       return;
     }
