@@ -13,44 +13,52 @@
       <div>
         <span class="kicker">KIARA ACCESS</span>
         <h1>Clients</h1>
-        <p class="subtitle">View client progress, purchases, hosting, websites, and agreements.</p>
+        <p class="subtitle">Manage agreements, the $100 development payment, hosting plans, and client details.</p>
       </div>
       <button class="btn secondary page-unlock-btn" id="unlockClientsPage" type="button" aria-pressed="false">
         <i class="bi bi-lock-fill"></i> Unlock clients
       </button>
     </header>
 
-    <div class="toolbar">
-      <div class="filters" id="clientFilters" role="group" aria-label="Client filters">
-        <button class="filter-btn active" type="button" data-filter="all">All <span data-count="all">0</span></button>
-        <button class="filter-btn" type="button" data-filter="agreement">Signed Agreement <span data-count="agreement">0</span></button>
-        <button class="filter-btn" type="button" data-filter="development">Paid $100 <span data-count="development">0</span></button>
-        <button class="filter-btn" type="button" data-filter="standard">Standard Hosting <span data-count="standard">0</span></button>
-        <button class="filter-btn" type="button" data-filter="backend">Backend Hosting <span data-count="backend">0</span></button>
+    <section class="toolbar card">
+      <div class="toolbar-row">
+        <div class="filter-pills" id="filterPills"></div>
+        <label class="search-box">
+          <i class="bi bi-search"></i>
+          <input id="searchInput" type="search" placeholder="Search clients..." autocomplete="off">
+        </label>
       </div>
-      <label class="search-box">
-        <i class="bi bi-search"></i>
-        <input id="clientSearch" type="search" placeholder="Search clients..." autocomplete="off">
-      </label>
-    </div>
+      <div class="toolbar-row toolbar-subrow">
+        <div class="selection-summary" id="selectionSummary">No clients selected.</div>
+        <div class="selection-actions">
+          <button class="btn secondary" id="clearSelectionButton" type="button">Clear selection</button>
+        </div>
+      </div>
+    </section>
 
     <div class="status" id="status"></div>
 
-    <section class="client-table-shell" aria-label="Clients">
-      <div class="client-table-head">
-        <span>Client</span>
-        <span>Email</span>
-        <span>Agreement</span>
-        <span>$100 Dev</span>
-        <span>Standard</span>
-        <span>Backend</span>
-        <span>Status</span>
-        <span></span>
+    <section class="board card">
+      <div class="table-scroll">
+        <table class="client-table">
+          <thead>
+            <tr>
+              <th class="check-col"><input id="selectAllRows" type="checkbox" aria-label="Select all visible clients"></th>
+              <th>Client</th>
+              <th>Email</th>
+              <th>Agreement</th>
+              <th>$100 Dev</th>
+              <th>Standard</th>
+              <th>Backend</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
       </div>
-      <div id="clientList"></div>
     </section>
 
-    <section class="detail-shell" id="clientDetail" hidden></section>
+    <section class="details-wrap" id="detailsWrap"></section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

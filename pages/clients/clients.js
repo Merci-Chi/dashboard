@@ -1,254 +1,909 @@
 (() => {
-const SUPABASE_URL='https://glonbvrcudwuzjundrii.supabase.co';
-const SUPABASE_KEY='sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr';
-let clientsClient=null;
-const esc=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
-const same=(a,b)=>a&&b&&String(a).toLowerCase()===String(b).toLowerCase();
-const upper=v=>String(v||'').toUpperCase();
-const money=(a,c='USD')=>new Intl.NumberFormat(undefined,{style:'currency',currency:c||'USD'}).format(Number(a||0)/100);
-const date=v=>v?new Intl.DateTimeFormat(undefined,{dateStyle:'medium'}).format(new Date(v)):'—';
-const fullDate=v=>v?new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date(v)):'—';
-const initials=name=>String(name||'Client').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+  const SUPABASE_URL = 'https://glonbvrcudwuzjundrii.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr';
 
-async function initClientsClient(){
-  if(!clientsClient&&window.parent!==window)clientsClient=window.parent.supabaseClient||null;
-  if(!clientsClient){
-    if(!window.supabase?.createClient)throw Error('Supabase library did not load.');
-    clientsClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  let clientsClient = null;
+  let clients = [];
+  let filteredClients = [];
+  let selectedIds = new Set();
+  let focusedId = '';
+  let activeFilter = 'all';
+  let searchText = '';
+  let pageUnlocked = sessionStorage.getItem('steadyhands_clients_page_unlocked') === '1';
+  let progressTableAvailable = true;
+  const saveTimers = new Map();
+
+  const root = document.getElementById('tableBody');
+  const status = document.getElementById('status');
+  const detailsWrap = document.getElementById('detailsWrap');
+  const filterPills = document.getElementById('filterPills');
+  const searchInput = document.getElementById('searchInput');
+  const clearSelectionButton = document.getElementById('clearSelectionButton');
+  const selectionSummary = document.getElementById('selectionSummary');
+  const unlockPageBtn = document.getElementById('unlockClientsPage');
+  const selectAllRows = document.getElementById('selectAllRows');
+
+  const FILTERS = [
+    { key: 'all', label: 'All' },
+    { key: 'agreement', label: 'Signed Agreement' },
+    { key: 'development', label: 'Paid $100' },
+    { key: 'standard', label: 'Standard Hosting' },
+    { key: 'backend', label: 'Backend Hosting' }
+  ];
+
+  const esc = value => String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+  }[char]));
+
+  const normalizeEmail = value => String(value || '').trim().toLowerCase();
+  const sameEmail = (a, b) => normalizeEmail(a) && normalizeEmail(a) === normalizeEmail(b);
+  const upper = value => String(value || '').toUpperCase();
+  const lower = value => String(value || '').toLowerCase();
+  const money = (amount, currency = 'USD') => new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amount || 0) / 100);
+  const dateOnly = value => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value)) : '-';
+  const dateTime = value => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+  const placeholder = () => '<span class="muted-dash">-</span>';
+
+  function initials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'C';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
-  const {data}=await clientsClient.auth.getSession();
-  if(!data.session)throw Error('Sign in to the main dashboard first.');
-  return clientsClient;
-}
 
-async function authClient(){
-  const c=await initClientsClient();
-  const {data}=await c.auth.getSession();
-  if(!data?.session?.user?.email)throw Error('Your login session expired. Please sign in again.');
-  return{c,email:data.session.user.email};
-}
-async function verifyPassword(password){
-  if(!password)throw Error('Password is required.');
-  const{c,email}=await authClient();
-  const{error}=await c.auth.signInWithPassword({email,password});
-  if(error)throw Error('Incorrect password.');
-  return c;
-}
+  async function initClientsClient() {
+    if (!clientsClient && window.parent !== window) {
+      clientsClient = window.parent.supabaseClient || null;
+    }
 
-async function listRows(table,select='*',order='created'){
-  const client=await initClientsClient();
-  const {data,error}=await client.from(table).select(select).order(order,{ascending:false});
-  if(error)throw error;
-  return data||[];
-}
-async function listSites(){return listRows('sites');}
-async function listAgreements(){return listRows('agreements','*','signed');}
-async function listBilling(){return listRows('square','*, payments(*)');}
-async function listProgress(){
-  const client=await initClientsClient();
-  const {data,error}=await client.from('client_portal_progress').select('*');
-  if(error){
-    if(String(error.message||'').toLowerCase().includes('client_portal_progress'))return[];
-    throw error;
+    if (!clientsClient) {
+      if (!window.supabase?.createClient) throw new Error('Supabase library did not load.');
+      clientsClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+      });
+    }
+
+    const { data } = await clientsClient.auth.getSession();
+    if (!data.session) throw new Error('Sign in to the main dashboard first.');
+    return clientsClient;
   }
-  return data||[];
-}
 
-const root=document.getElementById('clientList');
-const detail=document.getElementById('clientDetail');
-const status=document.getElementById('status');
-const unlockPageBtn=document.getElementById('unlockClientsPage');
-const filters=document.getElementById('clientFilters');
-const searchInput=document.getElementById('clientSearch');
-const CLIENTS_UNLOCK_KEY='steadyhands_clients_page_unlocked';
-let pageUnlocked=sessionStorage.getItem(CLIENTS_UNLOCK_KEY)==='1';
-let clients=[];
-let activeFilter='all';
-let searchTerm='';
-let selectedKey='';
-let saveTimers=new Map();
+  async function getSessionUser() {
+    const client = await initClientsClient();
+    const { data } = await client.auth.getSession();
+    if (!data?.session?.user) throw new Error('Your login session expired. Please sign in again.');
+    return data.session.user;
+  }
 
-function syncUnlockUI(){
-  unlockPageBtn.innerHTML=pageUnlocked?'<i class="bi bi-unlock-fill"></i> Clients unlocked':'<i class="bi bi-lock-fill"></i> Unlock clients';
-  unlockPageBtn.classList.toggle('unlocked',pageUnlocked);
-  unlockPageBtn.setAttribute('aria-pressed',pageUnlocked?'true':'false');
-}
-async function unlockClientsPage(){
-  if(pageUnlocked)return true;
-  const password=prompt('Enter your password to unlock the Clients page for this session:');
-  if(password===null)return false;
-  status.className='status';status.textContent='Checking password…';
-  await verifyPassword(password);
-  pageUnlocked=true;sessionStorage.setItem(CLIENTS_UNLOCK_KEY,'1');status.textContent='';syncUnlockUI();render();return true;
-}
+  async function verifyPassword(password) {
+    if (!password) throw new Error('Password is required.');
+    const client = await initClientsClient();
+    const user = await getSessionUser();
+    const { error } = await client.auth.signInWithPassword({ email: user.email, password });
+    if (error) throw new Error('Incorrect password.');
+    return client;
+  }
 
-function getPlanKind(row){
-  const key=String(row?.original?.plankey||'').toLowerCase();
-  const plan=String(row?.plan||'').toLowerCase();
-  const cadence=upper(row?.cadence);
-  const amount=Number(row?.amount||0);
-  if(cadence==='ONE_TIME'&&(key==='website-development'||amount===10000||plan.includes('website development')))return'development';
-  if(plan.includes('backend')||key.includes('backend'))return'backend';
-  if(plan.includes('standard')||key.includes('standard'))return'standard';
-  return cadence==='MONTHLY'?'hosting':'other';
-}
-function isCompletedPayment(row){return upper(row?.status)==='COMPLETED'||(row?.payments||[]).some(p=>upper(p.status)==='COMPLETED');}
-function isActiveHosting(row){return['ACTIVE','PAID'].includes(upper(row?.status));}
+  async function unlockClientsPage() {
+    if (pageUnlocked) return true;
+    const password = prompt('Enter your password to unlock the Clients page for this session:');
+    if (password === null) return false;
+    status.className = 'status';
+    status.textContent = 'Checking password…';
+    await verifyPassword(password);
+    pageUnlocked = true;
+    sessionStorage.setItem('steadyhands_clients_page_unlocked', '1');
+    status.textContent = '';
+    syncUnlockUI();
+    render();
+    return true;
+  }
 
-function buildClients(sites,billing,agreements,progressRows){
-  const map=new Map();
-  const progressByUser=new Map(progressRows.map(r=>[String(r.user_id),r]));
-  function ensure(key,seed={}){
-    if(!map.has(key))map.set(key,{key,userId:'',company:'',contactName:'',email:'',phone:'',agreements:[],billing:[],sites:[],progress:null,clientData:{},...seed});
+  function syncUnlockUI() {
+    if (!unlockPageBtn) return;
+    unlockPageBtn.innerHTML = pageUnlocked
+      ? '<i class="bi bi-unlock-fill"></i> Clients unlocked'
+      : '<i class="bi bi-lock-fill"></i> Unlock clients';
+    unlockPageBtn.classList.toggle('unlocked', pageUnlocked);
+    unlockPageBtn.setAttribute('aria-pressed', pageUnlocked ? 'true' : 'false');
+  }
+
+  function normalizeProject(row) {
+    return {
+      ...row,
+      lead_id: row.crmid || '',
+      contactName: row.original?.contact_name || row.name || '',
+      company: row.company || row.name || 'Client',
+      email: row.original?.email || row.email || '',
+      phone: row.original?.phone || row.phone || '',
+      clientData: row.returndata || {},
+      created_at: row.created,
+      updated_at: row.updated
+    };
+  }
+
+  async function listClientProjects() {
+    const client = await initClientsClient();
+    const { data, error } = await client.from('sites').select('*').in('stage', ['client']).order('created', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(normalizeProject);
+  }
+
+  async function listBilling() {
+    const client = await initClientsClient();
+    const { data, error } = await client
+      .from('square')
+      .select('*, payments(*)')
+      .in('status', ['ACTIVE', 'CANCELED', 'PAUSED', 'DEACTIVATED', 'PENDING', 'COMPLETED'])
+      .order('created', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(row => ({
+      ...row,
+      user_id: row.userid,
+      site_project_id: row.crmid,
+      customer_email: row.email,
+      customer_phone: row.phone,
+      customer_name: row.name,
+      customer_company: row.company,
+      plan_name: row.plan,
+      amount_money: row.amount,
+      billing_cadence: row.cadence,
+      start_date: row.startdate,
+      canceled_date: row.canceled,
+      charged_through_date: row.chargedthrough,
+      payment_history: (row.payments || []).map(payment => ({
+        ...payment,
+        paid_at: payment.paid,
+        card_brand: payment.card,
+        card_last_4: payment.lastfour,
+        receipt_url: payment.receipt,
+        amount_money: payment.amount,
+        created_at: payment.created
+      }))
+    }));
+  }
+
+  async function listAgreements() {
+    const client = await initClientsClient();
+    const { data, error } = await client.from('agreements').select('*').order('signed', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(row => ({
+      ...row,
+      user_id: row.userid,
+      signer_name: row.name,
+      business_name: row.company,
+      signer_email: row.email,
+      electronic_signature: row.signature,
+      plan_label: row.plan,
+      terms_version: row.terms,
+      agreement_snapshot: row.document,
+      signed_at: row.signed,
+      created_at: row.created
+    }));
+  }
+
+  async function listManagedSites() {
+    const client = await initClientsClient();
+    const { data, error } = await client.from('sites').select('*').order('created', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function listProgressOverrides() {
+    const client = await initClientsClient();
+    const { data, error } = await client.from('client_portal_progress').select('*');
+    if (error) {
+      progressTableAvailable = false;
+      return [];
+    }
+    progressTableAvailable = true;
+    return data || [];
+  }
+
+  async function updateClientProject(id, changes) {
+    const client = await initClientsClient();
+    const row = { updated: new Date().toISOString() };
+    if ('status' in changes) row.stage = changes.status;
+    if ('clientData' in changes) row.returndata = changes.clientData;
+    const { error } = await client.from('sites').update(row).eq('id', id);
+    if (error) throw error;
+  }
+
+  async function saveManagedSite({ userId, siteName, siteKey, publicUrl, adminUrl, domainName, domainActive }) {
+    const client = await initClientsClient();
+    const sourceid = `portal:${userId}:${siteKey}`;
+    const row = {
+      userid: userId,
+      source: 'portal',
+      sourceid,
+      sitekey: siteKey,
+      name: siteName,
+      previewurl: publicUrl || null,
+      liveurl: publicUrl || null,
+      adminurl: adminUrl || null,
+      domain: domainName || null,
+      domainstatus: domainActive ? 'active' : 'inactive',
+      stage: 'active',
+      updated: new Date().toISOString()
+    };
+    const { data, error } = await client.from('sites').upsert(row, { onConflict: 'source,sourceid' }).select().single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function saveProgressOverride(clientRow) {
+    if (!clientRow.clientUserId) throw new Error('This client needs a linked user account first.');
+    if (!progressTableAvailable) throw new Error('The client progress table is not available yet. Run the SQL first.');
+    const client = await initClientsClient();
+    const user = await getSessionUser();
+    const row = {
+      user_id: clientRow.clientUserId,
+      agreement_signed: clientRow.progressOverride.agreement_signed,
+      development_paid: clientRow.progressOverride.development_paid,
+      standard_hosting: clientRow.progressOverride.standard_hosting,
+      backend_hosting: clientRow.progressOverride.backend_hosting,
+      updated_by: user.id,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await client.from('client_portal_progress').upsert(row, { onConflict: 'user_id' });
+    if (error) throw error;
+  }
+
+  async function deleteClient(clientRow, password, typedEmail) {
+    const expected = normalizeEmail(clientRow.email);
+    if (!expected) throw new Error('This client does not have an email on file, so deletion is blocked.');
+    if (normalizeEmail(typedEmail) !== expected) throw new Error('The client email does not match exactly.');
+
+    const client = await verifyPassword(password);
+    const jobs = [];
+
+    if (clientRow.managedSite?.id && String(clientRow.managedSite.id) !== String(clientRow.project?.id || '')) {
+      jobs.push(client.from('sites').delete().eq('id', clientRow.managedSite.id));
+    }
+
+    if (clientRow.project?.id) jobs.push(client.from('sites').delete().eq('id', clientRow.project.id));
+    if (clientRow.agreement?.id) jobs.push(client.from('agreements').delete().eq('id', clientRow.agreement.id));
+    (clientRow.billingRows || []).forEach(row => jobs.push(client.from('square').delete().eq('id', row.id)));
+
+    if (!jobs.length) throw new Error('No removable client record was found.');
+    const results = await Promise.all(jobs);
+    const failed = results.find(result => result.error);
+    if (failed?.error) throw new Error(failed.error.message || 'Could not delete this client.');
+  }
+
+  function isDevBillingRow(row) {
+    const plan = lower(row.plan_name);
+    const cadence = upper(row.billing_cadence);
+    return cadence === 'ONE_TIME' || Number(row.amount_money || 0) === 10000 || plan.includes('website development') || plan.includes('$100');
+  }
+
+  function isStandardBillingRow(row) {
+    return lower(row.plan_name).includes('standard');
+  }
+
+  function isBackendBillingRow(row) {
+    return lower(row.plan_name).includes('backend');
+  }
+
+  function isHostingActive(row) {
+    return ['ACTIVE', 'PENDING'].includes(upper(row.status));
+  }
+
+  function isDevelopmentPaid(row) {
+    if (!row) return false;
+    if (upper(row.status) === 'COMPLETED') return true;
+    return (row.payment_history || []).some(payment => upper(payment.status) === 'COMPLETED');
+  }
+
+  function mergeBool(actual, overrideValue) {
+    return typeof overrideValue === 'boolean' ? overrideValue : actual;
+  }
+
+  function clientStatus(clientRow) {
+    if (clientRow.progress.backend) return { label: 'Active Client', cls: 'good' };
+    if (clientRow.progress.standard) return { label: 'Active Client', cls: 'good' };
+    if (clientRow.progress.development) return { label: 'Development Paid', cls: 'info' };
+    if (clientRow.progress.agreement) return { label: 'Agreement Signed', cls: 'warn' };
+    return { label: 'Client', cls: 'info' };
+  }
+
+  function attachDerivedData(clientRow) {
+    const progressOverride = clientRow.progressOverride || {};
+    const devRow = (clientRow.billingRows || []).find(isDevBillingRow) || null;
+    const standardRow = (clientRow.billingRows || []).find(row => isStandardBillingRow(row) && isHostingActive(row)) || null;
+    const backendRow = (clientRow.billingRows || []).find(row => isBackendBillingRow(row) && isHostingActive(row)) || null;
+    const agreementActual = !!clientRow.agreement;
+    const developmentActual = isDevelopmentPaid(devRow);
+    const standardActual = !!standardRow;
+    const backendActual = !!backendRow;
+
+    clientRow.progress = {
+      agreement: mergeBool(agreementActual, progressOverride.agreement_signed),
+      development: mergeBool(developmentActual, progressOverride.development_paid),
+      standard: mergeBool(standardActual, progressOverride.standard_hosting),
+      backend: mergeBool(backendActual, progressOverride.backend_hosting)
+    };
+
+    clientRow.progressDates = {
+      agreement: clientRow.agreement?.signed_at || '',
+      development: devRow?.lastpayment || devRow?.created_at || (devRow?.payment_history || []).find(payment => upper(payment.status) === 'COMPLETED')?.paid_at || '',
+      standard: standardRow?.charged_through_date || standardRow?.created_at || '',
+      backend: backendRow?.charged_through_date || backendRow?.created_at || ''
+    };
+
+    clientRow.activeSubscription = backendRow || standardRow || (clientRow.billingRows || []).find(row => !isDevBillingRow(row)) || null;
+    clientRow.developmentRow = devRow;
+    clientRow.standardRow = standardRow;
+    clientRow.backendRow = backendRow;
+    clientRow.statusBadge = clientStatus(clientRow);
+  }
+
+  function buildClientKey(parts) {
+    if (parts.userId) return `user:${parts.userId}`;
+    if (parts.email) return `email:${normalizeEmail(parts.email)}`;
+    if (parts.projectId) return `project:${parts.projectId}`;
+    return `misc:${Math.random().toString(36).slice(2)}`;
+  }
+
+  function ensureClient(map, parts) {
+    const key = buildClientKey(parts);
+    if (!map.has(key)) {
+      map.set(key, {
+        id: key,
+        key,
+        company: 'Client',
+        contactName: '',
+        email: '',
+        phone: '',
+        project: null,
+        agreement: null,
+        billingRows: [],
+        managedSite: null,
+        clientData: {},
+        progressOverride: {},
+        clientUserId: parts.userId || ''
+      });
+    }
     return map.get(key);
   }
-  const keyFor=(userId,email,fallback)=>userId?`u:${userId}`:email?`e:${String(email).toLowerCase()}`:fallback;
 
-  agreements.forEach(a=>{
-    const key=keyFor(a.userid,a.email,`a:${a.id}`);const x=ensure(key);x.userId=x.userId||a.userid||'';x.company=x.company||a.company||'';x.contactName=x.contactName||a.name||'';x.email=x.email||a.email||'';x.agreements.push(a);
-  });
-  billing.forEach(b=>{
-    const key=keyFor(b.userid,b.email,`b:${b.id}`);const x=ensure(key);x.userId=x.userId||b.userid||'';x.company=x.company||b.company||b.name||'';x.contactName=x.contactName||b.name||'';x.email=x.email||b.email||'';x.phone=x.phone||b.phone||'';x.billing.push(b);
-  });
-  sites.forEach(s=>{
-    const key=keyFor(s.userid,s.email||s.original?.email,`s:${s.id}`);const x=ensure(key);x.userId=x.userId||s.userid||'';x.company=x.company||s.company||s.name||'';x.contactName=x.contactName||s.original?.contact_name||'';x.email=x.email||s.email||s.original?.email||'';x.phone=x.phone||s.phone||s.original?.phone||'';x.sites.push(s);if(s.returndata&&Object.keys(s.returndata).length)x.clientData={...x.clientData,...s.returndata};
-  });
+  async function load() {
+    try {
+      status.className = 'status';
+      status.textContent = 'Loading clients…';
 
-  for(const x of map.values()){
-    if(x.userId)x.progress=progressByUser.get(String(x.userId))||null;
-    x.agreement=[...x.agreements].sort((a,b)=>new Date(b.signed||b.created)-new Date(a.signed||a.created))[0]||null;
-    x.development=x.billing.find(r=>getPlanKind(r)==='development'&&isCompletedPayment(r))||null;
-    x.standard=x.billing.find(r=>getPlanKind(r)==='standard'&&isActiveHosting(r))||null;
-    x.backend=x.billing.find(r=>getPlanKind(r)==='backend'&&isActiveHosting(r))||null;
-    x.hasAgreement=x.progress?.agreement_signed ?? Boolean(x.agreement?.accepted!==false&&x.agreement);
-    x.hasDevelopment=x.progress?.development_paid ?? Boolean(x.development);
-    x.hasStandard=x.progress?.standard_hosting ?? Boolean(x.standard);
-    x.hasBackend=x.progress?.backend_hosting ?? Boolean(x.backend);
-    x.firstDate=[x.agreement?.signed,x.development?.lastpayment,x.standard?.created,x.backend?.created,...x.sites.map(s=>s.created)].filter(Boolean).sort()[0]||'';
-    x.lastDate=[...x.billing.map(b=>b.updated||b.created),...x.sites.map(s=>s.updated||s.created),x.agreement?.signed].filter(Boolean).sort().at(-1)||'';
-    x.primarySite=x.sites[0]||null;
+      const [projects, billing, agreements, managedSites, progressRows] = await Promise.all([
+        listClientProjects(),
+        listBilling(),
+        listAgreements(),
+        listManagedSites(),
+        listProgressOverrides().catch(() => [])
+      ]);
+
+      const map = new Map();
+      const progressByUser = new Map(progressRows.map(row => [String(row.user_id), row]));
+
+      projects.forEach(project => {
+        const row = ensureClient(map, { userId: project.userid, email: project.email, projectId: project.id });
+        row.project = project;
+        row.clientData = project.clientData || {};
+        row.company = project.company || row.company;
+        row.contactName = project.contactName || row.contactName;
+        row.email = project.email || row.email;
+        row.phone = project.phone || row.phone;
+        row.clientUserId = project.userid || row.clientUserId;
+      });
+
+      agreements.forEach(agreement => {
+        const row = ensureClient(map, { userId: agreement.user_id, email: agreement.signer_email, projectId: agreement.id });
+        row.agreement = agreement;
+        row.company = agreement.business_name || row.company;
+        row.contactName = agreement.signer_name || row.contactName;
+        row.email = agreement.signer_email || row.email;
+        row.clientUserId = agreement.user_id || row.clientUserId;
+      });
+
+      billing.forEach(subscription => {
+        const row = ensureClient(map, { userId: subscription.user_id, email: subscription.customer_email, projectId: subscription.id });
+        row.billingRows.push(subscription);
+        row.company = row.company !== 'Client' ? row.company : (subscription.customer_company || subscription.customer_name || row.company);
+        row.contactName = row.contactName || subscription.customer_name || '';
+        row.email = row.email || subscription.customer_email || '';
+        row.phone = row.phone || subscription.customer_phone || '';
+        row.clientUserId = subscription.user_id || row.clientUserId;
+      });
+
+      map.forEach(row => {
+        if (row.clientUserId && progressByUser.has(String(row.clientUserId))) {
+          row.progressOverride = progressByUser.get(String(row.clientUserId));
+        }
+        row.managedSite = managedSites.find(site => {
+          if (row.clientUserId && String(site.userid || '') === String(row.clientUserId)) return true;
+          if (row.project?.id && String(site.sitekey || '') === String(row.project.id)) return true;
+          return sameEmail(site.email, row.email);
+        }) || null;
+
+        attachDerivedData(row);
+      });
+
+      clients = Array.from(map.values()).filter(row => row.progress.agreement || row.progress.development || row.progress.standard || row.progress.backend);
+      clients.sort((a, b) => a.company.localeCompare(b.company));
+
+      if (focusedId && !clients.find(row => row.id === focusedId)) focusedId = '';
+      selectedIds = new Set([...selectedIds].filter(id => clients.some(row => row.id === id)));
+      if (!selectedIds.size && clients[0]) {
+        selectedIds.add(clients[0].id);
+        focusedId = clients[0].id;
+      }
+      if (!focusedId && selectedIds.size) focusedId = [...selectedIds][0];
+
+      status.textContent = progressTableAvailable ? '' : 'Client progress overrides are not available yet. Run the progress SQL if you want editable milestone switches to save.';
+      applyFilters();
+    } catch (error) {
+      console.error(error);
+      status.className = 'status error';
+      status.textContent = error.message || 'Could not load clients.';
+      root.innerHTML = '';
+      detailsWrap.innerHTML = '';
+    }
   }
-  return [...map.values()].filter(x=>x.hasAgreement||x.hasDevelopment||x.hasStandard||x.hasBackend||x.progress).sort((a,b)=>String(a.company||a.contactName).localeCompare(String(b.company||b.contactName)));
-}
 
-function statusInfo(x){
-  if(x.billing.some(b=>upper(b.status)==='CANCELED'))return{label:'Canceled',cls:'canceled'};
-  if(x.hasStandard||x.hasBackend)return{label:'Active Client',cls:'client'};
-  if(x.hasDevelopment)return{label:'Development Paid',cls:'dev'};
-  return{label:'Agreement Signed',cls:'agreement'};
-}
-function milestoneCell(done,label,when){return `<div class="milestone ${done?'done':''}"><i class="bi ${done?'bi-check-circle-fill':'bi-dash'}"></i><div><strong>${done?label:'—'}</strong>${done&&when?`<small>${esc(date(when))}</small>`:''}</div></div>`}
-function filteredClients(){
-  return clients.filter(x=>{
-    const matchFilter=activeFilter==='all'||(activeFilter==='agreement'&&x.hasAgreement)||(activeFilter==='development'&&x.hasDevelopment)||(activeFilter==='standard'&&x.hasStandard)||(activeFilter==='backend'&&x.hasBackend);
-    const hay=`${x.company} ${x.contactName} ${x.email} ${x.phone}`.toLowerCase();
-    return matchFilter&&(!searchTerm||hay.includes(searchTerm));
+  function filterMatch(clientRow) {
+    if (activeFilter === 'agreement') return clientRow.progress.agreement;
+    if (activeFilter === 'development') return clientRow.progress.development;
+    if (activeFilter === 'standard') return clientRow.progress.standard;
+    if (activeFilter === 'backend') return clientRow.progress.backend;
+    return true;
+  }
+
+  function searchMatch(clientRow) {
+    const haystack = [clientRow.company, clientRow.contactName, clientRow.email, clientRow.phone].join(' ').toLowerCase();
+    return haystack.includes(searchText.trim().toLowerCase());
+  }
+
+  function getCounts() {
+    return {
+      all: clients.length,
+      agreement: clients.filter(row => row.progress.agreement).length,
+      development: clients.filter(row => row.progress.development).length,
+      standard: clients.filter(row => row.progress.standard).length,
+      backend: clients.filter(row => row.progress.backend).length
+    };
+  }
+
+  function applyFilters() {
+    filteredClients = clients.filter(row => filterMatch(row) && searchMatch(row));
+    if (focusedId && !filteredClients.find(row => row.id === focusedId)) {
+      const selectedVisible = filteredClients.find(row => selectedIds.has(row.id));
+      focusedId = selectedVisible?.id || filteredClients[0]?.id || '';
+    }
+    renderFilters();
+    renderTable();
+    renderDetails();
+    syncSelectionSummary();
+  }
+
+  function renderFilters() {
+    const counts = getCounts();
+    filterPills.innerHTML = FILTERS.map(filter => `
+      <button class="filter-pill ${activeFilter === filter.key ? 'active' : ''}" data-filter="${filter.key}" type="button">
+        <span>${filter.label}</span>
+        <span class="count">${counts[filter.key] || 0}</span>
+      </button>
+    `).join('');
+  }
+
+  function statusMeta(value, dateValue) {
+    if (value === true) {
+      return `<div class="meta-stack"><span class="badge good">${dateValue ? 'Active' : 'Yes'}</span><span class="meta-date">${esc(dateOnly(dateValue))}</span></div>`;
+    }
+    return `<div class="meta-stack">${placeholder()}</div>`;
+  }
+
+  function renderAgreementCell(clientRow) {
+    if (!clientRow.progress.agreement) return placeholder();
+    return `<div class="meta-stack"><span class="badge good">Signed</span><span class="meta-date">${esc(dateOnly(clientRow.progressDates.agreement))}</span></div>`;
+  }
+
+  function renderDevelopmentCell(clientRow) {
+    if (!clientRow.progress.development) return placeholder();
+    return `<div class="meta-stack"><span class="badge good">Paid</span><span class="meta-date">${esc(dateOnly(clientRow.progressDates.development))}</span></div>`;
+  }
+
+  function renderHostingCell(kind, clientRow) {
+    const isOn = kind === 'standard' ? clientRow.progress.standard : clientRow.progress.backend;
+    const dateValue = kind === 'standard' ? clientRow.progressDates.standard : clientRow.progressDates.backend;
+    if (!isOn) return placeholder();
+    return `<div class="meta-stack"><span class="badge good">Active</span><span class="meta-date">${esc(dateOnly(dateValue))}</span></div>`;
+  }
+
+  function renderTable() {
+    if (!filteredClients.length) {
+      root.innerHTML = `<tr><td colspan="8"><div class="empty-card"><i class="bi bi-people"></i><strong>No matching clients.</strong><div>Try a different filter or search.</div></div></td></tr>`;
+      selectAllRows.checked = false;
+      return;
+    }
+
+    root.innerHTML = filteredClients.map(clientRow => `
+      <tr data-row-id="${esc(clientRow.id)}" class="${selectedIds.has(clientRow.id) ? 'selected' : ''}">
+        <td class="check-col"><input data-row-checkbox="${esc(clientRow.id)}" type="checkbox" ${selectedIds.has(clientRow.id) ? 'checked' : ''}></td>
+        <td>
+          <div class="client-cell">
+            <div class="client-avatar">${esc(initials(clientRow.company || clientRow.contactName))}</div>
+            <div class="client-main">
+              <div class="client-name">${esc(clientRow.company)}</div>
+              <div class="client-sub">${esc(clientRow.contactName || '-')}</div>
+            </div>
+          </div>
+        </td>
+        <td class="email-cell">${esc(clientRow.email || '-')}</td>
+        <td>${renderAgreementCell(clientRow)}</td>
+        <td>${renderDevelopmentCell(clientRow)}</td>
+        <td>${renderHostingCell('standard', clientRow)}</td>
+        <td>${renderHostingCell('backend', clientRow)}</td>
+        <td><span class="badge ${esc(clientRow.statusBadge.cls)}">${esc(clientRow.statusBadge.label)}</span></td>
+      </tr>
+    `).join('');
+
+    const selectable = filteredClients.length;
+    const selectedVisible = filteredClients.filter(row => selectedIds.has(row.id)).length;
+    selectAllRows.checked = selectable > 0 && selectedVisible === selectable;
+  }
+
+  function syncSelectionSummary() {
+    const count = selectedIds.size;
+    if (!count) selectionSummary.textContent = 'No clients selected.';
+    else if (count === 1) selectionSummary.textContent = '1 client selected.';
+    else selectionSummary.textContent = `${count} clients selected.`;
+    clearSelectionButton.disabled = !count;
+  }
+
+  function agreementSignatureHTML(agreement) {
+    if (!agreement?.electronic_signature) return '<div class="helper">No signature is saved for this agreement.</div>';
+    if (String(agreement.electronic_signature).startsWith('data:image/')) {
+      return `
+        <div class="signature-preview">
+          <strong>Signature</strong>
+          <img src="${esc(agreement.electronic_signature)}" alt="Client signature">
+        </div>
+      `;
+    }
+    return `<div class="signature-preview"><strong>Electronic signature</strong><div class="helper">${esc(agreement.electronic_signature)}</div></div>`;
+  }
+
+  function renderDetails() {
+    const focused = clients.find(row => row.id === focusedId) || filteredClients[0];
+    if (!focused) {
+      detailsWrap.innerHTML = '';
+      return;
+    }
+
+    const managed = focused.managedSite || {};
+    const agreement = focused.agreement;
+    const summary = focused.statusBadge;
+    const canEditProject = !!focused.project?.id;
+
+    detailsWrap.innerHTML = `
+      <section class="card detail-card" data-client-id="${esc(focused.id)}">
+        <div class="detail-head">
+          <div class="detail-head-left">
+            <div class="client-avatar">${esc(initials(focused.company || focused.contactName))}</div>
+            <div>
+              <h2>${esc(focused.company)}</h2>
+              <p>${esc(focused.contactName || '-')} ${focused.email ? `· ${esc(focused.email)}` : ''}</p>
+              <div class="selected-mini"><span class="badge ${esc(summary.cls)}">${esc(summary.label)}</span></div>
+            </div>
+          </div>
+          <div class="inline-actions">
+            <button class="btn secondary" type="button" data-action="focus-selected">Focus selected client</button>
+            ${canEditProject ? `<button class="btn secondary" type="button" data-back-to-contact="${esc(focused.id)}">Back to Contact</button>` : ''}
+            <button class="btn danger" type="button" data-delete-client="${esc(focused.id)}">Delete Client</button>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <aside class="info-card">
+            <div class="info-item"><span>Client name</span><strong>${esc(focused.company)}</strong></div>
+            <div class="info-list">
+              <div class="info-item"><span>Contact</span><strong>${esc(focused.contactName || '-')}</strong></div>
+              <div class="info-item"><span>Email</span><strong>${esc(focused.email || '-')}</strong></div>
+              <div class="info-item"><span>Phone</span><strong>${esc(focused.phone || '-')}</strong></div>
+              <div class="info-item"><span>User ID</span><strong>${esc(focused.clientUserId || '-')}</strong></div>
+              <div class="info-item"><span>Public URL</span><strong>${esc(managed.liveurl || managed.previewurl || managed.public_url || '-')}</strong></div>
+              <div class="info-item"><span>Admin URL</span><strong>${esc(managed.adminurl || managed.admin_url || '-')}</strong></div>
+              <div class="info-item"><span>Domain</span><strong>${esc(managed.domain || managed.domain_name || '-')}</strong></div>
+            </div>
+          </aside>
+
+          <section class="block">
+            <h3>Client Progress</h3>
+            <div class="block-body">
+              <div class="progress-list">
+                ${renderProgressRow(focused, 'agreement_signed', 'Client Agreement', focused.progress.agreement, focused.progressDates.agreement)}
+                ${renderProgressRow(focused, 'development_paid', '$100 Website Development', focused.progress.development, focused.progressDates.development)}
+                ${renderProgressRow(focused, 'standard_hosting', 'Standard Hosting Plan', focused.progress.standard, focused.progressDates.standard)}
+                ${renderProgressRow(focused, 'backend_hosting', 'Backend Hosting Plan', focused.progress.backend, focused.progressDates.backend)}
+              </div>
+              <div class="helper">You can manually change the unlocked steps here. ${progressTableAvailable ? '' : 'Run the SQL first to save these switches.'}</div>
+            </div>
+          </section>
+
+          <section class="block">
+            <h3>Website / Notes</h3>
+            <div class="block-body">
+              <div class="fields-grid three">
+                <label class="field"><span>Public Website URL</span><input data-site-field="publicUrl" value="${esc(managed.liveurl || managed.previewurl || managed.public_url || '')}" placeholder="https://clientdomain.com"></label>
+                <label class="field"><span>Admin Page URL</span><input data-site-field="adminUrl" value="${esc(managed.adminurl || managed.admin_url || '')}" placeholder="https://clientdomain.com/admin"></label>
+                <label class="field"><span>Domain Name</span><input data-site-field="domainName" value="${esc(managed.domain || managed.domain_name || '')}" placeholder="clientdomain.com"></label>
+              </div>
+              <div class="fields-grid two" style="margin-top:12px;">
+                <label class="field"><span>Requests</span><textarea data-client-field="requests">${esc(focused.clientData?.requests || '')}</textarea></label>
+                <label class="field"><span>Notes / Obligations</span><textarea data-client-field="obligations">${esc(focused.clientData?.obligations || focused.clientData?.notes || '')}</textarea></label>
+              </div>
+              <div class="inline-actions">
+                <label class="field" style="display:flex;align-items:center;gap:10px;min-height:44px;">
+                  <span style="margin:0;">Active domain</span>
+                  <input data-site-field="domainActive" type="checkbox" ${String(managed.domainstatus || managed.domain_status).toLowerCase() === 'active' ? 'checked' : ''}>
+                </label>
+                <div class="auto-save-note" id="autosaveNote">Changes save automatically.</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="card detail-card">
+        <section class="block">
+          <h3>Agreement</h3>
+          <div class="block-body">
+            ${agreement ? `
+              <div class="agreement-grid">
+                <div class="agreement-box"><span>Signer</span><strong>${esc(agreement.signer_name || '-')}</strong></div>
+                <div class="agreement-box"><span>Business</span><strong>${esc(agreement.business_name || '-')}</strong></div>
+                <div class="agreement-box"><span>Email</span><strong>${esc(agreement.signer_email || '-')}</strong></div>
+                <div class="agreement-box"><span>Signed</span><strong>${esc(dateTime(agreement.signed_at))}</strong></div>
+                <div class="agreement-box"><span>Plan</span><strong>${esc(agreement.plan_label || '-')}</strong></div>
+                <div class="agreement-box"><span>Version</span><strong>${esc(agreement.terms_version || '-')}</strong></div>
+              </div>
+              <div class="agreement-actions">
+                <a class="btn secondary" href="../../Web-Hosting-Client-Agreement.pdf" target="_blank" rel="noopener">Terms and Conditions</a>
+              </div>
+              ${agreementSignatureHTML(agreement)}
+            ` : '<div class="helper">No signed agreement is linked to this client.</div>'}
+          </div>
+        </section>
+      </section>
+    `;
+  }
+
+  function renderProgressRow(clientRow, field, label, value, dateValue) {
+    const statusLabel = value ? (field === 'development_paid' ? 'Paid' : field.includes('hosting') ? 'Active' : 'Completed') : 'Not completed';
+    return `
+      <div class="progress-row">
+        <div class="progress-title">
+          <strong>${esc(label)}</strong>
+          <span>${esc(statusLabel)} ${dateValue ? '· ' + esc(dateOnly(dateValue)) : ''}</span>
+        </div>
+        <span class="badge ${value ? 'good' : 'info'}">${esc(value ? statusLabel : 'Off')}</span>
+        <label class="toggle">
+          <input data-progress-field="${esc(field)}" type="checkbox" ${value ? 'checked' : ''} ${pageUnlocked ? '' : 'disabled'}>
+          <span class="toggle-ui"></span>
+        </label>
+      </div>
+    `;
+  }
+
+  function queueSaveClient(clientRow, reason = 'Saving…') {
+    clearTimeout(saveTimers.get(clientRow.id));
+    const note = document.getElementById('autosaveNote');
+    if (note) note.textContent = reason;
+    saveTimers.set(clientRow.id, setTimeout(async () => {
+      saveTimers.delete(clientRow.id);
+      try {
+        if (clientRow.project?.id) {
+          await updateClientProject(clientRow.project.id, { clientData: clientRow.clientData || {} });
+        }
+        if (clientRow.clientUserId) {
+          const draft = clientRow.managedDraft || {};
+          const managed = clientRow.managedSite || {};
+          const saved = await saveManagedSite({
+            userId: clientRow.clientUserId,
+            siteName: clientRow.company || 'Client Website',
+            siteKey: String(clientRow.project?.id || clientRow.clientUserId || clientRow.id),
+            publicUrl: draft.publicUrl ?? managed.liveurl ?? managed.previewurl ?? managed.public_url ?? '',
+            adminUrl: draft.adminUrl ?? managed.adminurl ?? managed.admin_url ?? '',
+            domainName: draft.domainName ?? managed.domain ?? managed.domain_name ?? '',
+            domainActive: draft.domainActive ?? String(managed.domainstatus || managed.domain_status).toLowerCase() === 'active'
+          });
+          clientRow.managedSite = saved;
+        }
+        if (note) note.textContent = 'All changes saved.';
+      } catch (error) {
+        if (note) note.textContent = 'Could not save changes.';
+        status.className = 'status error';
+        status.textContent = error.message || 'Could not save changes.';
+      }
+    }, 450));
+  }
+
+  function toggleRowSelection(id, forceValue) {
+    if (typeof forceValue === 'boolean') {
+      if (forceValue) selectedIds.add(id);
+      else selectedIds.delete(id);
+    } else if (selectedIds.has(id)) {
+      selectedIds.delete(id);
+    } else {
+      selectedIds.add(id);
+    }
+    if (!selectedIds.size) focusedId = filteredClients[0]?.id || '';
+    else if (selectedIds.has(id)) focusedId = id;
+    else if (!selectedIds.has(focusedId)) focusedId = [...selectedIds][0] || filteredClients[0]?.id || '';
+    renderTable();
+    renderDetails();
+    syncSelectionSummary();
+  }
+
+  filterPills.addEventListener('click', event => {
+    const button = event.target.closest('[data-filter]');
+    if (!button) return;
+    activeFilter = button.dataset.filter;
+    applyFilters();
   });
-}
-function updateCounts(){
-  const counts={all:clients.length,agreement:clients.filter(x=>x.hasAgreement).length,development:clients.filter(x=>x.hasDevelopment).length,standard:clients.filter(x=>x.hasStandard).length,backend:clients.filter(x=>x.hasBackend).length};
-  Object.entries(counts).forEach(([k,v])=>{const el=document.querySelector(`[data-count="${k}"]`);if(el)el.textContent=v;});
-}
-function renderRows(){
-  updateCounts();const list=filteredClients();
-  root.innerHTML=list.map(x=>{const st=statusInfo(x);const name=x.contactName||x.company||'Client';return `<button class="client-row ${selectedKey===x.key?'selected':''}" type="button" data-select="${esc(x.key)}">
-    <span class="client-person"><span class="avatar">${esc(initials(name))}</span><span><strong>${esc(name)}</strong><small>${esc(x.company&&x.company!==name?x.company:'')}</small></span></span>
-    <span class="email-cell">${esc(x.email||'—')}</span>
-    ${milestoneCell(x.hasAgreement,'Signed',x.agreement?.signed)}
-    ${milestoneCell(x.hasDevelopment,'Paid',x.development?.lastpayment||x.development?.updated)}
-    ${milestoneCell(x.hasStandard,'Active',x.standard?.startdate||x.standard?.created)}
-    ${milestoneCell(x.hasBackend,'Active',x.backend?.startdate||x.backend?.created)}
-    <span><span class="status-pill ${st.cls}">${esc(st.label)}</span></span>
-    <span class="row-action"><span class="row-edit">Edit</span></span>
-  </button>`}).join('')||'<div class="empty"><i class="bi bi-people"></i><br><strong>No clients match this filter.</strong></div>';
-}
-function switchRow(key,label,done,icon){return `<div class="progress-row"><span class="progress-icon"><i class="bi ${icon}"></i></span><span class="progress-copy"><strong>${label}</strong></span><span class="progress-state ${done?'done':''}"><i class="bi ${done?'bi-check-circle-fill':'bi-circle-fill'}"></i>${done?'Completed':'Not completed'}</span><label class="switch"><input type="checkbox" data-progress="${key}" ${done?'checked':''}><span></span></label></div>`}
-function renderDetail(){
-  const x=clients.find(c=>c.key===selectedKey);
-  if(!x){detail.hidden=true;detail.innerHTML='';return;}
-  if(!pageUnlocked){detail.hidden=true;return;}
-  const st=statusInfo(x);const site=x.primarySite||{};const d=x.clientData||{};
-  detail.hidden=false;
-  detail.innerHTML=`
-    <section class="detail-column profile" data-client="${esc(x.key)}">
-      <div class="profile-block"><span class="avatar">${esc(initials(x.contactName||x.company))}</span><div><h2>${esc(x.contactName||x.company||'Client')}</h2><p>${esc(x.company||'')}</p></div></div>
-      <div class="detail-badge"><span class="status-pill ${st.cls}">${esc(st.label)}</span></div>
-      <div class="contact-list">
-        <div class="contact-item"><i class="bi bi-envelope"></i><span>${esc(x.email||'No email')}</span></div>
-        <div class="contact-item"><i class="bi bi-telephone"></i><span>${esc(x.phone||'No phone')}</span></div>
-        <div class="contact-item"><i class="bi bi-link-45deg"></i><span>${esc(site.liveurl||site.previewurl||'No website URL')}</span></div>
-      </div>
-      <div class="meta-list"><span>Client since <strong>${esc(date(x.firstDate))}</strong></span><span>Last activity <strong>${esc(date(x.lastDate))}</strong></span>${x.userId?`<span>User ID <strong>${esc(x.userId.slice(0,8))}…</strong></span>`:''}</div>
-    </section>
-    <section class="detail-column" data-client="${esc(x.key)}">
-      <div class="progress-head"><h3>Client Progress</h3><p>Manually update which steps this client has completed.</p></div>
-      <div class="progress-stack">
-        ${switchRow('agreement_signed','Client Agreement',x.hasAgreement,'bi-file-earmark-text')}
-        ${switchRow('development_paid','$100 Website Development',x.hasDevelopment,'bi-credit-card')}
-        ${switchRow('standard_hosting','Standard Hosting Plan',x.hasStandard,'bi-window')}
-        ${switchRow('backend_hosting','Backend Hosting Plan',x.hasBackend,'bi-database')}
-      </div>
-      <div class="detail-section">
-        <h3 class="side-title">Website & Admin</h3>
-        <label class="field">Public website URL<input data-site-field="liveurl" value="${esc(site.liveurl||site.previewurl||'')}" placeholder="https://clientdomain.com"></label>
-        <label class="field">Admin page URL<input data-site-field="adminurl" value="${esc(site.adminurl||'')}" placeholder="https://clientdomain.com/admin"></label>
-        <label class="field">Domain<input data-site-field="domain" value="${esc(site.domain||'')}" placeholder="clientdomain.com"></label>
-        <div class="autosave" data-autosave-status>Changes save automatically.</div>
-      </div>
-    </section>
-    <section class="detail-column side" data-client="${esc(x.key)}">
-      <h3 class="side-title">Notes</h3>
-      <label class="field"><textarea data-client-field="notes" placeholder="Add notes about this client...">${esc(d.notes||d.obligations||'')}</textarea></label>
-      <div class="agreement-mini">${x.agreement?`<strong>Agreement signed</strong><br>${esc(fullDate(x.agreement.signed))}<br>${esc(x.agreement.terms||'')}`:'No agreement record linked.'}</div>
-      <div class="detail-section"><h3 class="side-title">Quick Actions</h3><div class="quick-actions">
-        ${site.liveurl?`<a href="${esc(site.liveurl)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> View Website</a>`:''}
-        ${x.agreement?`<a href="../../Web-Hosting-Client-Agreement.pdf" target="_blank" rel="noopener"><i class="bi bi-file-earmark-text"></i> View Agreement</a>`:''}
-        <button type="button" data-back><i class="bi bi-arrow-left"></i> Back to Contact</button>
-        <button class="danger" type="button" data-delete><i class="bi bi-trash"></i> Delete Client</button>
-      </div></div>
-    </section>`;
-}
-function render(){renderRows();renderDetail();}
 
-async function saveProgress(x,field,value){
-  if(!x.userId)throw Error('This client does not have a linked user account.');
-  const c=await initClientsClient();
-  const payload={user_id:x.userId,[field]:value,updated_at:new Date().toISOString()};
-  const {data:{session}}=await c.auth.getSession();if(session?.user?.id)payload.updated_by=session.user.id;
-  const {error}=await c.from('client_portal_progress').upsert(payload,{onConflict:'user_id'});
-  if(error)throw error;
-  x.progress={...(x.progress||{}),...payload};
-  const map={agreement_signed:'hasAgreement',development_paid:'hasDevelopment',standard_hosting:'hasStandard',backend_hosting:'hasBackend'};x[map[field]]=value;
-}
-async function saveSiteField(x,field,value){
-  let site=x.primarySite;
-  const c=await initClientsClient();
-  if(site?.id){const {error}=await c.from('sites').update({[field]:value,updated:new Date().toISOString()}).eq('id',site.id);if(error)throw error;site[field]=value;return;}
-  if(!x.userId)throw Error('This client needs a linked user before site URLs can be saved.');
-  const row={userid:x.userId,source:'portal',sourceid:`client-admin:${x.userId}`,sitekey:`client-${x.userId}`,name:x.company||'Client Website',stage:'client',[field]:value,updated:new Date().toISOString()};
-  const {data,error}=await c.from('sites').upsert(row,{onConflict:'source,sourceid'}).select().single();if(error)throw error;x.sites.unshift(data);x.primarySite=data;
-}
-async function saveClientNotes(x,value){
-  const site=x.primarySite;if(!site?.id)return;
-  const c=await initClientsClient();const returndata={...(site.returndata||{}),notes:value};
-  const {error}=await c.from('sites').update({returndata,updated:new Date().toISOString()}).eq('id',site.id);if(error)throw error;site.returndata=returndata;x.clientData={...x.clientData,notes:value};
-}
-async function backToContact(x){const site=x.primarySite;if(!site?.id)throw Error('No site record is linked to this client.');const c=await initClientsClient();const{error}=await c.from('sites').update({stage:'contact',updated:new Date().toISOString()}).eq('id',site.id);if(error)throw error;}
-async function deleteClient(x,password,typedEmail){
-  const expected=String(x.email||'').trim().toLowerCase();if(!expected)throw Error('This client does not have an email on file, so deletion is blocked.');if(String(typedEmail||'').trim().toLowerCase()!==expected)throw Error('The client email does not match exactly.');const c=await verifyPassword(password);const jobs=[];x.sites.forEach(s=>jobs.push(c.from('sites').delete().eq('id',s.id)));x.agreements.forEach(a=>jobs.push(c.from('agreements').delete().eq('id',a.id)));x.billing.forEach(b=>jobs.push(c.from('square').delete().eq('id',b.id)));if(x.userId)jobs.push(c.from('client_portal_progress').delete().eq('user_id',x.userId));const results=await Promise.all(jobs);const failed=results.find(r=>r.error);if(failed?.error)throw Error(failed.error.message||'Could not delete this client.');
-}
+  searchInput.addEventListener('input', () => {
+    searchText = searchInput.value || '';
+    applyFilters();
+  });
 
-async function load(){
-  try{status.className='status';status.textContent='Loading clients…';const [sites,billing,agreements,progress]=await Promise.all([listSites(),listBilling(),listAgreements(),listProgress()]);clients=buildClients(sites,billing,agreements,progress);if(selectedKey&&!clients.some(x=>x.key===selectedKey))selectedKey='';status.textContent='';render();}
-  catch(e){console.error(e);status.className='status error';status.textContent=e.message||'Could not load clients.';}
-}
+  clearSelectionButton.addEventListener('click', () => {
+    selectedIds.clear();
+    if (filteredClients[0]) {
+      selectedIds.add(filteredClients[0].id);
+      focusedId = filteredClients[0].id;
+    }
+    renderTable();
+    renderDetails();
+    syncSelectionSummary();
+  });
 
-filters.addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;activeFilter=b.dataset.filter;filters.querySelectorAll('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));renderRows();});
-searchInput.addEventListener('input',()=>{searchTerm=searchInput.value.trim().toLowerCase();renderRows();});
-root.addEventListener('click',async e=>{const row=e.target.closest('[data-select]');if(!row)return;try{if(!pageUnlocked)await unlockClientsPage();selectedKey=row.dataset.select;render();requestAnimationFrame(()=>detail.scrollIntoView({behavior:'smooth',block:'nearest'}));}catch(err){status.className='status error';status.textContent=err.message||'Could not open client.';}});
-detail.addEventListener('change',async e=>{const x=clients.find(c=>c.key===selectedKey);if(!x)return;try{if(e.target.dataset.progress){status.textContent='Saving client progress…';await saveProgress(x,e.target.dataset.progress,e.target.checked);status.textContent='Client progress saved.';render();return;}if(e.target.dataset.siteField){status.textContent='Saving website details…';await saveSiteField(x,e.target.dataset.siteField,e.target.value);status.textContent='Website details saved.';render();}}catch(err){status.className='status error';status.textContent=err.message||'Could not save changes.';await load();}});
-detail.addEventListener('input',e=>{if(!e.target.dataset.clientField)return;const x=clients.find(c=>c.key===selectedKey);if(!x)return;clearTimeout(saveTimers.get(x.key));const msg=detail.querySelector('[data-autosave-status]');if(msg)msg.textContent='Saving…';saveTimers.set(x.key,setTimeout(async()=>{try{await saveClientNotes(x,e.target.value);if(msg)msg.textContent='All changes saved.';}catch(err){if(msg)msg.textContent='Could not save changes.';}},450));});
-detail.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const x=clients.find(c=>c.key===selectedKey);if(!x)return;try{if(b.hasAttribute('data-back')){await backToContact(x);status.textContent='Client moved back to Contact.';await load();return;}if(b.hasAttribute('data-delete')){const typedEmail=prompt(`Type the full client email exactly to continue:\n${x.email||'(no email on file)'}`);if(typedEmail===null)return;const password=prompt('Enter your password to permanently delete this client:');if(password===null)return;if(!confirm(`Delete ${x.company||x.contactName||'this client'} permanently? This cannot be undone.`))return;status.textContent='Deleting client…';await deleteClient(x,password,typedEmail);selectedKey='';status.textContent='Client deleted.';await load();}}catch(err){status.className='status error';status.textContent=err.message||'Could not complete that action.';}});
-unlockPageBtn.addEventListener('click',async()=>{try{await unlockClientsPage();}catch(err){status.className='status error';status.textContent=err.message||'Could not unlock Clients.';}});
-syncUnlockUI();load();
+  selectAllRows.addEventListener('change', () => {
+    if (selectAllRows.checked) {
+      filteredClients.forEach(row => selectedIds.add(row.id));
+      if (!focusedId && filteredClients[0]) focusedId = filteredClients[0].id;
+    } else {
+      filteredClients.forEach(row => selectedIds.delete(row.id));
+      focusedId = [...selectedIds][0] || filteredClients[0]?.id || '';
+    }
+    renderTable();
+    renderDetails();
+    syncSelectionSummary();
+  });
+
+  root.addEventListener('click', async event => {
+    const checkbox = event.target.closest('[data-row-checkbox]');
+    if (checkbox) {
+      event.stopPropagation();
+      if (!pageUnlocked) {
+        checkbox.checked = false;
+        await unlockClientsPage();
+        return;
+      }
+      toggleRowSelection(checkbox.dataset.rowCheckbox, checkbox.checked);
+      return;
+    }
+
+    const row = event.target.closest('[data-row-id]');
+    if (!row) return;
+    if (!pageUnlocked) {
+      await unlockClientsPage();
+      return;
+    }
+    toggleRowSelection(row.dataset.rowId);
+  });
+
+  detailsWrap.addEventListener('input', event => {
+    const card = event.target.closest('[data-client-id]');
+    if (!card) return;
+    const clientRow = clients.find(row => row.id === card.dataset.clientId);
+    if (!clientRow) return;
+
+    if (event.target.matches('[data-client-field]')) {
+      clientRow.clientData = clientRow.clientData || {};
+      clientRow.clientData[event.target.dataset.clientField] = event.target.value;
+      queueSaveClient(clientRow);
+      return;
+    }
+
+    if (event.target.matches('[data-site-field]')) {
+      clientRow.managedDraft = clientRow.managedDraft || {};
+      clientRow.managedDraft[event.target.dataset.siteField] = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
+      queueSaveClient(clientRow);
+    }
+  });
+
+  detailsWrap.addEventListener('change', async event => {
+    const card = event.target.closest('[data-client-id]');
+    if (!card) return;
+    const clientRow = clients.find(row => row.id === card.dataset.clientId);
+    if (!clientRow) return;
+
+    const progressInput = event.target.closest('[data-progress-field]');
+    if (progressInput) {
+      try {
+        if (!pageUnlocked) {
+          progressInput.checked = !progressInput.checked;
+          await unlockClientsPage();
+          return;
+        }
+        clientRow.progressOverride = clientRow.progressOverride || {};
+        clientRow.progressOverride[progressInput.dataset.progressField] = progressInput.checked;
+        attachDerivedData(clientRow);
+        renderTable();
+        renderDetails();
+        status.className = 'status';
+        status.textContent = 'Saving client progress…';
+        await saveProgressOverride(clientRow);
+        status.textContent = 'Client progress saved.';
+      } catch (error) {
+        attachDerivedData(clientRow);
+        renderTable();
+        renderDetails();
+        status.className = 'status error';
+        status.textContent = error.message || 'Could not save client progress.';
+      }
+    }
+  });
+
+  detailsWrap.addEventListener('click', async event => {
+    const backButton = event.target.closest('[data-back-to-contact]');
+    const deleteButton = event.target.closest('[data-delete-client]');
+
+    try {
+      if (backButton) {
+        const clientRow = clients.find(row => row.id === backButton.dataset.backToContact);
+        if (!clientRow?.project?.id) return;
+        await updateClientProject(clientRow.project.id, { status: 'contact' });
+        status.className = 'status';
+        status.textContent = 'Moved back to Contact.';
+        await load();
+        return;
+      }
+
+      if (deleteButton) {
+        const clientRow = clients.find(row => row.id === deleteButton.dataset.deleteClient);
+        if (!clientRow) return;
+        const typedEmail = prompt(`Type the full client email exactly to continue:\n${clientRow.email || '(no email on file)'}`);
+        if (typedEmail === null) return;
+        const password = prompt('Enter your password to permanently delete this client:');
+        if (password === null) return;
+        if (!confirm(`Delete ${clientRow.company || 'this client'} permanently? This cannot be undone.`)) return;
+        status.className = 'status';
+        status.textContent = 'Deleting client…';
+        await deleteClient(clientRow, password, typedEmail);
+        status.textContent = 'Client deleted.';
+        await load();
+      }
+    } catch (error) {
+      status.className = 'status error';
+      status.textContent = error.message || 'Could not complete that action.';
+    }
+  });
+
+  if (unlockPageBtn) {
+    unlockPageBtn.addEventListener('click', async () => {
+      try {
+        await unlockClientsPage();
+      } catch (error) {
+        status.className = 'status error';
+        status.textContent = error.message || 'Could not unlock Clients.';
+      }
+    });
+  }
+
+  syncUnlockUI();
+  load();
 })();
