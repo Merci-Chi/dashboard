@@ -19,7 +19,10 @@
       <section class="card directory-panel">
         <div class="directory-head">
           <div><h2>Outreach Leads</h2><p>Choose a category, then select a lead to open the outreach workspace.</p></div>
-          <label class="directory-search"><i class="bi bi-search"></i><input id="directorySearch" type="search" placeholder="Search leads…" autocomplete="off"></label>
+          <div class="directory-tools">
+            <label class="directory-search"><i class="bi bi-search"></i><input id="directorySearch" type="search" placeholder="Search leads…" autocomplete="off"></label>
+            <label class="directory-sort"><i class="bi bi-clock-history"></i><select id="callSort" aria-label="Sort outreach leads"><option value="best" selected>Best hours to call</option><option value="company">Company A–Z</option></select></label>
+          </div>
         </div>
         <div class="category-tabs" role="tablist" aria-label="Lead categories">
           <button class="category-button active" type="button" data-category="uncalled" role="tab" aria-selected="true">Leads Not Called <span class="category-count" data-count="uncalled">0</span></button>
@@ -50,6 +53,7 @@
           <div class="fact"><i class="bi bi-envelope"></i><div><small>Email</small><strong id="email"></strong></div></div>
           <div class="fact"><i class="bi bi-clock"></i><div><small>Timezone</small><strong id="timezone"></strong></div></div>
           <div class="fact"><i class="bi bi-calendar3"></i><div><small>Preferred Contact Times</small><strong id="preferred"></strong></div></div>
+          <div class="fact"><i class="bi bi-telephone-forward"></i><div><small>Best Hours to Call</small><strong id="bestCallHours"></strong></div></div>
         </div>
         <div class="tags-row"><div class="tags" id="tags"></div><button class="edit-tags" id="editTags" type="button"><i class="bi bi-tags"></i>Edit tags</button></div>
       </section>
@@ -80,6 +84,21 @@
       <header class="tag-editor-head"><div><span class="call-kicker">LEAD TAGS</span><h2 id="tagEditorTitle">Edit tags</h2><p>Select or deselect as many tags as you need.</p></div><button class="close" id="closeTagEditor" type="button" aria-label="Close tag editor"><i class="bi bi-x-lg"></i></button></header>
       <div class="tag-groups" id="tagGroups"></div>
       <div class="tag-editor-actions"><button class="wizard-button" id="cancelTagEditor" type="button">Cancel</button><button class="wizard-button primary" id="saveTags" type="button">Save tags</button></div>
+    </section>
+  </div>
+  <div class="modal" id="callTimeConfirmModal" hidden>
+    <section class="card time-confirm" role="dialog" aria-modal="true" aria-labelledby="callTimeConfirmTitle">
+      <span class="call-kicker">BEFORE YOU CALL</span>
+      <h2 id="callTimeConfirmTitle">Check their local time</h2>
+      <p class="time-confirm-label">For them, it is</p>
+      <div class="their-time" id="theirLocalTime">—</div>
+      <p class="time-confirm-zone" id="theirTimezoneSource">—</p>
+      <div class="best-call-box"><small>Best hours to call</small><strong id="confirmBestCallHours">Monday–Friday · 9:00 AM–4:30 PM</strong></div>
+      <p class="time-confirm-question">Are you sure you want to call?</p>
+      <div class="time-confirm-actions">
+        <button class="wizard-button" id="cancelCallTime" type="button">Cancel</button>
+        <button class="wizard-button primary" id="confirmCallTime" type="button"><i class="bi bi-telephone-fill"></i> Call</button>
+      </div>
     </section>
   </div>
   <div class="modal" id="callCompleteModal" hidden>

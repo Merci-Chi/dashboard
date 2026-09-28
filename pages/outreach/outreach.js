@@ -2,6 +2,78 @@
     const URL='https://glonbvrcudwuzjundrii.supabase.co',KEY='sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr';
     const $=s=>document.querySelector(s),PENDING_CALL_KEY='steady-hands-pending-outreach-call';let client,leads=[],active=null,noteTimer,loggedInName='____',directoryCategory='uncalled',siteFilterMode='has-site',callPending=false,pendingCallAt='',selectedOutcomes=new Set(),editingTags=new Set();
     const TAG_GROUPS=[{title:'Website',description:'Website condition',color:'#58b6ff',tags:['Broken Site','Outdated Site','Site Removed','Already have a website']},{title:'Contact',description:'Language and contact limitations',color:'#b77cff',tags:['Spanish?','No Phone']},{title:'Lead Status',description:'Interest and next-step signals',color:'#ffad55',tags:['Hot Lead','Interested','Call Back','Needs More Info','Skeptical']},{title:'Call Outcome',description:'Unreachable or negative outcomes',color:'#ff6e7c',tags:['No Answer','Left Voicemail','Not Interested','Wrong Number']},{title:'Conversion',description:'Completed sales',color:'#f2cf55',tags:['Conversion','Sold']}];
+
+    const AREA_CODE_ZONES={};
+    function addAreaCodes(zone,codes){String(codes).trim().split(/\s+/).filter(Boolean).forEach(code=>AREA_CODE_ZONES[code]=zone)}
+    addAreaCodes('America/Los_Angeles',`206 209 213 253 279 310 323 341 360 369 408 415 424 425 442 458 503 509 510 530 541 559 562 619 626 628 650 657 661 669 702 707 714 725 747 760 775 805 818 820 831 840 858 909 916 925 949 951 971 986`);
+    addAreaCodes('America/Phoenix',`480 520 602 623 928`);
+    addAreaCodes('America/Denver',`303 307 385 406 435 505 575 719 720 801 970 983`);
+    addAreaCodes('America/Boise',`208 986`);
+    addAreaCodes('America/Chicago',`205 210 214 217 224 225 228 251 254 262 281 308 309 312 314 316 318 319 320 325 331 334 346 361 409 417 430 432 447 469 479 501 504 507 512 515 534 539 563 573 580 601 605 608 612 615 618 620 630 636 641 651 660 662 682 701 708 712 713 715 726 737 763 769 779 785 806 815 816 817 830 832 847 850 870 872 903 913 918 920 936 940 945 956 972 975 979 985`);
+    addAreaCodes('America/New_York',`201 202 203 207 212 215 216 220 223 227 229 231 234 239 240 248 252 267 269 272 276 301 302 304 305 313 315 321 330 332 336 339 347 351 352 380 386 401 404 407 410 412 413 419 423 434 440 445 448 470 475 478 484 502 508 513 516 517 518 540 551 561 567 570 571 574 582 585 586 603 606 607 609 610 614 616 617 631 640 646 656 659 667 678 680 681 689 703 704 706 716 717 724 727 732 734 740 743 754 757 762 765 770 772 774 781 786 802 803 804 810 813 814 826 828 835 843 845 848 850 854 856 857 859 860 862 863 864 878 904 908 910 912 914 917 919 929 930 934 937 941 943 947 948 954 959 980 984 989`);
+    addAreaCodes('America/Anchorage',`907`);
+    addAreaCodes('Pacific/Honolulu',`808`);
+    const CALL_WINDOW={start:9*60,end:16*60+30,label:'Monday–Friday · 9:00 AM–4:30 PM local'};
+    function phoneAreaCode(phone){
+      const digits=String(phone||'').replace(/\D/g,'');
+      if(digits.length===11&&digits.startsWith('1'))return digits.slice(1,4);
+      if(digits.length>=10)return digits.slice(0,3);
+      return '';
+    }
+    function normalizedStoredZone(value){
+      const raw=String(value||'').trim();
+      if(!raw)return'';
+      if(raw.includes('/'))return raw;
+      const key=raw.toLowerCase().replace(/\s+/g,'');
+      if(/pacific|pst|pdt/.test(key))return'America/Los_Angeles';
+      if(/mountain|mst|mdt/.test(key))return'America/Denver';
+      if(/central|cst|cdt/.test(key))return'America/Chicago';
+      if(/eastern|est|edt/.test(key))return'America/New_York';
+      if(/arizona/.test(key))return'America/Phoenix';
+      if(/alaska|akst|akdt/.test(key))return'America/Anchorage';
+      if(/hawai|hst/.test(key))return'Pacific/Honolulu';
+      return'';
+    }
+    function leadZoneInfo(lead){
+      const area=phoneAreaCode(lead?.phone),areaZone=AREA_CODE_ZONES[area];
+      if(areaZone)return{zone:areaZone,area,source:'area'};
+      const stored=normalizedStoredZone(lead?.timezone);
+      if(stored)return{zone:stored,area,source:'crm'};
+      return{zone:'America/Los_Angeles',area,source:'fallback'};
+    }
+    function zoneLabel(zone){
+      return {'America/Los_Angeles':'Pacific Time','America/Phoenix':'Arizona Time','America/Denver':'Mountain Time','America/Boise':'Mountain Time','America/Chicago':'Central Time','America/New_York':'Eastern Time','America/Anchorage':'Alaska Time','Pacific/Honolulu':'Hawaii Time'}[zone]||zone.replace(/_/g,' ');
+    }
+    function localClockParts(zone,date=new Date()){
+      const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,weekday:'short',hour:'numeric',minute:'2-digit',hour12:false}).formatToParts(date);
+      const get=type=>parts.find(p=>p.type===type)?.value||'';
+      return{weekday:get('weekday'),hour:Number(get('hour'))%24,minute:Number(get('minute'))};
+    }
+    function callStatus(lead,date=new Date()){
+      const info=leadZoneInfo(lead),p=localClockParts(info.zone,date),minutes=p.hour*60+p.minute,weekdayIndex={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[p.weekday]??0;
+      const weekday=weekdayIndex>=1&&weekdayIndex<=5;
+      let state='late',label='Outside best hours',score=5000;
+      if(weekday&&minutes>=CALL_WINDOW.start&&minutes<=CALL_WINDOW.end){state='good';label='Good time to call now';score=minutes-CALL_WINDOW.start}
+      else if(weekday&&minutes<CALL_WINDOW.start){state='wait';label='Best later today at 9:00 AM';score=1000+(CALL_WINDOW.start-minutes)}
+      else{
+        state='late';
+        const days=weekdayIndex===5?3:weekdayIndex===6?2:weekdayIndex===0?1:1;
+        label=days===1?'Best next weekday at 9:00 AM':'Best Monday at 9:00 AM';
+        score=2000+(days*1440)+(CALL_WINDOW.start-minutes);
+      }
+      return{...info,...p,minutes,state,label,score};
+    }
+    function localTimeText(lead,date=new Date()){
+      const info=leadZoneInfo(lead);
+      return new Intl.DateTimeFormat('en-US',{timeZone:info.zone,weekday:'long',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(date);
+    }
+    function timezoneSourceText(lead){
+      const info=leadZoneInfo(lead);
+      if(info.source==='area')return 'Based on area code '+info.area+' · '+zoneLabel(info.zone);
+      if(info.source==='crm')return 'Using CRM timezone · '+zoneLabel(info.zone);
+      return 'Timezone could not be identified from the area code · showing Pacific Time';
+    }
+
     const clean=(v,f='Not provided')=>String(v??'').trim()||f;
     const escapeHtml=v=>{const n=document.createElement('div');n.textContent=String(v??'');return n.innerHTML};
     function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),1800)}
@@ -44,12 +116,14 @@
         if(!needle)return true;
         return [lead.company,lead.name,lead.phone,lead.email,lead.leadtype,...leadTags(lead)].some(value=>String(value||'').toLowerCase().includes(needle));
       });
+      const sortMode=$('#callSort')?.value||'best';
+      matches.sort((a,b)=>sortMode==='company'?clean(a.company,a.name).localeCompare(clean(b.company,b.name)):callStatus(a).score-callStatus(b).score||clean(a.company,a.name).localeCompare(clean(b.company,b.name)));
       $('#directoryStatus').textContent=matches.length+' '+(matches.length===1?'lead':'leads')+' in '+(directoryCategory==='uncalled'?'Leads Not Called':directoryCategory==='followups'?'Follow Ups':'Not Interested')+' · '+(siteFilterMode==='has-site'?'Has Site Preview':'Does Not Have Site Preview');
       $('#leadList').innerHTML=matches.length?matches.map(lead=>{
         const category=leadCategory(lead);
         const subtitle=category==='notinterested'?'Marked Not Interested':lastCalledLabel(lead);
-        const hasPreview=hasOutreachPreview(lead);
-        return '<button class="lead-choice" type="button" data-lead-id="'+escapeHtml(lead.id)+'"><span class="choice-icon"><i class="bi bi-building"></i></span><span class="choice-main"><strong>'+escapeHtml(clean(lead.company,'Unnamed business'))+'</strong><span>'+escapeHtml(clean(lead.name,'No contact name'))+' · '+escapeHtml(subtitle)+'</span><span class="site-preview-state'+(hasPreview?'':' missing')+'">'+(hasPreview?'Has site preview':'Does not have site preview')+'</span></span><span class="choice-status status-'+category+'">'+categoryLabel(category)+'</span><i class="bi bi-chevron-right choice-chevron"></i></button>';
+        const hasPreview=hasOutreachPreview(lead),call=callStatus(lead);
+        return '<button class="lead-choice" type="button" data-lead-id="'+escapeHtml(lead.id)+'"><span class="choice-icon"><i class="bi bi-building"></i></span><span class="choice-main"><strong>'+escapeHtml(clean(lead.company,'Unnamed business'))+'</strong><span>'+escapeHtml(clean(lead.name,'No contact name'))+' · '+escapeHtml(subtitle)+'</span><span class="call-window '+call.state+'"><i class="bi bi-clock"></i>'+escapeHtml(call.label)+' · '+escapeHtml(zoneLabel(call.zone))+'</span><span class="site-preview-state'+(hasPreview?'':' missing')+'">'+(hasPreview?'Has site preview':'Does not have site preview')+'</span></span><span class="choice-status status-'+category+'">'+categoryLabel(category)+'</span><i class="bi bi-chevron-right choice-chevron"></i></button>';
       }).join(''):'<div class="directory-empty">No leads are in this category.</div>';
     }
     function showDirectory(){
@@ -94,7 +168,8 @@
     function render(){
       $('#content').hidden=!active;if(!active)return;
       $('#callLead').disabled=!String(active.phone||'').trim();updateCallButton();$('#company').textContent=clean(active.company,'Unnamed business');$('#category').textContent=clean(active.leadtype||active.category,'Category not provided');
-      $('#owner').textContent=clean(active.name,'Name not provided');$('#phone').textContent=clean(active.phone);$('#email').textContent=clean(active.email);$('#timezone').textContent=clean(active.timezone);$('#preferred').textContent=preferred(active);
+      const zoneInfo=leadZoneInfo(active);
+      $('#owner').textContent=clean(active.name,'Name not provided');$('#phone').textContent=clean(active.phone);$('#email').textContent=clean(active.email);$('#timezone').textContent=zoneLabel(zoneInfo.zone)+(zoneInfo.source==='area'&&zoneInfo.area?' (area code '+zoneInfo.area+')':'');$('#preferred').textContent=preferred(active);$('#bestCallHours').textContent=CALL_WINDOW.label;
       const tags=[...(Array.isArray(active.sources)?active.sources:[]),...(Array.isArray(active.tags)?active.tags:[])];
       
       if(active.spanish)tags.push('Spanish?');
@@ -151,7 +226,23 @@
     function requestBack(){if(callPending){shakeBack();$('#callCompleteModal').hidden=false;return}showDirectory()}
     function resetCallWizard(limited=false){selectedOutcomes=new Set();$('#callNotes').value='';$('#outcomeNext').disabled=true;$('#outcomeHeading').textContent=limited?'What happened? Select all that apply':'Choose one or more call statuses';document.querySelectorAll('[data-outcome]').forEach(button=>{button.classList.remove('selected');button.hidden=limited&&!button.hasAttribute('data-negative-outcome')});setWizardStep(1)}
     function parsedHistory(lead){if(Array.isArray(lead?.history))return [...lead.history];if(!lead?.history)return[];try{const parsed=JSON.parse(lead.history);return Array.isArray(parsed)?parsed:[]}catch{return[]}}
-    $('#callLead').onclick=()=>{if(callPending){$('#callCompleteModal').hidden=false;return}if(!active?.phone)return toast('No phone number provided.');callPending=true;pendingCallAt=new Date().toISOString();savePendingCall();updateCallButton();location.href='tel:'+String(active.phone).replace(/[^+\d]/g,'')};
+    function openCallTimeConfirmation(){
+      if(!active?.phone)return toast('No phone number provided.');
+      $('#theirLocalTime').textContent=localTimeText(active);
+      $('#theirTimezoneSource').textContent=timezoneSourceText(active);
+      $('#confirmBestCallHours').textContent=CALL_WINDOW.label;
+      const status=callStatus(active),button=$('#confirmCallTime');
+      button.innerHTML=status.state==='good'?'<i class="bi bi-telephone-fill"></i> Call now':'<i class="bi bi-telephone-fill"></i> Call anyway';
+      $('#callTimeConfirmModal').hidden=false;
+    }
+    function beginCall(){
+      $('#callTimeConfirmModal').hidden=true;
+      callPending=true;pendingCallAt=new Date().toISOString();savePendingCall();updateCallButton();
+      location.href='tel:'+String(active.phone).replace(/[^+\d]/g,'');
+    }
+    $('#callLead').onclick=()=>{if(callPending){$('#callCompleteModal').hidden=false;return}openCallTimeConfirmation()};
+    $('#cancelCallTime').onclick=()=>{$('#callTimeConfirmModal').hidden=true};
+    $('#confirmCallTime').onclick=beginCall;
     $('#backToList').onclick=requestBack;
     $('#completeCallNo').onclick=()=>{$('#callCompleteModal').hidden=true;resetCallWizard(true);$('#callWizardModal').hidden=false};
     $('#completeCallYes').onclick=()=>{$('#callCompleteModal').hidden=true;resetCallWizard(false);$('#callWizardModal').hidden=false};
@@ -164,6 +255,7 @@
     window.addEventListener('beforeunload',event=>{if(!callPending)return;event.preventDefault();event.returnValue=''});
     $('#refreshLeads').onclick=async()=>{const button=$('#refreshLeads');button.disabled=true;$('#directoryStatus').textContent='Refreshing leads…';try{await load()}catch(error){toast(error.message||'Could not refresh leads')}finally{button.disabled=false}};
     $('#directorySearch').oninput=renderDirectory;
+    $('#callSort').onchange=renderDirectory;
     document.querySelector('.category-tabs').onclick=event=>{const button=event.target.closest('[data-category]');if(!button)return;directoryCategory=button.dataset.category;document.querySelectorAll('[data-category]').forEach(item=>{const selected=item===button;item.classList.toggle('active',selected);item.setAttribute('aria-selected',String(selected))});renderDirectory()};
     document.querySelector('.site-filter-tabs').onclick=event=>{const button=event.target.closest('[data-site-filter]');if(!button)return;siteFilterMode=button.dataset.siteFilter==='no-site'?'no-site':'has-site';document.querySelectorAll('[data-site-filter]').forEach(item=>{const selected=item===button;item.classList.toggle('active',selected);item.setAttribute('aria-selected',String(selected))});renderDirectory()};
     $('#leadList').onclick=event=>{const button=event.target.closest('[data-lead-id]');if(button)openLead(button.dataset.leadId)};
