@@ -13,24 +13,44 @@
       <div>
         <span class="kicker">KIARA ACCESS</span>
         <h1>Clients</h1>
-        <p class="subtitle">Manage live sites, requests, subscriptions, obligations, and agreements.</p>
+        <p class="subtitle">View client progress, purchases, hosting, websites, and agreements.</p>
       </div>
       <button class="btn secondary page-unlock-btn" id="unlockClientsPage" type="button" aria-pressed="false">
         <i class="bi bi-lock-fill"></i> Unlock clients
       </button>
     </header>
 
+    <div class="toolbar">
+      <div class="filters" id="clientFilters" role="group" aria-label="Client filters">
+        <button class="filter-btn active" type="button" data-filter="all">All <span data-count="all">0</span></button>
+        <button class="filter-btn" type="button" data-filter="agreement">Signed Agreement <span data-count="agreement">0</span></button>
+        <button class="filter-btn" type="button" data-filter="development">Paid $100 <span data-count="development">0</span></button>
+        <button class="filter-btn" type="button" data-filter="standard">Standard Hosting <span data-count="standard">0</span></button>
+        <button class="filter-btn" type="button" data-filter="backend">Backend Hosting <span data-count="backend">0</span></button>
+      </div>
+      <label class="search-box">
+        <i class="bi bi-search"></i>
+        <input id="clientSearch" type="search" placeholder="Search clients..." autocomplete="off">
+      </label>
+    </div>
+
     <div class="status" id="status"></div>
 
-    <nav class="client-filters" id="clientFilters" aria-label="Filter clients by progress">
-      <button class="filter-btn active" type="button" data-filter="all">All <span class="filter-count">0</span></button>
-      <button class="filter-btn" type="button" data-filter="agreement">Agreement <span class="filter-count">0</span></button>
-      <button class="filter-btn" type="button" data-filter="development">$100 Development <span class="filter-count">0</span></button>
-      <button class="filter-btn" type="button" data-filter="standard">Standard Hosting <span class="filter-count">0</span></button>
-      <button class="filter-btn" type="button" data-filter="backend">Backend Hosting <span class="filter-count">0</span></button>
-    </nav>
+    <section class="client-table-shell" aria-label="Clients">
+      <div class="client-table-head">
+        <span>Client</span>
+        <span>Email</span>
+        <span>Agreement</span>
+        <span>$100 Dev</span>
+        <span>Standard</span>
+        <span>Backend</span>
+        <span>Status</span>
+        <span></span>
+      </div>
+      <div id="clientList"></div>
+    </section>
 
-    <section class="cards" id="clientList"></section>
+    <section class="detail-shell" id="clientDetail" hidden></section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
