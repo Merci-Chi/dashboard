@@ -575,3 +575,27 @@ h1 {
 
   .client-actions .btn { width:100%; }
 }
+
+/* Page-wide Clients unlock */
+.page-unlock-btn {
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.page-unlock-btn.unlocked {
+  border-color:rgba(50,213,131,.42);
+  background:rgba(50,213,131,.10);
+  color:#baf3d5;
+}
+
+.page-unlock-btn.unlocked i { color:var(--green); }
+
+@media (max-width:820px) {
+  .page-unlock-btn {
+    width:100%;
+    margin-top:14px;
+  }
+}
