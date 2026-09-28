@@ -42,3 +42,5 @@
 .time-confirm-actions{display:grid;grid-template-columns:1fr 1.25fr;gap:9px;margin-top:14px}
 .time-confirm-actions .wizard-button i{margin-right:6px}
 @media(max-width:680px){.directory-tools{width:100%;flex-direction:column;align-items:stretch}.directory-tools .directory-search{min-width:0}.directory-sort{width:100%}.directory-sort select{width:100%}.their-time{font-size:25px}}
+
+.their-local-time{display:flex!important;align-items:center;gap:6px;width:max-content;max-width:100%;margin-top:7px!important;color:#bcd8f3!important;font-size:12px!important;font-weight:650;line-height:1.35}.their-local-time i{color:var(--cyan);font-size:13px}.their-local-time strong{color:#fff;font-weight:850}

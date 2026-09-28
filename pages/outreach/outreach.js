@@ -122,8 +122,8 @@
       $('#leadList').innerHTML=matches.length?matches.map(lead=>{
         const category=leadCategory(lead);
         const subtitle=category==='notinterested'?'Marked Not Interested':lastCalledLabel(lead);
-        const hasPreview=hasOutreachPreview(lead),call=callStatus(lead);
-        return '<button class="lead-choice" type="button" data-lead-id="'+escapeHtml(lead.id)+'"><span class="choice-icon"><i class="bi bi-building"></i></span><span class="choice-main"><strong>'+escapeHtml(clean(lead.company,'Unnamed business'))+'</strong><span>'+escapeHtml(clean(lead.name,'No contact name'))+' · '+escapeHtml(subtitle)+'</span><span class="call-window '+call.state+'"><i class="bi bi-clock"></i>'+escapeHtml(call.label)+' · '+escapeHtml(zoneLabel(call.zone))+'</span><span class="site-preview-state'+(hasPreview?'':' missing')+'">'+(hasPreview?'Has site preview':'Does not have site preview')+'</span></span><span class="choice-status status-'+category+'">'+categoryLabel(category)+'</span><i class="bi bi-chevron-right choice-chevron"></i></button>';
+        const hasPreview=hasOutreachPreview(lead),call=callStatus(lead),theirTime=localTimeText(lead);
+        return '<button class="lead-choice" type="button" data-lead-id="'+escapeHtml(lead.id)+'"><span class="choice-icon"><i class="bi bi-building"></i></span><span class="choice-main"><strong>'+escapeHtml(clean(lead.company,'Unnamed business'))+'</strong><span>'+escapeHtml(clean(lead.name,'No contact name'))+' · '+escapeHtml(subtitle)+'</span><span class="their-local-time"><i class="bi bi-clock"></i><strong>For them:</strong> '+escapeHtml(theirTime)+' · '+escapeHtml(zoneLabel(call.zone))+'</span><span class="site-preview-state'+(hasPreview?'':' missing')+'">'+(hasPreview?'Has site preview':'Does not have site preview')+'</span></span><span class="choice-status status-'+category+'">'+categoryLabel(category)+'</span><i class="bi bi-chevron-right choice-chevron"></i></button>';
       }).join(''):'<div class="directory-empty">No leads are in this category.</div>';
     }
     function showDirectory(){
@@ -207,6 +207,8 @@
       if(matches.length)$('#leadSelect').selectedIndex=0;
     }
     async function getClient(){for(let i=0;i<30;i++){const p=window.parent!==window?window.parent.supabaseClient:null;if(p){const refreshed=await p.auth.refreshSession();const current=refreshed.data?.session||(await p.auth.getSession()).data?.session;if(current){const user=current.user||{};loggedInName=user.user_metadata?.full_name||user.user_metadata?.display_name||user.user_metadata?.name||String(user.email||'').split('@')[0]||'____';return p}}await new Promise(r=>setTimeout(r,250))}return window.parent!==window&&window.parent.supabaseClient?window.parent.supabaseClient:window.supabase.createClient(URL,KEY)}
+    setInterval(()=>{if(!$('#leadDirectory')?.hidden)renderDirectory()},60000);
+
     async function load(){
       client=await getClient();
       const [crmResult,siteResult]=await Promise.all([
