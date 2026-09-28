@@ -12,6 +12,9 @@
   let pageUnlocked = sessionStorage.getItem('steadyhands_clients_page_unlocked') === '1';
   let progressTableAvailable = true;
   const saveTimers = new Map();
+  let viewYourSiteOptions = [];
+  let sitePickerClientId = '';
+  let sitePickerSearchText = '';
 
   const root = document.getElementById('tableBody');
   const status = document.getElementById('status');
@@ -202,6 +205,244 @@
     }
     progressTableAvailable = true;
     return data || [];
+  }
+
+  async function listViewYourSiteOptions(force = false) {
+    if (viewYourSiteOptions.length && !force) return viewYourSiteOptions;
+
+    const client = await initClientsClient();
+
+    const [githubResult, crmResult, claimsResult] = await Promise.allSettled([
+      fetch('https://api.github.com/repos/Merci-Chi/viewyoursite/contents/Sites')
+        .then(async response => {
+          if (!response.ok) throw new Error(`GitHub returned ${response.status}.`);
+          return response.json();
+        }),
+      client.rpc('gallery_crm_sites'),
+      fetch(`${SUPABASE_URL}/functions/v1/site-claims`, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }).then(async response => {
+        if (!response.ok) throw new Error(`Claim registry returned ${response.status}.`);
+        return response.json();
+      })
+    ]);
+
+    if (githubResult.status !== 'fulfilled') {
+      throw githubResult.reason || new Error('Could not load the View Your Site folders.');
+    }
+
+    if (crmResult.status !== 'fulfilled' || crmResult.value?.error) {
+      throw crmResult.status === 'fulfilled'
+        ? crmResult.value.error
+        : crmResult.reason || new Error('Could not load the View Your Site CRM list.');
+    }
+
+    const folders = Array.isArray(githubResult.value) ? githubResult.value : [];
+    const crmRows = crmResult.value.data || [];
+    const claimedRows = claimsResult.status === 'fulfilled' && Array.isArray(claimsResult.value)
+      ? claimsResult.value
+      : [];
+
+    const folderNames = new Set(
+      folders
+        .filter(item => item?.type === 'dir' && item?.name)
+        .map(item => String(item.name))
+    );
+
+    const claimedSiteKeys = new Set(
+      claimedRows
+        .map(row => String(row?.sitekey || '').trim())
+        .filter(Boolean)
+    );
+
+    const bySiteKey = new Map();
+
+    crmRows.forEach(row => {
+      const sitekey = String(row?.sitekey || '').trim();
+      const company = String(row?.company || '').trim();
+
+      if (!sitekey || !company) return;
+      if (!folderNames.has(sitekey)) return;
+      if (claimedSiteKeys.has(sitekey)) return;
+      if (bySiteKey.has(sitekey)) return;
+
+      bySiteKey.set(sitekey, {
+        sitekey,
+        name: company,
+        previewUrl: `https://viewyoursite.today/Sites/${encodeURIComponent(sitekey)}/`
+      });
+    });
+
+    viewYourSiteOptions = [...bySiteKey.values()]
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return viewYourSiteOptions;
+  }
+
+  async function saveSelectedSite(clientRow, site) {
+    if (!clientRow?.clientUserId) {
+      throw new Error('This client needs a linked user account before a site can be selected.');
+    }
+
+    if (!progressTableAvailable) {
+      throw new Error('The client progress table is not available yet.');
+    }
+
+    const client = await initClientsClient();
+    const user = await getSessionUser();
+    const override = clientRow.progressOverride || {};
+
+    const row = {
+      user_id: clientRow.clientUserId,
+      agreement_signed: typeof override.agreement_signed === 'boolean' ? override.agreement_signed : clientRow.progress.agreement,
+      development_paid: typeof override.development_paid === 'boolean' ? override.development_paid : clientRow.progress.development,
+      standard_hosting: typeof override.standard_hosting === 'boolean' ? override.standard_hosting : clientRow.progress.standard,
+      backend_hosting: typeof override.backend_hosting === 'boolean' ? override.backend_hosting : clientRow.progress.backend,
+      selected_sitekey: site.sitekey,
+      selected_site_name: site.name,
+      updated_by: user.id,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await client
+      .from('client_portal_progress')
+      .upsert(row, { onConflict: 'user_id' });
+
+    if (error) throw error;
+
+    clientRow.progressOverride = {
+      ...override,
+      ...row
+    };
+  }
+
+  function currentSelectedSite(clientRow) {
+    const override = clientRow?.progressOverride || {};
+    return {
+      sitekey: String(override.selected_sitekey || '').trim(),
+      name: String(override.selected_site_name || '').trim()
+    };
+  }
+
+  function sitePickerHTML(clientRow) {
+    const selected = currentSelectedSite(clientRow);
+    const selectedName = selected.name || selected.sitekey || 'No site selected';
+
+    return `
+      <div class="selected-site-box">
+        <div class="selected-site-copy">
+          <span>Selected Site</span>
+          <strong>${esc(selectedName)}</strong>
+          ${selected.sitekey ? `<small>${esc(selected.sitekey)}</small>` : '<small>This client has not selected a site yet.</small>'}
+        </div>
+        <button class="btn secondary" type="button" data-change-selected-site="${esc(clientRow.id)}">
+          <i class="bi bi-search"></i> Change Site
+        </button>
+      </div>
+    `;
+  }
+
+  function renderSitePickerResults() {
+    const results = document.getElementById('sitePickerResults');
+    if (!results) return;
+
+    const clientRow = clients.find(row => row.id === sitePickerClientId);
+    const current = currentSelectedSite(clientRow);
+    const needle = sitePickerSearchText.trim().toLowerCase();
+
+    const filtered = viewYourSiteOptions.filter(site => {
+      if (!needle) return true;
+      return `${site.name} ${site.sitekey}`.toLowerCase().includes(needle);
+    });
+
+    if (!filtered.length) {
+      results.innerHTML = `
+        <div class="site-picker-empty">
+          No available websites match your search.
+        </div>
+      `;
+      return;
+    }
+
+    results.innerHTML = filtered.map(site => `
+      <button
+        class="site-picker-result ${site.sitekey === current.sitekey ? 'current' : ''}"
+        type="button"
+        data-pick-site="${esc(site.sitekey)}"
+      >
+        <div class="site-picker-result-main">
+          <strong>${esc(site.name)}</strong>
+          <span>${esc(site.sitekey)}</span>
+        </div>
+        <span class="site-picker-result-action">
+          ${site.sitekey === current.sitekey ? 'Selected ✓' : 'Select'}
+        </span>
+      </button>
+    `).join('');
+  }
+
+  async function openSitePicker(clientRow) {
+    if (!clientRow?.clientUserId) {
+      throw new Error('This client needs a linked user account before a site can be selected.');
+    }
+
+    sitePickerClientId = clientRow.id;
+    sitePickerSearchText = '';
+
+    document.getElementById('sitePickerOverlay')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'site-picker-overlay';
+    overlay.id = 'sitePickerOverlay';
+    overlay.innerHTML = `
+      <section class="site-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="sitePickerTitle">
+        <div class="site-picker-head">
+          <div>
+            <span class="site-picker-kicker">ViewYourSite.today</span>
+            <h3 id="sitePickerTitle">Change Selected Site</h3>
+            <p>Search the websites that are currently available on View Your Site.</p>
+          </div>
+          <button class="site-picker-close" type="button" data-close-site-picker aria-label="Close">×</button>
+        </div>
+
+        <label class="site-picker-search">
+          <i class="bi bi-search"></i>
+          <input id="sitePickerSearchInput" type="search" placeholder="Search websites..." autocomplete="off">
+        </label>
+
+        <div class="site-picker-status" id="sitePickerStatus">Loading websites…</div>
+        <div class="site-picker-results" id="sitePickerResults"></div>
+      </section>
+    `;
+
+    document.body.appendChild(overlay);
+    document.body.classList.add('site-picker-open');
+
+    try {
+      await listViewYourSiteOptions(true);
+      const pickerStatus = document.getElementById('sitePickerStatus');
+      if (pickerStatus) {
+        pickerStatus.textContent = `${viewYourSiteOptions.length} available website${viewYourSiteOptions.length === 1 ? '' : 's'}`;
+      }
+      renderSitePickerResults();
+      document.getElementById('sitePickerSearchInput')?.focus();
+    } catch (error) {
+      const pickerStatus = document.getElementById('sitePickerStatus');
+      if (pickerStatus) {
+        pickerStatus.classList.add('error');
+        pickerStatus.textContent = error.message || 'Could not load the website list.';
+      }
+    }
+  }
+
+  function closeSitePicker() {
+    document.getElementById('sitePickerOverlay')?.remove();
+    document.body.classList.remove('site-picker-open');
+    sitePickerClientId = '';
+    sitePickerSearchText = '';
   }
 
   async function updateClientProject(id, changes) {
@@ -617,6 +858,7 @@
               <div class="info-item"><span>Admin URL</span><strong>${esc(managed.adminurl || managed.admin_url || '-')}</strong></div>
               <div class="info-item"><span>Domain</span><strong>${esc(managed.domain || managed.domain_name || '-')}</strong></div>
             </div>
+            ${sitePickerHTML(focused)}
           </aside>
 
           <section class="block">
@@ -861,8 +1103,20 @@
   detailsWrap.addEventListener('click', async event => {
     const backButton = event.target.closest('[data-back-to-contact]');
     const deleteButton = event.target.closest('[data-delete-client]');
+    const changeSiteButton = event.target.closest('[data-change-selected-site]');
 
     try {
+      if (changeSiteButton) {
+        if (!pageUnlocked) {
+          await unlockClientsPage();
+          if (!pageUnlocked) return;
+        }
+        const clientRow = clients.find(row => row.id === changeSiteButton.dataset.changeSelectedSite);
+        if (!clientRow) return;
+        await openSitePicker(clientRow);
+        return;
+      }
+
       if (backButton) {
         const clientRow = clients.find(row => row.id === backButton.dataset.backToContact);
         if (!clientRow?.project?.id) return;
@@ -890,6 +1144,57 @@
     } catch (error) {
       status.className = 'status error';
       status.textContent = error.message || 'Could not complete that action.';
+    }
+  });
+
+  document.addEventListener('input', event => {
+    if (event.target?.id !== 'sitePickerSearchInput') return;
+    sitePickerSearchText = event.target.value || '';
+    renderSitePickerResults();
+  });
+
+  document.addEventListener('click', async event => {
+    if (event.target.closest('[data-close-site-picker]')) {
+      closeSitePicker();
+      return;
+    }
+
+    const overlay = event.target.closest('#sitePickerOverlay');
+    if (overlay && event.target === overlay) {
+      closeSitePicker();
+      return;
+    }
+
+    const siteButton = event.target.closest('[data-pick-site]');
+    if (!siteButton) return;
+
+    const clientRow = clients.find(row => row.id === sitePickerClientId);
+    const site = viewYourSiteOptions.find(item => item.sitekey === siteButton.dataset.pickSite);
+
+    if (!clientRow || !site) return;
+
+    try {
+      siteButton.disabled = true;
+      const pickerStatus = document.getElementById('sitePickerStatus');
+      if (pickerStatus) {
+        pickerStatus.classList.remove('error');
+        pickerStatus.textContent = 'Saving selected site…';
+      }
+
+      await saveSelectedSite(clientRow, site);
+
+      status.className = 'status';
+      status.textContent = `Selected site changed to ${site.name}.`;
+
+      closeSitePicker();
+      renderDetails();
+    } catch (error) {
+      siteButton.disabled = false;
+      const pickerStatus = document.getElementById('sitePickerStatus');
+      if (pickerStatus) {
+        pickerStatus.classList.add('error');
+        pickerStatus.textContent = error.message || 'Could not save the selected site.';
+      }
     }
   });
 
