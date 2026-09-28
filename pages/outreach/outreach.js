@@ -1,6 +1,7 @@
 (() => {
     const URL='https://glonbvrcudwuzjundrii.supabase.co',KEY='sb_publishable_VZbed_uuOXSE744UrAfHXw_z2xDdYtr';
-    const $=s=>document.querySelector(s),PENDING_CALL_KEY='steady-hands-pending-outreach-call';let client,leads=[],active=null,noteTimer,loggedInName='____',directoryCategory='uncalled',siteFilterMode='has-site',callPending=false,pendingCallAt='',selectedOutcomes=new Set(),editingTags=new Set();
+    const GITHUB_USER='Merci-Chi',GITHUB_REPO='viewyoursite',SITES_FOLDER='Sites';
+    const $=s=>document.querySelector(s),PENDING_CALL_KEY='steady-hands-pending-outreach-call';let client,leads=[],active=null,noteTimer,loggedInName='____',directoryCategory='uncalled',siteFilterMode='has-site',callPending=false,pendingCallAt='',selectedOutcomes=new Set(),editingTags=new Set(),availableSiteKeys=new Set();
     const TAG_GROUPS=[{title:'Website',description:'Website condition',color:'#58b6ff',tags:['Broken Site','Outdated Site','Site Removed','Already have a website']},{title:'Contact',description:'Language and contact limitations',color:'#b77cff',tags:['Spanish?','No Phone']},{title:'Lead Status',description:'Interest and next-step signals',color:'#ffad55',tags:['Hot Lead','Interested','Call Back','Needs More Info','Skeptical']},{title:'Call Outcome',description:'Unreachable or negative outcomes',color:'#ff6e7c',tags:['No Answer','Left Voicemail','Not Interested','Wrong Number']},{title:'Conversion',description:'Completed sales',color:'#f2cf55',tags:['Conversion','Sold']}];
 
     const AREA_CODE_ZONES={};
@@ -79,20 +80,35 @@
     function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),1800)}
     function preferred(lead){return clean([lead.preferredcontact,lead.preferreddays,lead.timepreference,lead.specifictime].filter(Boolean).join(' · '))}
     function slug(lead){const raw=clean(lead.company,lead.name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return raw||'site-preview'}
+    function normalizedSiteKey(value){
+      return String(value||'').trim();
+    }
     function hasOutreachPreview(lead){
-      return lead?.has_site_preview === true;
+      const folder=normalizedSiteKey(lead?.sitekey);
+      return Boolean(folder&&availableSiteKeys.has(folder));
     }
     function outreachPreviewUrl(lead){
-      if (!hasOutreachPreview(lead)) return '';
-
-      const direct = String(lead?.previewurl || '').trim();
-      if (direct) return direct.endsWith('/') ? direct : direct + '/';
-
-      const folder = String(lead?.sitekey || '').trim();
-
-      return folder
-        ? 'https://viewyoursite.today/Sites/' + encodeURIComponent(folder) + '/'
-        : '';
+      if(!hasOutreachPreview(lead))return'';
+      const folder=normalizedSiteKey(lead?.sitekey);
+      return 'https://viewyoursite.today/Sites/'+encodeURIComponent(folder)+'/';
+    }
+    async function loadAvailableSiteKeys(){
+      const response=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/main?recursive=1`,{
+        headers:{Accept:'application/vnd.github+json'}
+      });
+      if(!response.ok)throw new Error(`GitHub site directory lookup failed (${response.status})`);
+      const data=await response.json();
+      if(!Array.isArray(data.tree))throw new Error('GitHub site directory response was invalid');
+      if(data.truncated)console.warn('GitHub returned a truncated repository tree.');
+      const prefix=SITES_FOLDER+'/';
+      const suffix='/index.html';
+      availableSiteKeys=new Set(
+        data.tree
+          .filter(item=>item?.type==='blob'&&String(item.path||'').startsWith(prefix)&&String(item.path||'').endsWith(suffix))
+          .map(item=>String(item.path).slice(prefix.length,-suffix.length))
+          .filter(folder=>folder&&!folder.includes('/'))
+      );
+      return availableSiteKeys;
     }
     function firstName(value){const name=clean(value,'____');return name==='Not provided'?'____':name.split(/\s+/)[0]}
     const normalizeStatus=value=>String(value||'').trim().toLowerCase().replace(/[\s_-]+/g,'');
@@ -211,6 +227,8 @@
 
     async function load(){
       client=await getClient();
+      $('#directoryStatus').textContent='Checking live site previews…';
+      await loadAvailableSiteKeys();
       const [crmResult,siteResult]=await Promise.all([
         client.from('crm').select('*').order('businessrank',{ascending:true,nullsFirst:false}).order('company',{ascending:true}),
         client.from('sites').select('id,crmid,sitekey,previewurl,adminurl,adminstatus')
