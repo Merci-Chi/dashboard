@@ -12,3 +12,14 @@
 .request-extra{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;color:#a9bfd2;font-size:12px}
 .request-extra a{color:#7fbdff;text-decoration:none}
 .request-extra a:hover{text-decoration:underline}
+
+.tag.email_account{background:#172f25;color:#8fe7b7}
+.payment-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.payment-pill.paid{background:#123d2d;color:#8ff0bd;border:1px solid #1d6a4d}
+.payment-pill.not-paid{background:#462127;color:#ff9baa;border:1px solid #74303c}
+.email-list{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#05111b}
+.email-list strong{display:block;margin-bottom:5px;color:#d8ebfb}
+.email-list div{color:#9fb8cf;font-size:12px;overflow-wrap:anywhere}
+.request-extra{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;color:#a9bfd2;font-size:12px}
+.request-extra a{color:#7fbdff;text-decoration:none}
+.request-extra a:hover{text-decoration:underline}
