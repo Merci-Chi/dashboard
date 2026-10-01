@@ -96,15 +96,9 @@ function emailCard(r){
         <span class="tag ${String(r.status||'pending').toLowerCase()==='pending'?'pending-status':''}">${esc(label(r.status||'pending'))}</span>
         <span class="payment-pill ${paid?'paid':'not-paid'}"><i class="bi ${paid?'bi-check-circle-fill':'bi-x-circle-fill'}"></i> ${paid?'Paid':'Not paid'}</span>
       </div>
-      <div class="actions">
-        <select data-table="dflandscape_email_requests" data-status="${esc(r.id)}">
-          <option value="pending" ${r.status==='pending'?'selected':''}>Pending</option>
-          <option value="approved" ${r.status==='approved'?'selected':''}>Approved</option>
-          <option value="completed" ${r.status==='completed'?'selected':''}>Completed</option>
-          <option value="declined" ${r.status==='declined'?'selected':''}>Declined</option>
-          <option value="cancelled" ${r.status==='cancelled'?'selected':''}>Cancelled</option>
-        </select>
-        <button class="delete" data-table="dflandscape_email_requests" data-delete="${esc(r.id)}"><i class="bi bi-trash3"></i></button>
+      <div class="actions email-request-actions">
+        <a class="request-action-btn edit-email-request" href="https://email.dflandscape.com/manage-emails.html?request=${encodeURIComponent(r.id)}" target="_blank" rel="noopener"><i class="bi bi-pencil-square"></i> Edit</a>
+        <a class="request-action-btn delete-email-request" href="https://email.dflandscape.com/manage-emails.html?request=${encodeURIComponent(r.id)}" target="_blank" rel="noopener"><i class="bi bi-trash3"></i> Delete</a>
       </div>
     </div>
     <h2>${quantity} additional email${quantity===1?'':'s'} — $${total}/${period}</h2>
