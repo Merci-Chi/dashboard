@@ -57,7 +57,7 @@ function render(){
   document.querySelector('#total').textContent=rows.length;
   document.querySelector('#websiteCount').textContent=rows.filter(r=>r._kind==='website').length;
   document.querySelector('#emailCount').textContent=rows.filter(r=>r._kind==='email').length;
-  document.querySelector('#paidCount').textContent=rows.filter(r=>r._kind==='email'&&isPaid(r)).length;
+  document.querySelector('#pendingEmailCount').textContent=rows.filter(r=>r._kind==='email'&&String(r.status||'').toLowerCase()==='pending').length;
 
   const query=document.querySelector('#search').value.trim().toLowerCase();
   const status=document.querySelector('#statusFilter').value;
@@ -93,7 +93,7 @@ function emailCard(r){
     <div class="request-top">
       <div class="tags">
         <span class="tag email_account">Email accounts</span>
-        <span class="tag">${esc(label(r.status||'pending'))}</span>
+        <span class="tag ${String(r.status||'pending').toLowerCase()==='pending'?'pending-status':''}">${esc(label(r.status||'pending'))}</span>
         <span class="payment-pill ${paid?'paid':'not-paid'}"><i class="bi ${paid?'bi-check-circle-fill':'bi-x-circle-fill'}"></i> ${paid?'Paid':'Not paid'}</span>
       </div>
       <div class="actions">
@@ -109,7 +109,7 @@ function emailCard(r){
     </div>
     <h2>${quantity} additional email${quantity===1?'':'s'} — $${total}/${period}</h2>
     <p>Requested by ${esc(r.requested_by_email||'Unknown')}</p>
-    <div class="email-list"><strong>Requested addresses</strong>${emails.length?emails.map(item=>`<div>${esc(item?.email||item?.username||item?.name||'Unnamed email')}</div>`).join(''):'<div>No email names saved.</div>'}</div>
+    <div class="email-list"><strong>${String(r.status||'pending').toLowerCase()==='pending'?'Pending email addresses':'Requested addresses'}</strong>${emails.length?emails.map(item=>`<div class="requested-address-row"><span>${esc(item?.email||item?.username||item?.name||'Unnamed email')}</span>${String(r.status||'pending').toLowerCase()==='pending'?'<span class="pending-mini">Pending</span>':''}</div>`).join(''):'<div>No email names saved.</div>'}</div>
     <div class="request-extra">
       <span><i class="bi bi-credit-card"></i> Payment: <strong>${paid?'Paid':'Not paid'}</strong></span>
       <span><i class="bi bi-arrow-repeat"></i> ${esc(label(cycle))}</span>
