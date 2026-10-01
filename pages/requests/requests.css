@@ -23,3 +23,8 @@
 .request-extra{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;color:#a9bfd2;font-size:12px}
 .request-extra a{color:#7fbdff;text-decoration:none}
 .request-extra a:hover{text-decoration:underline}
+
+.tag.pending-status{background:#4a3814;color:#ffd77f;border:1px solid #6b5320}
+.requested-address-row{display:flex!important;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid #10283d}
+.requested-address-row:first-of-type{border-top:0}
+.pending-mini{display:inline-flex!important;flex:0 0 auto;padding:3px 7px;border-radius:999px;background:#4a3814;color:#ffd77f!important;font-size:9px!important;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
