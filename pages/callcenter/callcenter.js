@@ -428,49 +428,80 @@
     $(`#panel${activeTab[0].toUpperCase()}${activeTab.slice(1)}`).classList.add("active");
   }
 
+  async function withTimeout(promise, ms, label) {
+    let timer;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(label + " timed out.")), ms);
+        })
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function load() {
-    setStatus("Loading CallCenter…");
+    setStatus("Loading users…");
     $("#refreshButton").disabled = true;
 
+    state = { users: [], calls: [], commissions: [], bonuses: [], crm: [] };
+
     try {
-      const [
-        profilesResult,
-        callsResult,
-        commissionsResult,
-        bonusesResult,
-      ] = await Promise.all([
+      const profilesResult = await withTimeout(
         client.from("callcenter_profiles").select("*").order("display_name", { ascending: true }),
-        client.from("callcenter_call_activity").select("*").order("created_at", { ascending: false }).limit(2000),
-        client.from("callcenter_commissions").select("*").order("created_at", { ascending: false }).limit(2000),
-        client.from("callcenter_referral_bonuses").select("*").order("created_at", { ascending: false }).limit(2000),
-      ]);
+        8000,
+        "Users"
+      );
 
-      const errors = [
-        profilesResult.error,
-        callsResult.error,
-        commissionsResult.error,
-        bonusesResult.error,
-      ].filter(Boolean);
-
-      if (errors.length) throw errors[0];
+      if (profilesResult.error) throw profilesResult.error;
 
       state.users = profilesResult.data || [];
-      state.calls = callsResult.data || [];
-      state.commissions = commissionsResult.data || [];
-      state.bonuses = bonusesResult.data || [];
+      render();
+      setStatus(`${state.users.length} CallCenter user${state.users.length === 1 ? "" : "s"} · loading details…`);
+
+      const loaders = [
+        withTimeout(
+          client.from("callcenter_call_activity").select("*").order("created_at", { ascending: false }).limit(500),
+          8000,
+          "Activity"
+        ).then((result) => {
+          if (!result.error) state.calls = result.data || [];
+        }).catch((error) => console.warn("CallCenter activity load:", error)),
+
+        withTimeout(
+          client.from("callcenter_commissions").select("*").order("created_at", { ascending: false }).limit(500),
+          8000,
+          "Earnings"
+        ).then((result) => {
+          if (!result.error) state.commissions = result.data || [];
+        }).catch((error) => console.warn("CallCenter earnings load:", error)),
+
+        withTimeout(
+          client.from("callcenter_referral_bonuses").select("*").order("created_at", { ascending: false }).limit(500),
+          8000,
+          "Referral bonuses"
+        ).then((result) => {
+          if (!result.error) state.bonuses = result.data || [];
+        }).catch((error) => console.warn("CallCenter bonus load:", error)),
+      ];
+
+      await Promise.allSettled(loaders);
 
       const crmIds = [...new Set(state.calls.map((call) => call.crm_id).filter(Boolean))];
-      state.crm = [];
-
       if (crmIds.length) {
-        for (let offset = 0; offset < crmIds.length; offset += 200) {
-          const chunk = crmIds.slice(offset, offset + 200);
-          const { data: leads, error } = await client
-            .from("crm")
-            .select("id,company,name,phone,stage,outcome")
-            .in("id", chunk);
-
-          if (!error && leads) state.crm.push(...leads);
+        try {
+          const leadsResult = await withTimeout(
+            client.from("crm")
+              .select("id,company,name,phone,stage,outcome")
+              .in("id", crmIds.slice(0, 500)),
+            8000,
+            "CRM leads"
+          );
+          if (!leadsResult.error) state.crm = leadsResult.data || [];
+        } catch (error) {
+          console.warn("CallCenter CRM lead load:", error);
         }
       }
 
@@ -481,14 +512,15 @@
       const message = error?.message || "Could not load CallCenter.";
       setStatus(message);
       ["panelUsers", "panelEarnings", "panelReferrals", "panelActivity"].forEach((id) => {
-        $(`#${id}`).innerHTML = `<div class="empty">${esc(message)}</div>`;
+        const panel = document.getElementById(id);
+        if (panel) panel.innerHTML = `<div class="empty">${esc(message)}</div>`;
       });
     } finally {
       $("#refreshButton").disabled = false;
     }
   }
 
-  $$(".tab").forEach((button) => {
+  $(".tab").forEach((button) => {
     button.addEventListener("click", () => {
       activeTab = button.dataset.tab;
       $$(".tab").forEach((item) => item.classList.toggle("active", item === button));
