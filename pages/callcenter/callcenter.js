@@ -532,30 +532,79 @@
   $("#statusFilter").addEventListener("change", render);
   $("#refreshButton").addEventListener("click", load);
 
+  async function waitForParentClient(timeoutMs = 6000) {
+    const started = Date.now();
+
+    while (Date.now() - started < timeoutMs) {
+      try {
+        if (
+          window.parent &&
+          window.parent !== window &&
+          window.parent.supabaseClient &&
+          window.parent.supabaseSession?.user
+        ) {
+          return {
+            client: window.parent.supabaseClient,
+            session: window.parent.supabaseSession,
+          };
+        }
+      } catch (_) {}
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    return null;
+  }
+
   async function initialize() {
-    if (!window.supabase?.createClient) {
-      setStatus("Could not load Supabase.");
+    setStatus("Connecting to dashboard session…");
+
+    const parentAuth = await waitForParentClient();
+
+    let activeSession = null;
+
+    if (parentAuth) {
+      client = parentAuth.client;
+      activeSession = parentAuth.session;
+    } else {
+      if (!window.supabase?.createClient) {
+        setStatus("Could not load Supabase.");
+        return;
+      }
+
+      client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      });
+
+      setStatus("Dashboard session was not found. Open CallCenter from the signed-in dashboard.");
       return;
     }
 
-    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
-    });
+    setStatus("Checking administrator access…");
 
-    const { data } = await client.auth.getSession();
-    if (!data?.session) {
-      setStatus("Your dashboard session is not ready. Sign in to the dashboard and refresh.");
-      return;
-    }
+    const permissionResult = await withTimeout(
+      client
+        .from("team_permissions")
+        .select("role,active")
+        .eq("user_id", activeSession.user.id)
+        .maybeSingle(),
+      8000,
+      "Administrator check"
+    ).catch((error) => ({ data: null, error }));
 
-    const { data: permission, error } = await client
-      .from("team_permissions")
-      .select("role,active")
-      .eq("user_id", data.session.user.id)
-      .maybeSingle();
-
-    if (error || !permission?.active || permission.role !== "ADMIN") {
-      setStatus("Administrator access is required.");
+    if (
+      permissionResult.error ||
+      !permissionResult.data?.active ||
+      permissionResult.data.role !== "ADMIN"
+    ) {
+      setStatus(
+        permissionResult.error?.message ||
+        "Administrator access is required."
+      );
       return;
     }
 
