@@ -27,6 +27,7 @@
     "site-development",
     "delivery",
     "reports",
+    "callcenter",
     "team"
   ];
 
@@ -114,7 +115,7 @@
       const configuredViews = Array.isArray(serverPermissions.views)
         ? serverPermissions.views
             .map(view => view === "leads" ? "crm" : (view === "live" ? "deleted-leads" : view))
-            .filter(view => ALL_VIEWS.includes(view) && view !== "team")
+            .filter(view => ALL_VIEWS.includes(view) && view !== "team" && view !== "callcenter")
         : [];
       return configuredViews.length ? configuredViews : UNAUTHORIZED;
     }
