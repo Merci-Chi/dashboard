@@ -520,7 +520,7 @@
     }
   }
 
-  $(".tab").forEach((button) => {
+  $$(".tab").forEach((button) => {
     button.addEventListener("click", () => {
       activeTab = button.dataset.tab;
       $$(".tab").forEach((item) => item.classList.toggle("active", item === button));
