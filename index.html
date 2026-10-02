@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="index.css?v=20260930-6" />
+    <link rel="stylesheet" href="index.css?v=20261001-callcenter" />
 
 </head>
 <body>
@@ -126,6 +126,7 @@
         </div>
         <div class="nav-section">
           <h2 class="nav-heading">Administration</h2>
+          <a class="nav-item" href="#callcenter" data-view="callcenter"><i class="bi bi-telephone-fill"></i><span>CallCenter</span></a>
           <a class="nav-item" href="#team" data-view="team"><i class="bi bi-person-gear"></i><span>Team</span></a>
         </div>
         <div class="nav-section unauthorized-nav-section">
@@ -171,6 +172,7 @@
       <section class="view placeholder-view" id="view-site-development" data-page="site-development"></section>
       <section class="view placeholder-view" id="view-delivery" data-page="delivery"></section>
       <section class="view placeholder-view" id="view-reports" data-page="reports"></section>
+      <section class="view pipeline-embed-view" id="view-callcenter" data-page="callcenter" aria-label="CallCenter management"><iframe class="pipeline-iframe" src="pages/callcenter/" title="CallCenter Management"></iframe></section>
       <section class="view pipeline-embed-view" id="view-team" data-page="team" aria-label="Team management"><iframe class="pipeline-iframe" src="pages/team/" title="Team Management"></iframe></section>
     </section>
   </main>
@@ -214,6 +216,6 @@
       });
     })();
   </script>
-  <script src="index.js?v=20260930-6"></script>
+  <script src="index.js?v=20261001-callcenter"></script>
 </body>
 </html>
