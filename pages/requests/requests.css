@@ -34,3 +34,18 @@
 .request-action-btn.delete-email-request{color:#ff91a2;border-color:#5a2833}
 .request-action-btn.delete-email-request:hover{border-color:#b94d62}
 @media(max-width:850px){.email-request-actions{width:100%}.email-request-actions .request-action-btn{flex:1}}
+
+/* Client Portal Requests, isolated from existing request cards */
+.portal-requests-section{margin-top:30px;border-top:1px solid rgba(104,139,180,.22);padding-top:26px}
+.portal-requests-head{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:15px}
+.portal-requests-head h2{font-size:22px;margin:5px 0}
+.portal-requests-head p{margin:0;color:#6f8095;font-size:13px}
+#portal-requests-status{font-size:13px;color:#56728e;margin:12px 0}
+#portal-requests-list{display:grid;gap:12px}
+.portal-request-card{background:#fff;border:1px solid #dce5f0;border-radius:15px;padding:18px;display:flex;gap:18px;justify-content:space-between;align-items:flex-start;overflow-wrap:anywhere}
+.portal-request-info{min-width:0;flex:1}.portal-request-info strong{font-size:15px;color:#15345f}
+.portal-request-info small{display:block;font-size:11px;color:#69809a;margin:7px 0}
+.portal-request-info p{font-size:13px;white-space:pre-wrap;color:#344e6e;margin:10px 0}
+.portal-request-controls label{font-size:12px;font-weight:700;display:grid;gap:8px;color:#426484}
+.portal-request-controls select{background:#f7faff;border:1px solid #cbd9e9;border-radius:9px;padding:9px 12px;min-width:150px}
+@media(max-width:650px){.portal-request-card{flex-direction:column}.portal-request-controls,.portal-request-controls select{width:100%}}
